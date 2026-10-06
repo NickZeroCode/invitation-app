@@ -4,9 +4,11 @@ Invitation-creation SaaS for the DRC market — create event invitation models,
 generate individual guest invitations, share them by link or image, and verify
 guests via QR code. The product UI is **French (fr-FR)**.
 
-> **Status: Phase 1 complete** — authentication, organizer workspace shell,
-> dashboard statistics, and the full data model. Template editing, invitation
-> generation, sharing and QR verification are the next phases.
+> **Status: Phase 2 complete** — authentication, organizer workspace shell,
+> dashboard statistics, the full data model, the template gallery, and the
+> event model editor (content, schedule, cover, emphasis, preference
+> questions, live preview). Invitation generation, sharing and QR
+> verification are the next phases.
 
 ## Stack
 
@@ -40,7 +42,7 @@ The API listens on `http://localhost:8000/api/`. Tests:
 
 ```powershell
 cd backend
-.\.venv\Scripts\python.exe -m pytest -q        # 30 tests
+.\.venv\Scripts\python.exe -m pytest -q        # 58 tests
 .\.venv\Scripts\python.exe manage.py check
 ```
 
@@ -62,7 +64,7 @@ Key backend notes:
 cd frontend
 npm install
 npm run dev        # http://localhost:5173 — proxies /api to localhost:8000
-npm test           # Vitest (17 tests)
+npm test           # Vitest (29 tests)
 npm run lint       # oxlint
 npm run build      # tsc -b (strict) + vite build → dist/
 ```
@@ -75,6 +77,12 @@ Key frontend notes:
 - The API client (`src/lib/api.ts`) echoes the CSRF cookie in `X-CSRFToken`
   on every unsafe request and surfaces every failure as `ApiError` with a
   French, user-safe message.
+- Seven invitation designs live in `src/templates/` (one renderer per catalog
+  key) and scale from gallery thumbnail to editor preview via CSS container
+  queries; template config from the API is data, never executed as code.
+- Pages: dashboard (`/`), event models (`/evenements`), editor
+  (`/evenements/nouveau`, `/evenements/:id`), template gallery (`/modeles`),
+  settings (`/parametres`).
 
 ## Environment variables
 
@@ -87,6 +95,16 @@ Backend (see `backend/.env.example`):
 | `DATABASE_URL`          | Postgres DSN (Neon, pooled) — omitted in dev     |
 | `ALLOWED_HOSTS`         | Comma-separated hostnames                        |
 | `CORS_ALLOWED_ORIGINS`  | Frontend origin(s) for cross-site cookies        |
+| `AWS_STORAGE_BUCKET_NAME` | Media bucket (covers, invitation images)       |
+| `AWS_ACCESS_KEY_ID`     | S3-compatible access key                         |
+| `AWS_SECRET_ACCESS_KEY` | S3-compatible secret key                         |
+| `AWS_S3_ENDPOINT_URL`   | S3-compatible endpoint (e.g. Contabo, Scaleway)  |
+| `AWS_S3_REGION_NAME`    | Bucket region                                    |
+| `AWS_QUERYSTRING_EXPIRE`| Signed URL lifetime in seconds                   |
+
+Media files (event covers, later invitation images) are stored through
+django-storages in an S3-compatible object store — Vercel's filesystem is
+ephemeral, so never store uploads locally in production.
 
 Frontend (optional):
 

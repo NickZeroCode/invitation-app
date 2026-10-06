@@ -9,6 +9,9 @@ import { LoginPage } from './pages/LoginPage.tsx'
 import { NotFoundPage } from './pages/NotFoundPage.tsx'
 import { OverviewPage } from './pages/OverviewPage.tsx'
 import { SettingsPage } from './pages/SettingsPage.tsx'
+import { TemplatesPage } from './pages/TemplatesPage.tsx'
+import { EventsPage } from './pages/EventsPage.tsx'
+import { EventEditorPage } from './pages/EventEditorPage.tsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,6 +52,10 @@ export default function App() {
               }
             >
               <Route index element={<OverviewPage />} />
+              <Route path="/evenements" element={<EventsPage />} />
+              <Route path="/evenements/nouveau" element={<EventEditorPage />} />
+              <Route path="/evenements/:id" element={<EventEditorPage />} />
+              <Route path="/modeles" element={<TemplatesPage />} />
               <Route path="/parametres" element={<SettingsPage />} />
             </Route>
             <Route path="*" element={<NotFoundPage />} />

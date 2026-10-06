@@ -47,6 +47,26 @@ export function IconSettings({ className = 'h-5 w-5' }: IconProps) {
   )
 }
 
+export function IconEvents({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M8 3v4M16 3v4M3 10h18" />
+      <path d="m12 13 1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.2-2.4 1.2.5-2.6-1.9-1.8 2.6-.4z" />
+    </svg>
+  )
+}
+
+export function IconTemplates({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="3" y="3" width="8" height="18" rx="1.5" />
+      <rect x="14" y="3" width="7" height="8" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  )
+}
+
 export function IconLogout({ className = 'h-5 w-5' }: IconProps) {
   return (
     <svg {...base(className)}>

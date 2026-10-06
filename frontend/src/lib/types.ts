@@ -55,3 +55,115 @@ export interface ApiErrorBody {
     fields?: Record<string, string[]>
   }
 }
+
+// ---------------------------------------------------------------------------
+// Phase 2 — template catalog & event invitation models
+// ---------------------------------------------------------------------------
+
+export type TemplateCategory =
+  | 'wedding'
+  | 'birthday'
+  | 'graduation'
+  | 'reception'
+  | 'anniversary'
+  | 'memorial'
+  | 'corporate'
+  | 'other'
+
+export interface TemplateConfig {
+  supports_cover: boolean
+  sections: string[]
+  emphasis_fields: string[]
+}
+
+export interface InvitationTemplate {
+  key: string
+  name: string
+  category: TemplateCategory
+  category_label: string
+  description: string
+  version: number
+  supports_cover: boolean
+  config: TemplateConfig
+}
+
+export interface PreferenceOptionPayload {
+  id?: number
+  label: string
+}
+
+export interface PreferenceQuestionPayload {
+  id?: number
+  label: string
+  help_text: string
+  input_type: 'single' | 'multiple'
+  required: boolean
+  order: number
+  is_active: boolean
+  options: PreferenceOptionPayload[]
+}
+
+export interface PreferenceOption extends PreferenceOptionPayload {
+  id: number
+  order: number
+}
+
+export interface PreferenceQuestion extends Omit<PreferenceQuestionPayload, 'options'> {
+  id: number
+  options: PreferenceOption[]
+}
+
+export interface EventModel {
+  id: number
+  template: string
+  template_detail: InvitationTemplate
+  title: string
+  message: string
+  event_date: string
+  event_time: string
+  timezone: string
+  venue_name: string
+  venue_address: string
+  venue_details: string
+  cover_url: string | null
+  display_config: { emphasis?: string[] }
+  preference_questions: PreferenceQuestion[]
+  invitations_count: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface EventListPage {
+  count: number
+  next: string | null
+  previous: string | null
+  results: EventModel[]
+}
+
+export interface EventListParams {
+  q?: string
+  category?: TemplateCategory | ''
+  is_active?: 'true' | 'false' | ''
+  page?: number
+}
+
+export interface EventPayload {
+  template: string
+  title: string
+  message: string
+  event_date: string
+  event_time: string
+  timezone: string
+  venue_name: string
+  venue_address: string
+  venue_details: string
+  display_config: { emphasis: string[] }
+  preference_questions: PreferenceQuestionPayload[]
+  is_active?: boolean
+}
+
+export interface CoverUploadResponse {
+  cover_url: string
+  updated_at: string
+}

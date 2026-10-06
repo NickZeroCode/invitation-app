@@ -8,6 +8,7 @@ export {
   IconCheck,
   IconChevronLeft,
   IconClose,
+  IconEvents,
   IconEye,
   IconEyeOff,
   IconInbox,
@@ -17,6 +18,7 @@ export {
   IconOverview,
   IconRefresh,
   IconSettings,
+  IconTemplates,
   type IconProps,
 } from './icons.tsx'
 export { Input, PasswordInput, Select, type InputProps, type SelectProps } from './Input.tsx'

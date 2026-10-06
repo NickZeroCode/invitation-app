@@ -11,7 +11,13 @@
 import type {
   ApiErrorBody,
   ChangePasswordPayload,
+  CoverUploadResponse,
   DashboardOverview,
+  EventListParams,
+  EventListPage,
+  EventModel,
+  EventPayload,
+  InvitationTemplate,
   LoginPayload,
   Organizer,
   ProfileUpdatePayload,
@@ -110,8 +116,11 @@ function toApiError(status: number, data: unknown): ApiError {
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' }
-  let payload: string | undefined
-  if (body !== undefined) {
+  let payload: BodyInit | undefined
+  if (body instanceof FormData) {
+    // Multipart upload: the browser sets Content-Type with the boundary.
+    payload = body
+  } else if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
     payload = JSON.stringify(body)
   }
@@ -160,4 +169,33 @@ export const authApi = {
 
 export const dashboardApi = {
   overview: () => request<DashboardOverview>('GET', '/api/dashboard/overview/'),
+}
+
+export const templatesApi = {
+  list: () => request<InvitationTemplate[]>('GET', '/api/templates/'),
+  get: (key: string) =>
+    request<InvitationTemplate>('GET', `/api/templates/${encodeURIComponent(key)}/`),
+}
+
+export const eventsApi = {
+  list: (params: EventListParams = {}) => {
+    const query = new URLSearchParams()
+    if (params.q) query.set('q', params.q)
+    if (params.category) query.set('category', params.category)
+    if (params.is_active) query.set('is_active', params.is_active)
+    if (params.page && params.page > 1) query.set('page', String(params.page))
+    const suffix = query.size > 0 ? `?${query.toString()}` : ''
+    return request<EventListPage>('GET', `/api/events/${suffix}`)
+  },
+  get: (id: number) => request<EventModel>('GET', `/api/events/${id}/`),
+  create: (payload: EventPayload) => request<EventModel>('POST', '/api/events/', payload),
+  update: (id: number, payload: Partial<EventPayload>) =>
+    request<EventModel>('PATCH', `/api/events/${id}/`, payload),
+  remove: (id: number) => request<void>('DELETE', `/api/events/${id}/`),
+  uploadCover: (id: number, file: File) => {
+    const form = new FormData()
+    form.append('image', file)
+    return request<CoverUploadResponse>('PUT', `/api/events/${id}/cover/`, form)
+  },
+  removeCover: (id: number) => request<void>('DELETE', `/api/events/${id}/cover/`),
 }

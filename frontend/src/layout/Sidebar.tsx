@@ -6,10 +6,12 @@ import {
   Button,
   IconChevronLeft,
   IconClose,
+  IconEvents,
   IconLogout,
   IconMenu,
   IconOverview,
   IconSettings,
+  IconTemplates,
   type IconProps,
 } from '../design-system/index.ts'
 import { fr } from '../locales/fr.ts'
@@ -23,6 +25,8 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { to: '/', label: fr.nav.overview, icon: IconOverview, end: true },
+  { to: '/evenements', label: fr.nav.events, icon: IconEvents },
+  { to: '/modeles', label: fr.nav.templates, icon: IconTemplates },
   { to: '/parametres', label: fr.nav.settings, icon: IconSettings },
 ]
 

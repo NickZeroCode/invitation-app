@@ -1,4 +1,4 @@
-# NickEvents — API contract (Phase 1)
+# NickEvents — API contract (Phase 1–2)
 
 Base URL: `/api` (same origin in production; the Vite dev server proxies it).
 
@@ -75,7 +75,112 @@ excluded everywhere).
 | `unsupported_media_type` | 415         |                                        |
 | `throttled`           | 429            |                                        |
 | `csrf_failed`         | 403            | CSRF token missing/mismatch            |
+| `event_has_invitations` | 400          | DELETE refused: the event model already generated invitations |
 | `error`               | 500            | Generic ("Une erreur est survenue.")   |
 
 Clients should branch on `code`, display `message`, and attach `fields` to
 form inputs when present.
+
+## Phase 2 — templates & event models
+
+### Endpoints
+
+| Method | Path                              | Auth | Description                                     |
+| ------ | --------------------------------- | ---- | ----------------------------------------------- |
+| GET    | `/api/templates/`                 | ✓    | Read-only catalog (7 seeded templates)          |
+| GET    | `/api/templates/{key}/`           | ✓    | Single template by `key` (404 otherwise)        |
+| GET    | `/api/events/`                    | ✓    | List own event models (paginated, 25 per page)  |
+| POST   | `/api/events/`                    | ✓    | Create an event model                           |
+| GET    | `/api/events/{id}/`               | ✓    | Retrieve own event model                        |
+| PUT    | `/api/events/{id}/`               | ✓    | Full update                                     |
+| PATCH  | `/api/events/{id}/`               | ✓    | Partial update                                  |
+| DELETE | `/api/events/{id}/`               | ✓    | Delete (400 `event_has_invitations` if linked)  |
+| PUT    | `/api/events/{id}/cover/`         | ✓    | Upload cover — multipart field `image`          |
+| DELETE | `/api/events/{id}/cover/`         | ✓    | Remove the cover (`204`)                        |
+
+`GET /api/events/` query params: `q` (title search), `category` (template
+category), `is_active` (`true`/`false`), `page`. Results are scoped to the
+authenticated organizer and ordered by `-event_date, -created_at`.
+
+### Template payload
+
+```json
+{
+  "key": "heritage-luxe",
+  "name": "Héritage",
+  "category": "wedding",
+  "category_label": "Mariage",
+  "description": "Composition classique et centrée.",
+  "version": 1,
+  "supports_cover": true,
+  "config": {
+    "supports_cover": true,
+    "sections": [],
+    "emphasis_fields": ["title", "date", "venue"]
+  }
+}
+```
+
+The catalog is seeded (`templates_app/migrations/0002_seed_templates.py`) with
+the keys `heritage-luxe`, `jardin-floral`, `ligne-moderne`, `confetti`,
+`sceau-academique`, `soiree-formelle`, `memoire`. The frontend renders each
+key with its own design (`frontend/src/templates/`) — template config is data,
+never executed as code.
+
+### Event model payload
+
+```json
+{
+  "id": 7,
+  "template": "confetti",
+  "template_detail": { "key": "confetti", "name": "Confetti", "…": "…" },
+  "title": "Les 30 ans de Sarah",
+  "message": "Une soirée festive vous attend.",
+  "event_date": "2026-12-12",
+  "event_time": "15:00:00",
+  "timezone": "Africa/Kinshasa",
+  "venue_name": "Le Palmier",
+  "venue_address": "",
+  "venue_details": "",
+  "cover_url": "https://…/covers/event-7.jpg",
+  "display_config": { "emphasis": ["title", "date"] },
+  "preference_questions": [
+    {
+      "id": 3,
+      "label": "Participerez-vous ?",
+      "help_text": "",
+      "input_type": "single",
+      "required": false,
+      "order": 0,
+      "is_active": true,
+      "options": [{ "id": 9, "label": "Oui" }, { "id": 10, "label": "Non" }]
+    }
+  ],
+  "invitations_count": 0,
+  "is_active": true,
+  "created_at": "2026-10-07T10:00:00Z",
+  "updated_at": "2026-10-07T10:00:00Z"
+}
+```
+
+### Validation rules
+
+- `template` is required and must reference an existing catalog `key`.
+- `display_config.emphasis` must be a subset of the template's
+  `config.emphasis_fields`.
+- `event_date` + `event_time` are required; `timezone` defaults to
+  `Africa/Kinshasa`.
+- Preference questions: `label` required (max 255), `input_type` ∈
+  `single|multiple`; `single`/`multiple` questions need ≥ 2 non-empty, distinct
+  options; free-text questions must have none. Questions already answered by
+  guests cannot be deleted or switched to free-text.
+- Cover upload: `image` field, JPEG/PNG/WebP only (415 otherwise), 5 Mo max.
+- **Field error keys are dotted paths**, e.g. `display_config.emphasis`,
+  `preference_questions.0.options` — clients map them onto the matching input.
+
+### Shared-model policy
+
+An event model is a shared *model*: editing it propagates to **every** guest
+invitation already generated from it. Changing the template only re-styles the
+invitations (same content); deleting the model is refused with
+`event_has_invitations` while invitations exist.
