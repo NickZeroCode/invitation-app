@@ -17,6 +17,7 @@ import type {
   EventListPage,
   EventModel,
   EventPayload,
+  EventResponsesPage,
   Invitation,
   InvitationBulkResult,
   InvitationListParams,
@@ -207,6 +208,12 @@ export const eventsApi = {
     return request<CoverUploadResponse>('PUT', `/api/events/${id}/cover/`, form)
   },
   removeCover: (id: number) => request<void>('DELETE', `/api/events/${id}/cover/`),
+  responses: (id: number, params: { page?: number } = {}) => {
+    const query = new URLSearchParams()
+    if (params.page && params.page > 1) query.set('page', String(params.page))
+    const suffix = query.size > 0 ? `?${query.toString()}` : ''
+    return request<EventResponsesPage>('GET', `/api/events/${id}/responses/${suffix}`)
+  },
 }
 
 export const publicApi = {

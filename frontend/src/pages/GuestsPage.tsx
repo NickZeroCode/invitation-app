@@ -512,12 +512,20 @@ export function GuestsPage() {
             <p className="mt-1 text-xs text-ink-faint">{eventQuery.data.title}</p>
           ) : null}
         </div>
-        <Link
-          to="/evenements"
-          className="inline-flex h-10 items-center rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
-        >
-          {fr.guests.back}
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            to={`/evenements/${eventId}/reponses`}
+            className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-strong"
+          >
+            {fr.guests.viewResponses}
+          </Link>
+          <Link
+            to="/evenements"
+            className="inline-flex h-10 items-center rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
+          >
+            {fr.guests.back}
+          </Link>
+        </div>
       </header>
 
       {eventQuery.isError ? (

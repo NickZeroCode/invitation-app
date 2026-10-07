@@ -13,6 +13,7 @@ import { TemplatesPage } from './pages/TemplatesPage.tsx'
 import { EventsPage } from './pages/EventsPage.tsx'
 import { EventEditorPage } from './pages/EventEditorPage.tsx'
 import { GuestsPage } from './pages/GuestsPage.tsx'
+import { ResponsesPage } from './pages/ResponsesPage.tsx'
 import { PublicInvitationPage } from './pages/PublicInvitationPage.tsx'
 
 const queryClient = new QueryClient({
@@ -59,6 +60,7 @@ export default function App() {
               <Route path="/evenements/nouveau" element={<EventEditorPage />} />
               <Route path="/evenements/:id" element={<EventEditorPage />} />
               <Route path="/evenements/:id/invitations" element={<GuestsPage />} />
+              <Route path="/evenements/:id/reponses" element={<ResponsesPage />} />
               <Route path="/modeles" element={<TemplatesPage />} />
               <Route path="/parametres" element={<SettingsPage />} />
             </Route>

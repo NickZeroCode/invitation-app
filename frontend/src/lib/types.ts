@@ -243,6 +243,37 @@ export interface GuestResponseSubmission {
   answers: Array<{ question: number; options: number[] }>
 }
 
+/** Aggregate tally for one option inside the organizer response summary. */
+export interface ResponseOptionTally {
+  id: number
+  label: string
+  count: number
+}
+
+/** Aggregate tallies for one preference question. */
+export interface ResponseQuestionTally {
+  id: number
+  label: string
+  input_type: 'single' | 'multiple'
+  options: ResponseOptionTally[]
+}
+
+/** `summary` attached to the organizer response report. */
+export interface EventResponsesSummary {
+  invitations: number
+  responses: number
+  questions: ResponseQuestionTally[]
+}
+
+/** `GET /api/events/{id}/responses/`: individual answers + aggregates. */
+export interface EventResponsesPage {
+  count: number
+  next: string | null
+  previous: string | null
+  results: GuestResponsePayload[]
+  summary: EventResponsesSummary
+}
+
 export interface PublicInvitationPayload {
   status: InvitationState
   is_valid: boolean
