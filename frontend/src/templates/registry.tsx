@@ -2,14 +2,19 @@
  * Template registry: key → renderer + catalog metadata.
  *
  * Keys must match the backend catalog seeded by
- * `templates_app/migrations/0002_seed_templates.py`. Rendering is pure
+ * `templates_app/migrations/0002_seed_templates.py` and
+ * `templates_app/migrations/0003_seed_wedding_templates.py`. Rendering is pure
  * front-end code; template `config` from the API is never executed.
  */
+import { ArcheSoleil } from './ArcheSoleil.tsx'
 import { Confetti } from './Confetti.tsx'
+import { EterniteOr } from './EterniteOr.tsx'
 import { HeritageLuxe } from './HeritageLuxe.tsx'
 import { JardinFloral } from './JardinFloral.tsx'
+import { JardinOlive } from './JardinOlive.tsx'
 import { LigneModerne } from './LigneModerne.tsx'
 import { Memoire } from './Memoire.tsx'
+import { NuitCeleste } from './NuitCeleste.tsx'
 import { SceauAcademique } from './SceauAcademique.tsx'
 import { SoireeFormelle } from './SoireeFormelle.tsx'
 import type { InvitationDraft, TemplateDefinition } from './types.ts'
@@ -24,6 +29,46 @@ export const TEMPLATES: TemplateDefinition[] = [
     supportsCover: true,
     emphasisFields: ['title', 'date', 'venue'],
     Component: HeritageLuxe,
+  },
+  {
+    key: 'eternite-or',
+    name: 'Éternité',
+    category: 'wedding',
+    categoryLabel: 'Mariage',
+    description: 'Art déco noir et or : cadre doré, éventails géométriques et titrage champagne.',
+    supportsCover: true,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: EterniteOr,
+  },
+  {
+    key: 'jardin-olive',
+    name: 'Jardin d’Olive',
+    category: 'wedding',
+    categoryLabel: 'Mariage',
+    description: 'Botanique d’art : branches d’olivier dessinées à la main et photo en arche.',
+    supportsCover: true,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: JardinOlive,
+  },
+  {
+    key: 'arche-soleil',
+    name: 'Arche Soleil',
+    category: 'wedding',
+    categoryLabel: 'Mariage',
+    description: 'Bohème chic terracotta : grande arche, soleil levant et vagues dessinées.',
+    supportsCover: true,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: ArcheSoleil,
+  },
+  {
+    key: 'nuit-celeste',
+    name: 'Nuit Céleste',
+    category: 'wedding',
+    categoryLabel: 'Mariage',
+    description: 'Minuit étoilé : éclats d’or, croissant de lune et cadre céleste.',
+    supportsCover: true,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: NuitCeleste,
   },
   {
     key: 'jardin-floral',
@@ -114,6 +159,34 @@ const SAMPLES: Record<string, Partial<InvitationDraft>> = {
     venue_name: 'Cathédrale Notre-Dame',
     venue_address: 'Avenue de la Paix, Kinshasa',
     venue_details: 'Tenue de cérémonie souhaitée',
+  },
+  'eternite-or': {
+    title: 'Le Mariage de Camille & Antoine',
+    message: 'Entourez-nous de votre présence pour une soirée d’exception.',
+    venue_name: 'Domaine de la Roseraie',
+    venue_address: '12 allée des Tilleuls, 69000 Lyon',
+    venue_details: 'Dîner et danse jusqu’à l’aube',
+  },
+  'jardin-olive': {
+    title: 'Le Mariage de Léa & Gabriel',
+    message: 'Nous vous convions à célébrer notre amour, sous les oliviers.',
+    venue_name: 'Mas des Oliviers',
+    venue_address: 'Chemin de Sainte-Victoire, 13100 Aix-en-Provence',
+    venue_details: 'Cérémonie en plein air',
+  },
+  'arche-soleil': {
+    title: 'Le Mariage de Inès & Samir',
+    message: 'Venez partager avec nous une journée ensoleillée et inoubliable.',
+    venue_name: 'Villa Azur',
+    venue_address: 'Route des Crêtes, 06600 Antibes',
+    venue_details: 'Cocktail au coucher du soleil',
+  },
+  'nuit-celeste': {
+    title: 'Le Mariage de Sarah & Elias',
+    message: 'Sous les étoiles, nous vous invitons à célébrer notre union.',
+    venue_name: 'Observatoire du Belvédère',
+    venue_address: '18 rue des Étoiles, 75019 Paris',
+    venue_details: 'Dîner aux chandelles',
   },
   'jardin-floral': {
     title: 'Nos 20 ans de mariage',

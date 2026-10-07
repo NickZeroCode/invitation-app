@@ -18,6 +18,10 @@ def test_seeded_catalog_lists_all_templates_with_capabilities(auth_client):
     keys = {item["key"] for item in templates}
     assert keys == {
         "heritage-luxe",
+        "eternite-or",
+        "jardin-olive",
+        "arche-soleil",
+        "nuit-celeste",
         "jardin-floral",
         "ligne-moderne",
         "confetti",
@@ -33,6 +37,12 @@ def test_seeded_catalog_lists_all_templates_with_capabilities(auth_client):
     assert heritage["supports_cover"] is True
     assert heritage["config"]["emphasis_fields"] == ["title", "date", "venue"]
     assert "cover" in heritage["config"]["sections"]
+
+    eternite = next(item for item in templates if item["key"] == "eternite-or")
+    assert eternite["category"] == "wedding"
+    assert eternite["category_label"] == "Mariage"
+    assert eternite["supports_cover"] is True
+    assert eternite["config"]["emphasis_fields"] == ["title", "date", "venue"]
 
     moderne = next(item for item in templates if item["key"] == "ligne-moderne")
     assert moderne["supports_cover"] is False

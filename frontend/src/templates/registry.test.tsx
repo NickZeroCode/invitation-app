@@ -3,9 +3,14 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { TEMPLATES, getTemplate, sampleDraft } from './registry.tsx'
 
-// Must match the backend seed `templates_app/migrations/0002_seed_templates.py`.
+// Must match the backend seeds `templates_app/migrations/0002_seed_templates.py`
+// and `templates_app/migrations/0003_seed_wedding_templates.py`.
 const BACKEND_KEYS = [
   'heritage-luxe',
+  'eternite-or',
+  'jardin-olive',
+  'arche-soleil',
+  'nuit-celeste',
   'jardin-floral',
   'ligne-moderne',
   'confetti',
