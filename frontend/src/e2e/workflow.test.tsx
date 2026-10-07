@@ -24,10 +24,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider, createMemoryRouter, type RouteObject } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import QRCode from 'qrcode'
-import { toPng } from 'html-to-image'
+import { toJpeg } from 'html-to-image'
 
 vi.mock('html-to-image', () => ({
-  toPng: vi.fn(async () => 'data:image/png;base64,PNGDATA'),
   toJpeg: vi.fn(async () => 'data:image/jpeg;base64,JPEGDATA'),
 }))
 
@@ -761,15 +760,15 @@ describe('Parcours complet (E2E)', () => {
       expect(await screen.findByText('Cette invitation est actuellement valide.')).toBeInTheDocument()
       expect(backend.calls.some((call) => call.url.includes('/verify/'))).toBe(true)
 
-      // 9. Download the invitation image (PNG).
-      await user.click(screen.getByRole('button', { name: 'Télécharger PNG' }))
+      // 9. Download the invitation image (JPG).
+      await user.click(screen.getByRole('button', { name: "Télécharger l’invitation" }))
       await waitFor(() => expect(downloads).toHaveLength(1))
-      expect(downloads[0].download).toMatch(/^invitation-.*\.png$/)
-      expect(downloads[0].href).toContain('data:image/png')
-      expect(toPng).toHaveBeenCalledTimes(1)
+      expect(downloads[0].download).toMatch(/^invitation-.*\.jpg$/)
+      expect(downloads[0].href).toContain('data:image/jpeg')
+      expect(toJpeg).toHaveBeenCalledTimes(1)
 
       // 10. "Scan" the QR code: follow its decoded payload back to the
-      //     invitation (the PNG itself cannot be optically decoded in jsdom).
+      //     invitation (the JPG itself cannot be optically decoded in jsdom).
       const encoded = qrSpy.mock.calls.at(-1)?.[0] ?? ''
       const scanned = typeof encoded === 'string' ? encoded : ''
       expect(scanned).toContain('/i/tok-e2e-001')

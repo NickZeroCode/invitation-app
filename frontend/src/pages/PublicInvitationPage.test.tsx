@@ -3,13 +3,17 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { toJpeg, toPng } from 'html-to-image'
+import QRCode from 'qrcode'
+import { toJpeg } from 'html-to-image'
 import { clearCookies, mockFetch } from '../test/mockFetch.ts'
 import { PublicInvitationPage } from './PublicInvitationPage.tsx'
 
 vi.mock('html-to-image', () => ({
-  toPng: vi.fn(async () => 'data:image/png;base64,PNGDATA'),
   toJpeg: vi.fn(async () => 'data:image/jpeg;base64,JPEGDATA'),
+}))
+
+vi.mock('qrcode', () => ({
+  default: { toDataURL: vi.fn(async () => 'data:image/png;base64,QRDATA') },
 }))
 
 const PUBLIC_PAYLOAD = {
@@ -157,7 +161,7 @@ describe('PublicInvitationPage', () => {
     expect(await screen.findByText('Réponse enregistrée.')).toBeInTheDocument()
   })
 
-  it('exports the invitation card as a downloadable PNG', async () => {
+  it('exports the invitation as a JPG with the QR verification band', async () => {
     const user = (await import('@testing-library/user-event')).default.setup()
     const downloads: Array<{ download: string; href: string }> = []
     const clickSpy = vi
@@ -186,50 +190,18 @@ describe('PublicInvitationPage', () => {
     )
 
     await screen.findByText('Repas')
-    await user.click(screen.getByRole('button', { name: 'Télécharger PNG' }))
-
-    await waitFor(() => expect(downloads).toHaveLength(1))
-    expect(downloads[0].download).toMatch(/^invitation-.*\.png$/)
-    expect(downloads[0].href).toContain('data:image/png')
-    expect(toPng).toHaveBeenCalledTimes(1)
-    clickSpy.mockRestore()
-  })
-
-  it('exports the invitation card as a downloadable JPG', async () => {
-    const user = (await import('@testing-library/user-event')).default.setup()
-    const downloads: Array<{ download: string; href: string }> = []
-    const clickSpy = vi
-      .spyOn(HTMLAnchorElement.prototype, 'click')
-      .mockImplementation(function (this: HTMLAnchorElement) {
-        downloads.push({ download: this.download, href: this.href })
-      })
-
-    mockFetch([
-      { url: '/api/public/invitations/tok-abc123/', body: PUBLIC_PAYLOAD },
-      { url: '/api/public/invitations/tok-abc123/verify/', body: VERIFY },
-    ])
-
-    const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-    })
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={['/i/tok-abc123']}>
-          <Routes>
-            <Route path="/i/:token" element={<PublicInvitationPage />} />
-          </Routes>
-        </MemoryRouter>
-      </QueryClientProvider>,
-    )
-
-    await screen.findByText('Repas')
-    await user.click(screen.getByRole('button', { name: 'Télécharger JPG' }))
+    await waitFor(() => expect(QRCode.toDataURL).toHaveBeenCalled())
+    await user.click(screen.getByRole('button', { name: "Télécharger l’invitation" }))
 
     await waitFor(() => expect(downloads).toHaveLength(1))
     expect(downloads[0].download).toMatch(/^invitation-.*\.jpg$/)
     expect(downloads[0].href).toContain('data:image/jpeg')
     expect(toJpeg).toHaveBeenCalledTimes(1)
+
+    // The captured node is one unit: the invitation card + the QR band.
+    const captured = vi.mocked(toJpeg).mock.calls[0]?.[0] as HTMLElement
+    expect(captured.textContent).toContain('Invitation vérifiée par QR code')
+    expect(captured.querySelector('img[src="data:image/png;base64,QRDATA"]')).not.toBeNull()
     clickSpy.mockRestore()
   })
 })

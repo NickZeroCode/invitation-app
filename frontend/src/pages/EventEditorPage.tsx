@@ -22,7 +22,7 @@ import type {
   PreferenceQuestionPayload,
 } from '../lib/types.ts'
 import { fr } from '../locales/fr.ts'
-import { InvitationExportButtons } from '../templates/InvitationExportButtons.tsx'
+import { InvitationDownloadButton } from '../templates/InvitationDownloadButton.tsx'
 import { TEMPLATES, emptyDraft, getTemplate } from '../templates/registry.tsx'
 import type { InvitationDraft } from '../templates/types.ts'
 
@@ -738,12 +738,12 @@ export function EventEditorPage() {
             <CardHeader title={fr.editor.previewTitle} description={template.name} />
             <CardBody>
               <div className="aspect-[3/4] w-full overflow-hidden rounded-md border border-line bg-surface-muted">
-                <div ref={previewCardRef} className="flex h-full w-full flex-col">
+                <div ref={previewCardRef} className="flex min-h-full w-full flex-col">
                   <template.Component draft={previewDraft} />
                 </div>
               </div>
               <div className="mt-4 border-t border-line pt-4">
-                <InvitationExportButtons targetRef={previewCardRef} title={previewDraft.title} />
+                <InvitationDownloadButton targetRef={previewCardRef} title={previewDraft.title} />
               </div>
             </CardBody>
           </Card>

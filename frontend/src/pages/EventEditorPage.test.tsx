@@ -1,12 +1,11 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { toPng } from 'html-to-image'
+import { toJpeg } from 'html-to-image'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('html-to-image', () => ({
-  toPng: vi.fn(async () => 'data:image/png;base64,PNGDATA'),
   toJpeg: vi.fn(async () => 'data:image/jpeg;base64,JPEGDATA'),
 }))
 
@@ -175,7 +174,7 @@ describe('EventEditorPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('exports the preview card as a downloadable PNG', async () => {
+  it('exports the preview card as a downloadable JPG', async () => {
     const user = userEvent.setup()
     const downloads: Array<{ download: string; href: string }> = []
     const clickSpy = vi
@@ -189,12 +188,15 @@ describe('EventEditorPage', () => {
       CSRF,
     ])
 
-    await user.click(await screen.findByRole('button', { name: 'Télécharger PNG' }))
+    await user.click(await screen.findByRole('button', { name: "Télécharger l’invitation" }))
 
     await waitFor(() => expect(downloads).toHaveLength(1))
-    expect(downloads[0].download).toMatch(/^invitation-.*\.png$/)
-    expect(downloads[0].href).toContain('data:image/png')
-    expect(toPng).toHaveBeenCalledTimes(1)
+    expect(downloads[0].download).toMatch(/^invitation-.*\.jpg$/)
+    expect(downloads[0].href).toContain('data:image/jpeg')
+    expect(toJpeg).toHaveBeenCalledTimes(1)
+    // The editor export has no QR band — it captures the preview card only.
+    const captured = vi.mocked(toJpeg).mock.calls[0]?.[0] as HTMLElement
+    expect(captured.textContent ?? '').not.toContain('Invitation vérifiée par QR code')
     clickSpy.mockRestore()
   })
 })

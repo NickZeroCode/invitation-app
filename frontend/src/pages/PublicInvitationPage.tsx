@@ -5,7 +5,7 @@ import QRCode from 'qrcode'
 
 import { Button } from '../design-system/Button.tsx'
 import { LogoMark } from '../design-system/Logo.tsx'
-import { InvitationExportButtons } from '../templates/InvitationExportButtons.tsx'
+import { InvitationDownloadButton } from '../templates/InvitationDownloadButton.tsx'
 import { ErrorState, LoadingState } from '../design-system/states.tsx'
 import { ApiError, publicApi } from '../lib/api.ts'
 import type {
@@ -151,7 +151,7 @@ export function PublicInvitationPage() {
   const statusKey = verification.result ?? (data.is_valid ? 'valid' : 'expired')
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(212,162,75,0.18),_transparent_38%),linear-gradient(135deg,#f7f4ee_0%,#f1efe8_32%,#f7f5f1_100%)] px-4 py-10 text-ink">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(212,162,75,0.18),_transparent_38%),linear-gradient(135deg,#f7f4ee_0%,#f1efe8_32%,#f7f5f1_100%)] px-2 py-6 text-ink sm:px-4 sm:py-10">
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex items-center justify-between gap-4 px-1">
           <div>
@@ -169,8 +169,8 @@ export function PublicInvitationPage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1.45fr_0.7fr]">
-          <div className="rounded-[2rem] border border-line bg-white/75 p-3 shadow-[0_18px_60px_rgba(25,32,28,0.08)] ring-1 ring-white/70 backdrop-blur-sm">
-            <div className="overflow-hidden rounded-[1.5rem] border border-line bg-white">
+          <div className="rounded-[1.4rem] border border-line bg-white/75 p-1.5 shadow-[0_18px_60px_rgba(25,32,28,0.08)] ring-1 ring-white/70 backdrop-blur-sm sm:rounded-[2rem] sm:p-3">
+            <div className="overflow-hidden rounded-[1.1rem] border border-line bg-white sm:rounded-[1.5rem]">
               <div ref={cardRef}>
                 {TemplateComponent ? (
                   <TemplateComponent draft={draft} />
@@ -344,10 +344,11 @@ export function PublicInvitationPage() {
                 Actions
               </p>
               <div className="mt-4 space-y-3">
-                <InvitationExportButtons
+                <InvitationDownloadButton
                   targetRef={cardRef}
                   title={data.event.title}
                   guestName={data.invitation.display_name}
+                  qrDataUrl={qrDataUrl}
                 />
                 <div className="flex flex-wrap gap-3">
                   <Button variant="secondary" size="md" onClick={() => window.print()}>
