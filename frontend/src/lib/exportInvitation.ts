@@ -3,7 +3,10 @@
  *
  * The export captures the rendered template DOM — the exact artwork the guest
  * sees — and embeds webfonts, so the downloaded picture matches the on-screen
- * design instead of a simplified canvas re-drawing. The card is captured
+ * design instead of a simplified canvas re-drawing. Cover photographs are
+ * excluded from the capture (elements marked `data-export-skip`): they live on
+ * cross-origin storage the capture cannot embed, and the downloaded picture is
+ * designed as a type-and-QR artifact. The card is captured
  * together with a small verification band (QR code + caption) appended below
  * it, so the downloaded picture carries its own QR code. The capture measures
  * the full scroll size of the content — nothing below the fold can be
@@ -90,6 +93,17 @@ export async function exportInvitationImage(
   wrapper.appendChild(node)
   if (options.qrDataUrl) wrapper.appendChild(buildQrBand(options.qrDataUrl))
 
+  // Cover photographs are left out of the downloaded picture: hiding them
+  // before measuring also removes their space, so the capture has no blank
+  // hole where the photo sits on the page. Exact previous inline state is
+  // restored afterwards.
+  const skipped = Array.from(
+    wrapper.querySelectorAll<HTMLElement>('[data-export-skip]'),
+  ).map((element) => ({ element, display: element.style.display }))
+  for (const { element } of skipped) {
+    element.style.display = 'none'
+  }
+
   try {
     // Explicit scroll dimensions keep long invitations complete: the capture
     // must cover the full content, not just the visible/offset box (which is
@@ -108,6 +122,9 @@ export async function exportInvitationImage(
     })
     triggerDownload(dataUrl, fileName)
   } finally {
+    for (const { element, display } of skipped) {
+      element.style.display = display
+    }
     parent.insertBefore(node, wrapper)
     wrapper.remove()
   }

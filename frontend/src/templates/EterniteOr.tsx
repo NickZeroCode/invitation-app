@@ -104,13 +104,14 @@ export function EterniteOr({ draft }: TemplateProps) {
 
         {draft.cover_url ? (
           <div
+            data-export-skip=""
             className="mt-[2.4em] w-full max-w-[26em] p-[0.55em]"
             style={{ border: '1px solid rgba(216,179,106,0.55)' }}
           >
             <img
               src={draft.cover_url}
               alt=""
-              className="h-[16em] w-full object-cover"
+              className="w-full"
               style={{ border: '1px solid rgba(216,179,106,0.3)' }}
             />
           </div>

@@ -124,11 +124,11 @@ export function JardinOlive({ draft }: TemplateProps) {
         ) : null}
 
         {draft.cover_url ? (
-          <div className="mt-[2.2em] w-full max-w-[24em]">
+          <div data-export-skip="" className="mt-[2.2em] w-full max-w-[24em]">
             <img
               src={draft.cover_url}
               alt=""
-              className="h-[17em] w-full rounded-t-[10em] object-cover"
+              className="w-full rounded-t-[10em]"
               style={{ border: '1px solid rgba(91,107,75,0.35)' }}
             />
           </div>

@@ -50,12 +50,12 @@ export function SoireeFormelle({ draft }: TemplateProps) {
         </div>
 
         {draft.cover_url ? (
-          <div className="relative mt-[1.8em] w-full max-w-[24em]">
+          <div data-export-skip="" className="relative mt-[1.8em] w-full max-w-[24em]">
             <img
               src={draft.cover_url}
               alt=""
-              className="w-full object-cover"
-              style={{ height: '13em', filter: 'brightness(0.85)' }}
+              className="w-full"
+              style={{ filter: 'brightness(0.85)' }}
             />
             <div
               className="absolute inset-0"

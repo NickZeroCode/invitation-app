@@ -74,8 +74,9 @@ export function JardinFloral({ draft }: TemplateProps) {
           <img
             src={draft.cover_url}
             alt=""
-            className="mt-[1.8em] rounded-[50%] object-cover"
-            style={{ height: '15em', width: '15em', border: `0.35em solid ${ROSE}22` }}
+            data-export-skip=""
+            className="mt-[1.8em] rounded-[50%]"
+            style={{ width: '15em', border: `0.35em solid ${ROSE}22` }}
           />
         ) : null}
 

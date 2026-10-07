@@ -353,8 +353,8 @@ export function EventEditorPage() {
           </button>
           {previewDockOpen ? (
             <div className="flex justify-center px-4 pb-4">
-              <div className="aspect-[3/4] w-[min(52vw,200px)] overflow-hidden rounded-md border border-line bg-surface-muted">
-                <div className="flex h-full w-full flex-col">
+              <div className="max-h-[60vh] w-[min(52vw,200px)] overflow-y-auto rounded-md border border-line bg-surface-muted">
+                <div className="flex w-full flex-col">
                   <template.Component draft={previewDraft} />
                 </div>
               </div>
@@ -801,17 +801,17 @@ export function EventEditorPage() {
           <Card>
             <CardHeader title={fr.editor.previewTitle} description={template.name} />
             <CardBody>
-              <div className="aspect-[3/4] w-full overflow-hidden rounded-md border border-line bg-surface-muted">
-                <div ref={previewCardRef} className="flex min-h-full w-full flex-col">
+              <div className="max-h-[68vh] w-full overflow-y-auto rounded-md border border-line bg-surface-muted">
+                <div ref={previewCardRef} className="flex w-full flex-col">
                   <template.Component draft={previewDraft} />
                 </div>
               </div>
               <div className="mt-4 border-t border-line pt-4">
                 <InvitationDownloadButton
-              targetRef={previewCardRef}
-              title={previewDraft.title}
-              qrDataUrl={qrDataUrl}
-            />
+                  targetRef={previewCardRef}
+                  title={previewDraft.title}
+                  qrDataUrl={qrDataUrl}
+                />
               </div>
             </CardBody>
           </Card>

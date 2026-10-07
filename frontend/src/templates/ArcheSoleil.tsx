@@ -136,13 +136,14 @@ export function ArcheSoleil({ draft }: TemplateProps) {
 
         {draft.cover_url ? (
           <div
+            data-export-skip=""
             className="mt-[2.2em] w-full max-w-[25em] rounded-t-[10em] p-[0.45em]"
             style={{ backgroundColor: 'rgba(216,154,82,0.22)', border: '1px solid rgba(190,83,48,0.4)' }}
           >
             <img
               src={draft.cover_url}
               alt=""
-              className="h-[17em] w-full rounded-t-[9.4em] object-cover"
+              className="w-full rounded-t-[9.4em]"
             />
           </div>
         ) : null}

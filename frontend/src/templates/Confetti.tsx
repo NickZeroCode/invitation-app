@@ -61,8 +61,9 @@ export function Confetti({ draft }: TemplateProps) {
           <img
             src={draft.cover_url}
             alt=""
-            className="mt-[1.8em] w-full max-w-[24em] rounded-[1.4em] object-cover shadow-[0.15em_0.25em_0_rgba(67,56,202,0.25)]"
-            style={{ height: '14em', transform: 'rotate(-2deg)', border: '0.35em solid #FFFFFF' }}
+            data-export-skip=""
+            className="mt-[1.8em] w-full max-w-[24em] rounded-[1.4em] shadow-[0.15em_0.25em_0_rgba(67,56,202,0.25)]"
+            style={{ transform: 'rotate(-2deg)', border: '0.35em solid #FFFFFF' }}
           />
         ) : null}
 

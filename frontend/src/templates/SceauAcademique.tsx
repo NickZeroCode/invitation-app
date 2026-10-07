@@ -72,8 +72,9 @@ export function SceauAcademique({ draft }: TemplateProps) {
           <img
             src={draft.cover_url}
             alt=""
-            className="mt-[1.8em] w-full max-w-[22em] object-cover"
-            style={{ height: '12em', border: `0.2em solid ${GOLD}`, padding: '0.35em', backgroundColor: '#0D1729' }}
+            data-export-skip=""
+            className="mt-[1.8em] w-full max-w-[22em]"
+            style={{ border: `0.2em solid ${GOLD}`, padding: '0.35em', backgroundColor: '#0D1729' }}
           />
         ) : null}
 

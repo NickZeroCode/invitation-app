@@ -46,8 +46,8 @@ export function HeritageLuxe({ draft }: TemplateProps) {
           <img
             src={draft.cover_url}
             alt=""
-            className="mt-[2em] w-full max-w-[24em] rounded-t-[12em] rounded-b-[0.6em] object-cover"
-            style={{ height: '17em' }}
+            data-export-skip=""
+            className="mt-[2em] w-full max-w-[24em] rounded-t-[12em] rounded-b-[0.6em]"
           />
         ) : null}
 
