@@ -116,8 +116,9 @@ Frontend (optional):
 
 ## Deployment
 
-Both tiers deploy on Vercel — frontend as a static build, backend as a Python
-serverless function (`backend/api/index.py` + `backend/vercel.json`). Database
-is Neon Postgres; media storage must be an external S3-compatible object store
-(servers are ephemeral). Full details in `docs/deployment.md`; the endpoint
-contract is in `docs/api-contract.md`.
+Both tiers deploy on Vercel as **Services in one project** (shared domain,
+same-origin cookies): the Vite build and the Django WSGI app
+(`config.wsgi:application`) routed by top-level rewrites in the root
+`vercel.json`. Database is Neon Postgres; media storage must be an external
+S3-compatible object store (servers are ephemeral). Full details in
+`docs/deployment.md`; the endpoint contract is in `docs/api-contract.md`.

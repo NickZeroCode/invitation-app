@@ -26,10 +26,11 @@ X_FRAME_OPTIONS = "DENY"
 
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-# When frontend and API live on different registrable domains (e.g. two Vercel
-# projects), cookies must be SameSite=None; Secure so the SPA can authenticate.
-SESSION_COOKIE_SAMESITE = env("SESSION_COOKIE_SAMESITE", "None")
-CSRF_COOKIE_SAMESITE = env("CSRF_COOKIE_SAMESITE", "None")
+# Same-origin by default (Vercel Services topology: one project, one domain),
+# so Lax is the safe choice. For the split-domain fallback (two Vercel
+# projects), set SESSION_COOKIE_SAMESITE=None and CSRF_COOKIE_SAMESITE=None.
+SESSION_COOKIE_SAMESITE = env("SESSION_COOKIE_SAMESITE", "Lax")
+CSRF_COOKIE_SAMESITE = env("CSRF_COOKIE_SAMESITE", "Lax")
 
 # Fail loudly on the first misconfiguration instead of at request time.
 if not DATABASES["default"].get("NAME"):  # noqa: F405
