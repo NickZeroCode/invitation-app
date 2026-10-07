@@ -176,20 +176,34 @@ preview deployments and sibling subdomains are not under our SSL control.
    storage keys (`nak_live_…` / `nsk_live_…`) were pasted into a chat earlier
    and are compromised. Rotate them in the Neon dashboard, update
    `backend/.env`, and use only the **new** values on Vercel.
-1. `npm i -g vercel`, then `vercel login` (browser) — both on your side.
-2. From the repo root: `vercel link` (create/select the project).
-3. Add every variable from the table above:
-   `vercel env add <NAME> production` (type values in your terminal).
-4. Apply DB migrations **before** the first deploy (from `backend/`, local
+1. Push the repo to GitHub (the `origin` remote) — `main` must contain the
+   root `vercel.json`. (Commits stay local until you push them yourself.)
+2. Vercel dashboard → Add New → Project → import the GitHub repository
+   (Git integration). Every push to `main` then builds and deploys
+   automatically.
+3. **Root Directory: leave it at the repository root** (Settings → General).
+   Do NOT point it at `frontend/` or `backend/` — the root `vercel.json`
+   `services` entries already define their own roots.
+4. Set every variable from the table above in Settings → Environment
+   Variables (scope: Production and Preview; keep them available at build
+   time). Do this **before the first build**: the build runs
+   `collectstatic` under `config.settings.prod`, whose fail-fast checks
+   abort the build when secrets are missing.
+5. Apply DB migrations before the first deploy (from `backend/`, local
    venv): `.\.venv\Scripts\python.exe manage.py migrate` against Neon.
-5. `vercel deploy` → check the preview URL: `/api/health/` returns 200 JSON;
-   `/admin/login/` renders. (If previews are gated by Deployment Protection,
-   either disable it or use the production domain for step 6.)
-6. `vercel deploy --prod`, then live E2E over HTTPS: real password login,
-   create an event, upload a cover (round-trip the presigned URL), publish an
-   invitation, submit a guest response, revoke, delete.
-7. If the final domain differs from what you configured, update
+   Never auto-migrate at boot.
+6. First deploy → check the production URL: `/api/health/` returns 200
+   JSON and `/admin/login/` renders. (Preview deployments may be gated by
+   Deployment Protection — disable it, or test on the production domain.)
+7. Live E2E over HTTPS: real password login, create an event, upload a
+   cover (round-trip the presigned URL), publish an invitation, submit a
+   guest response, revoke, delete.
+8. If the final domain differs from what you configured, update
    `DJANGO_ALLOWED_HOSTS` / `CSRF_TRUSTED_ORIGINS` and redeploy.
+
+Alternative — CLI flow (no Git integration): `vercel login`, `vercel link`,
+`vercel env add <NAME> production` per variable, `vercel deploy`, then
+`vercel deploy --prod`.
 
 Local parity while developing: `vercel dev -L` runs both services locally
 without cloud auth. Database state is the same either way (Neon), so test
@@ -218,7 +232,7 @@ Services.
 | --- | --- | --- |
 | 1 | How is Django hosted? | As a Vercel Function via the Services `backend` service (`root: backend/`, entrypoint `config.wsgi:application`), Django preset (manage.py auto-detected), Python 3.12, deps from `requirements.txt`. |
 | 2 | How does Vercel communicate with the backend? | Same project, same domain: top-level rewrites route `/api/*`, `/admin/*`, `/static/*` to the backend service (original paths preserved); everything else to the frontend service. Same-origin fetch with cookies + CSRF header. |
-| 3 | Environment variable split? | Frontend: none (same-origin). Backend: secrets (`DJANGO_SECRET_KEY`, `DATABASE_URL`, `AWS_*`) + host/origin lists. Full table above; typed by the user via `vercel env add`. |
+| 3 | Environment variable split? | Frontend: none (same-origin). Backend: secrets (`DJANGO_SECRET_KEY`, `DATABASE_URL`, `AWS_*`) + host/origin lists. Full table above; set in the Vercel dashboard or via `vercel env add` — values typed by the user. |
 | 4 | Database connection pooling? | Pooled Neon `DATABASE_URL` (all params forwarded to libpq) + `CONN_MAX_AGE=60`; serverless functions open short-lived connections. |
 | 5 | Media upload/storage/delivery? | Multipart upload through the API (4 MB cap under the 4.5 MB platform body limit), Pillow type/size validation, private S3 bucket (path-style), delivery via presigned GET links (1 h). |
 | 6 | Safe migrations? | Never at boot/cold start. Run `manage.py migrate` from a trusted local/CI step before deploying; reversible migrations; forward-only policy documented. |
