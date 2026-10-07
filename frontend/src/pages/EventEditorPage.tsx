@@ -14,6 +14,7 @@ import { Button } from '../design-system/Button.tsx'
 import { Card, CardBody, CardHeader } from '../design-system/Card.tsx'
 import { Field } from '../design-system/Field.tsx'
 import { Input, Select } from '../design-system/Input.tsx'
+import { IconChevronLeft } from '../design-system/icons.tsx'
 import { ErrorState, LoadingState } from '../design-system/states.tsx'
 import { ApiError, eventsApi } from '../lib/api.ts'
 import type {
@@ -81,6 +82,7 @@ export function EventEditorPage() {
   const [coverError, setCoverError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
+  const [previewDockOpen, setPreviewDockOpen] = useState(true)
 
   const eventQuery = useQuery({
     queryKey: ['event', eventId],
@@ -306,7 +308,36 @@ export function EventEditorPage() {
         </Alert>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+      {/* Mobile live preview — stays in view while the form is filled. */}
+      <div className="lg:hidden">
+        <div className="sticky top-16 z-10 border-b border-line bg-paper/95 backdrop-blur">
+          <button
+            type="button"
+            onClick={() => setPreviewDockOpen((open) => !open)}
+            aria-expanded={previewDockOpen}
+            className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
+          >
+            <span className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-pill bg-brand" aria-hidden="true" />
+              {fr.editor.previewLive}
+            </span>
+            <IconChevronLeft
+              className={`h-4 w-4 text-ink-soft transition-transform duration-200 ${previewDockOpen ? '-rotate-90' : 'rotate-90'}`}
+            />
+          </button>
+          {previewDockOpen ? (
+            <div className="flex justify-center px-4 pb-4">
+              <div className="aspect-[3/4] w-[min(52vw,200px)] overflow-hidden rounded-md border border-line bg-surface-muted">
+                <div className="flex h-full w-full flex-col">
+                  <template.Component draft={previewDraft} />
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
         <div className="space-y-6">
           <Card>
             <CardHeader
@@ -689,9 +720,20 @@ export function EventEditorPage() {
               ))}
             </CardBody>
           </Card>
-        </div>
+          {/* Submit at the end of the form — same action as the header button. */}
+          <div className="flex flex-wrap items-center justify-end gap-2 rounded-md border border-line bg-surface p-4">
+            <Link
+              to="/evenements"
+              className="inline-flex h-10 items-center rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
+            >
+              {fr.common.cancel}
+            </Link>
+            <Button loading={mutation.isPending} onClick={handleSubmit}>
+              {mutation.isPending ? fr.editor.saving : isEdit ? fr.editor.save : fr.editor.create}
+            </Button>
+          </div>        </div>
 
-        <div className="xl:sticky xl:top-6 xl:self-start">
+        <div className="lg:sticky lg:top-6 lg:self-start">
           <Card>
             <CardHeader title={fr.editor.previewTitle} description={template.name} />
             <CardBody>

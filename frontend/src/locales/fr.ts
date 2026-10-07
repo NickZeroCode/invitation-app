@@ -195,6 +195,7 @@ export const fr = {
     removeQuestion: 'Retirer la question',
     sharedNote: 'Les modifications se répercutent sur toutes les invitations de cet événement.',
     previewTitle: 'Aperçu',
+    previewLive: 'Aperçu en direct',
     save: 'Enregistrer',
     saving: 'Enregistrement…',
     create: "Créer l'événement",

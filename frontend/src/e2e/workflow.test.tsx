@@ -717,7 +717,7 @@ describe('Parcours complet (E2E)', () => {
       })
       await user.click(screen.getByRole('checkbox', { name: 'Réponse obligatoire' }))
 
-      await user.click(screen.getByRole('button', { name: "Créer l'événement" }))
+      await user.click(screen.getAllByRole('button', { name: "Créer l'événement" })[0])
       await waitFor(() => expect(router.state.location.pathname).toBe('/evenements'))
       expect(await screen.findByText('Mariage de Grâce et Éric')).toBeInTheDocument()
 

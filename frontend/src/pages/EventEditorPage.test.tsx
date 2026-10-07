@@ -116,7 +116,7 @@ describe('EventEditorPage', () => {
     await user.click(screen.getByRole('button', { name: 'Ajouter une option' }))
     await user.type(screen.getAllByLabelText("Libellé de l'option")[1], 'Non')
 
-    await user.click(screen.getByRole('button', { name: "Créer l'événement" }))
+    await user.click(screen.getAllByRole('button', { name: "Créer l'événement" })[0])
 
     expect(await screen.findByText('page-evenements')).toBeInTheDocument()
     const post = mock.callsTo('/api/events/', 'POST')[0]
@@ -153,7 +153,7 @@ describe('EventEditorPage', () => {
       CSRF,
     ])
 
-    await user.click(await screen.findByRole('button', { name: "Créer l'événement" }))
+    await user.click((await screen.findAllByRole('button', { name: "Créer l'événement" }))[0])
 
     expect(await screen.findByText('Ce champ est obligatoire.')).toBeInTheDocument()
     expect(mock.callsTo('/api/events/', 'POST')).toHaveLength(0)
