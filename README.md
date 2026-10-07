@@ -4,11 +4,13 @@ Invitation-creation SaaS for the DRC market — create event invitation models,
 generate individual guest invitations, share them by link or image, and verify
 guests via QR code. The product UI is **French (fr-FR)**.
 
-> **Status: Phase 2 complete** — authentication, organizer workspace shell,
-> dashboard statistics, the full data model, the template gallery, and the
+> **Status: Phase 3 complete** — authentication, organizer workspace shell,
+> dashboard statistics, the full data model, the template gallery, the
 > event model editor (content, schedule, cover, emphasis, preference
-> questions, live preview). Invitation generation, sharing and QR
-> verification are the next phases.
+> questions, live preview), and individual guest invitations (create, batch
+> generation, edit, duplicate, revoke, soft delete, copy-link). Public
+> invitation pages, sharing as image, and QR verification are the next
+> phases.
 
 ## Stack
 
@@ -42,7 +44,7 @@ The API listens on `http://localhost:8000/api/`. Tests:
 
 ```powershell
 cd backend
-.\.venv\Scripts\python.exe -m pytest -q        # 58 tests
+.\.venv\Scripts\python.exe -m pytest -q        # 81 tests
 .\.venv\Scripts\python.exe manage.py check
 ```
 
@@ -64,7 +66,7 @@ Key backend notes:
 cd frontend
 npm install
 npm run dev        # http://localhost:5173 — proxies /api to localhost:8000
-npm test           # Vitest (29 tests)
+npm test           # Vitest (35 tests)
 npm run lint       # oxlint
 npm run build      # tsc -b (strict) + vite build → dist/
 ```

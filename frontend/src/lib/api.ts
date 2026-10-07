@@ -17,6 +17,11 @@ import type {
   EventListPage,
   EventModel,
   EventPayload,
+  Invitation,
+  InvitationBulkResult,
+  InvitationListParams,
+  InvitationListPage,
+  InvitationPayload,
   InvitationTemplate,
   LoginPayload,
   Organizer,
@@ -198,4 +203,27 @@ export const eventsApi = {
     return request<CoverUploadResponse>('PUT', `/api/events/${id}/cover/`, form)
   },
   removeCover: (id: number) => request<void>('DELETE', `/api/events/${id}/cover/`),
+}
+
+export const invitationsApi = {
+  listForEvent: (eventId: number, params: InvitationListParams = {}) => {
+    const query = new URLSearchParams()
+    if (params.q) query.set('q', params.q)
+    if (params.state) query.set('state', params.state)
+    if (params.page && params.page > 1) query.set('page', String(params.page))
+    const suffix = query.size > 0 ? `?${query.toString()}` : ''
+    return request<InvitationListPage>('GET', `/api/events/${eventId}/invitations/${suffix}`)
+  },
+  get: (id: number) => request<Invitation>('GET', `/api/invitations/${id}/`),
+  create: (eventId: number, payload: InvitationPayload) =>
+    request<Invitation>('POST', `/api/events/${eventId}/invitations/`, payload),
+  bulkCreate: (eventId: number, invitations: InvitationPayload[]) =>
+    request<InvitationBulkResult>('POST', `/api/events/${eventId}/invitations/bulk/`, {
+      invitations,
+    }),
+  update: (id: number, payload: Partial<InvitationPayload>) =>
+    request<Invitation>('PATCH', `/api/invitations/${id}/`, payload),
+  remove: (id: number) => request<void>('DELETE', `/api/invitations/${id}/`),
+  revoke: (id: number) => request<Invitation>('POST', `/api/invitations/${id}/revoke/`),
+  duplicate: (id: number) => request<Invitation>('POST', `/api/invitations/${id}/duplicate/`),
 }

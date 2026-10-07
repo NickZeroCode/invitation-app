@@ -51,6 +51,23 @@ class EventHasInvitationsError(APIException):
     )
 
 
+class DomainValidationError(APIException):
+    """Domain rule rejection whose sentence survives as the envelope `message`.
+
+    `rest_framework.exceptions.ValidationError` wraps plain strings into a
+    list, which the envelope flattens to `non_field_errors` — the user would
+    only see the generic "Les données envoyées sont invalides.". APIException
+    keeps the detail string intact, so this is the vehicle for top-level,
+    user-facing domain messages ("Cette invitation a été supprimée.", …).
+    """
+
+    status_code = 400
+    default_code = "validation_error"
+
+    def __init__(self, detail: str):
+        super().__init__(detail)
+
+
 def _flatten_fields(detail, prefix: str = "") -> dict:
     """Flatten nested validation details into dotted-path field keys.
 

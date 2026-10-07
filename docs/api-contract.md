@@ -1,4 +1,4 @@
-# NickEvents — API contract (Phase 1–2)
+# NickEvents — API contract (Phase 1–3)
 
 Base URL: `/api` (same origin in production; the Vite dev server proxies it).
 
@@ -183,4 +183,98 @@ never executed as code.
 An event model is a shared *model*: editing it propagates to **every** guest
 invitation already generated from it. Changing the template only re-styles the
 invitations (same content); deleting the model is refused with
-`event_has_invitations` while invitations exist.
+`event_has_invitations` while live invitations remain (soft-deleted tombstones
+no longer block it — see Phase 3).
+
+## Phase 3 — individual guest invitations
+
+### Endpoints
+
+| Method | Path                                  | Auth | Description                                |
+| ------ | ------------------------------------- | ---- | ------------------------------------------ |
+| GET    | `/api/events/{id}/invitations/`       | ✓    | Guest list (paginated, 25 per page)        |
+| POST   | `/api/events/{id}/invitations/`       | ✓    | Create one guest invitation (201)          |
+| POST   | `/api/events/{id}/invitations/bulk/`  | ✓    | Batch generation — all-or-nothing (201)    |
+| GET    | `/api/invitations/{id}/`              | ✓    | Retrieve one invitation                    |
+| PUT    | `/api/invitations/{id}/`              | ✓    | Full update                                |
+| PATCH  | `/api/invitations/{id}/`              | ✓    | Partial update                             |
+| DELETE | `/api/invitations/{id}/`              | ✓    | Soft delete (204, idempotent)              |
+| POST   | `/api/invitations/{id}/revoke/`       | ✓    | Revoke — terminal (200)                    |
+| POST   | `/api/invitations/{id}/duplicate/`    | ✓    | Re-issue with a fresh token (201)          |
+
+`GET /api/events/{id}/invitations/` query params: `q` (guest name search),
+`state` (`active`/`expired`/`revoked`), `page`. Ordered alphabetically
+(`guest_name, id`). Every route is scoped to the owning organizer: another
+organizer's resources answer 404, indistinguishable from missing ones.
+
+### Invitation payload
+
+```json
+{
+  "id": 12,
+  "event": 7,
+  "event_title": "Mariage de Grâce et Éric",
+  "guest_name": "Éric Mukendi",
+  "civility": "mme",
+  "display_name": "Mme Éric Mukendi",
+  "token": "K3v…",
+  "issued_at": "2026-10-07T10:00:00Z",
+  "expires_at": "2026-12-10T23:59:59Z",
+  "state": "active",
+  "status": "active",
+  "is_valid": true,
+  "has_response": false,
+  "created_at": "…",
+  "updated_at": "…"
+}
+```
+
+Writable fields: `guest_name` (required, 200 max), `civility`
+(`none|m|mme|mlle|couple`, default `none`), `expires_at` (optional, must be in
+the future). Everything else is read-only — notably `state` and `token`:
+revocation goes through `/revoke/`, deletion through `DELETE`.
+
+### Lifecycle semantics
+
+- **Derived status.** `state` is the stored, authoritative value; `status`
+  reports the *effective* one — an `active` invitation past `expires_at` reads
+  (and filters) as `expired`. `is_valid` is true only for active, unexpired
+  invitations. Dashboard counts follow the same rules.
+- **One live invitation per guest.** Creating (or renaming to) a name that
+  already holds a non-revoked, non-deleted invitation for the same event is
+  refused with `fields.guest_name`. Comparison is case- and accent-folded
+  (« Éric » = « éric »). Revoked/deleted invitations don't block re-adding the
+  guest. `/duplicate/` is the explicit exception: it re-issues for the same
+  guest with a fresh token.
+- **Revocation is terminal.** `/revoke/` sets `state=revoked` + `revoked_at`;
+  repeating it errors ("Cette invitation est déjà révoquée."). Deleted
+  invitations can't be edited or revoked.
+- **Deletion is soft.** `DELETE` flips `state=deleted` (idempotent 204).
+  Tombstones leave the guest list but keep their identity and any guest
+  responses, and no longer block event model deletion (the
+  `event_has_invitations` guard counts only live invitations).
+- **Duplication** copies name/civility, mints a fresh 256-bit token, and
+  copies `expires_at` only while it is still in the future — a lapsed expiry is
+  dropped so the duplicate opens with a usable validity window.
+
+### Batch generation
+
+`POST /api/events/{id}/invitations/bulk/` body:
+`{"invitations": [{"guest_name": "…", "civility": "…", "expires_at": "…"}, …]}`.
+
+- Up to **200** rows per call; empty or non-list payloads are rejected.
+- **All-or-nothing**: one invalid row rejects the whole batch and nothing is
+  created (validated up front, then created inside a transaction).
+- Errors are keyed by row number — `fields["invitations.2.guest_name"]` — plus
+  a batch-level duplicate check ("Ce nom apparaît plusieurs fois dans la
+  liste.") so the UI can point at the offending line.
+- Success: `201 {"count": N, "invitations": [ … ]}`.
+- Refused on deactivated event models ("Cet événement est désactivé.").
+
+### Security note
+
+`token` (256-bit, `secrets.token_urlsafe`) is the **only** credential a guest
+ever needs: the public invitation URL embeds it and requires no login. It is
+surfaced only to the authenticated organizer (for copy/share) and must be
+treated as a bearer secret — never logged, never accepted through guessable
+identifiers.

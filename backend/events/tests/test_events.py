@@ -195,13 +195,10 @@ def test_delete_blocked_when_invitations_exist(auth_client, organizer):
     assert error["code"] == "event_has_invitations"
     assert "invitations" in error["message"]
 
-    # Even soft-deleted invitations protect the audit trail.
+    # Once the guest list is cleared (soft deletion counts as removal), the
+    # event model can go — tombstones keep the response audit trail.
     invitation.state = Invitation.State.DELETED
     invitation.save(update_fields=["state"])
-    blocked = auth_client.delete(f"{ENDPOINT}{event.pk}/")
-    assert blocked.status_code == 400
-
-    invitation.delete()
     allowed = auth_client.delete(f"{ENDPOINT}{event.pk}/")
     assert allowed.status_code == 204
     assert not EventModel.objects.filter(pk=event.pk).exists()

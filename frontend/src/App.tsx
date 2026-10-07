@@ -12,6 +12,7 @@ import { SettingsPage } from './pages/SettingsPage.tsx'
 import { TemplatesPage } from './pages/TemplatesPage.tsx'
 import { EventsPage } from './pages/EventsPage.tsx'
 import { EventEditorPage } from './pages/EventEditorPage.tsx'
+import { GuestsPage } from './pages/GuestsPage.tsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,6 +56,7 @@ export default function App() {
               <Route path="/evenements" element={<EventsPage />} />
               <Route path="/evenements/nouveau" element={<EventEditorPage />} />
               <Route path="/evenements/:id" element={<EventEditorPage />} />
+              <Route path="/evenements/:id/invitations" element={<GuestsPage />} />
               <Route path="/modeles" element={<TemplatesPage />} />
               <Route path="/parametres" element={<SettingsPage />} />
             </Route>

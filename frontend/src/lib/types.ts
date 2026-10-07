@@ -167,3 +167,55 @@ export interface CoverUploadResponse {
   cover_url: string
   updated_at: string
 }
+
+// ---------------------------------------------------------------------------
+// Phase 3 — individual guest invitations
+// ---------------------------------------------------------------------------
+
+export type InvitationCivility = 'none' | 'm' | 'mme' | 'mlle' | 'couple'
+
+export type InvitationState = 'active' | 'revoked' | 'expired' | 'deleted'
+
+export interface Invitation {
+  id: number
+  event: number
+  event_title: string
+  guest_name: string
+  civility: InvitationCivility
+  display_name: string
+  token: string
+  issued_at: string
+  expires_at: string | null
+  /** Stored lifecycle state (authoritative). */
+  state: InvitationState
+  /** Effective state: an active invitation past its expiry reads as expired. */
+  status: InvitationState
+  is_valid: boolean
+  has_response: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface InvitationPayload {
+  guest_name: string
+  civility?: InvitationCivility
+  expires_at?: string | null
+}
+
+export interface InvitationListPage {
+  count: number
+  next: string | null
+  previous: string | null
+  results: Invitation[]
+}
+
+export interface InvitationListParams {
+  q?: string
+  state?: InvitationState | ''
+  page?: number
+}
+
+export interface InvitationBulkResult {
+  count: number
+  invitations: Invitation[]
+}

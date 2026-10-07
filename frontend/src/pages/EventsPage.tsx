@@ -55,6 +55,12 @@ function DeleteButton({ event, onDeleted }: { event: EventModel; onDeleted: () =
     <div className="flex flex-col items-end gap-2">
       <div className="flex items-center gap-2">
         <Link
+          to={`/evenements/${event.id}/invitations`}
+          className="inline-flex h-8 items-center rounded-md border border-line-strong bg-surface px-3 text-xs font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
+        >
+          {fr.events.guests}
+        </Link>
+        <Link
           to={`/evenements/${event.id}`}
           className="inline-flex h-8 items-center rounded-md border border-line-strong bg-surface px-3 text-xs font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
         >

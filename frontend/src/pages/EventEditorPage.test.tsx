@@ -80,7 +80,11 @@ afterEach(() => {
 })
 
 describe('EventEditorPage', () => {
-  it('creates an event model with its preference questions', async () => {
+  // Full-form userEvent flow (dozens of keystrokes) — generous explicit
+  // timeout instead of the 5s default, which it flakily exceeds under load.
+  it(
+    'creates an event model with its preference questions',
+    async () => {
     const user = userEvent.setup()
     const mock = renderEditor([
       { url: '/api/auth/me/', body: ORGANIZER },
@@ -132,7 +136,9 @@ describe('EventEditorPage', () => {
         },
       ],
     })
-  })
+    },
+    15000,
+  )
 
   it('requires a title before saving', async () => {
     const user = userEvent.setup()

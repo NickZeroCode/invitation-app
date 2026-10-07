@@ -78,9 +78,13 @@ class EventModelViewSet(viewsets.ModelViewSet):
         serializer.save(organizer=self.request.user)
 
     def destroy(self, request, *args, **kwargs):
-        """Deleting an event would cascade-destroy invitations — never silently."""
+        """Deleting an event would cascade-destroy invitations — never silently.
+
+        Soft-deleted (tombstoned) invitations count as already removed, so an
+        organizer who cleared the guest list can delete the event model.
+        """
         event = self.get_object()
-        if event.invitations.exists():
+        if event.invitations.exclude(state=Invitation.State.DELETED).exists():
             raise EventHasInvitationsError()
         with transaction.atomic():
             if event.cover_image:
