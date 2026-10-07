@@ -18,7 +18,7 @@ function FloralCorner({ flipX = false }: { flipX?: boolean }) {
   return (
     <svg
       viewBox="0 0 120 120"
-      className="absolute h-[16em] w-[16em] opacity-80"
+      className="absolute h-[16em] w-[16em] opacity-92"
       style={{
         top: 0,
         left: flipX ? undefined : 0,
@@ -56,7 +56,7 @@ export function JardinFloral({ draft }: TemplateProps) {
       <FloralCorner flipX />
       <div className="flex flex-1 flex-col items-center px-[6.5em] py-[4em] text-center">
         <p
-          className="font-display text-[1em] italic"
+          className="font-display text-[1.2em] italic"
           style={{ color: ROSE, letterSpacing: '0.22em' }}
         >
           C'est avec joie que nous vous convions
@@ -82,7 +82,7 @@ export function JardinFloral({ draft }: TemplateProps) {
           {guestLabel(draft)}
         </p>
         {draft.message ? (
-          <p className="mt-[1em] max-w-[28em] text-pretty text-[0.95em] leading-[1.75] break-words opacity-80">
+          <p className="mt-[1em] max-w-[28em] text-pretty text-[1.14em] leading-[1.75] break-words opacity-92">
             {draft.message}
           </p>
         ) : null}
@@ -97,7 +97,7 @@ export function JardinFloral({ draft }: TemplateProps) {
           >
             {formatEventDate(draft.event_date)}
           </p>
-          <p className="mt-[0.35em] text-[0.9em]" style={{ letterSpacing: '0.3em', color: ROSE }}>
+          <p className="mt-[0.35em] text-[1.08em]" style={{ letterSpacing: '0.3em', color: ROSE }}>
             {formatEventTime(draft.event_time)}
           </p>
         </div>
@@ -110,14 +110,14 @@ export function JardinFloral({ draft }: TemplateProps) {
             >
               {draft.venue_name}
             </p>
-            <p className="mt-[0.3em] text-[0.9em] opacity-75">{draft.venue_address}</p>
+            <p className="mt-[0.3em] text-[1.08em] opacity-88">{draft.venue_address}</p>
             {draft.venue_details ? (
-              <p className="mt-[0.5em] text-[0.8em] italic opacity-65">{draft.venue_details}</p>
+              <p className="mt-[0.5em] text-[0.96em] italic opacity-80">{draft.venue_details}</p>
             ) : null}
           </div>
         ) : null}
 
-        <p className="mt-auto pt-[2em] text-[0.8em] italic opacity-60">
+        <p className="mt-auto pt-[2em] text-[0.96em] italic opacity-78">
           Au plaisir de vous y retrouver
         </p>
       </div>

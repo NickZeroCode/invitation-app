@@ -39,7 +39,7 @@ export function SceauAcademique({ draft }: TemplateProps) {
       <div className="flex flex-1 flex-col items-center px-[6.5em] py-[4.5em] text-center">
         <Seal />
         <p
-          className="mt-[1.4em] text-[0.85em] uppercase"
+          className="mt-[1.4em] text-[1.02em] uppercase"
           style={{ color: GOLD, letterSpacing: '0.5em' }}
         >
           Remise des diplômes
@@ -62,7 +62,7 @@ export function SceauAcademique({ draft }: TemplateProps) {
           {guestLabel(draft)}
         </p>
         {draft.message ? (
-          <p className="mt-[1em] max-w-[29em] text-pretty text-[0.95em] leading-[1.8] break-words opacity-85">
+          <p className="mt-[1em] max-w-[29em] text-pretty text-[1.14em] leading-[1.8] break-words opacity-95">
             {draft.message}
           </p>
         ) : null}
@@ -83,7 +83,7 @@ export function SceauAcademique({ draft }: TemplateProps) {
           >
             {formatEventDate(draft.event_date)}
           </p>
-          <p className="mt-[0.45em] text-[0.95em]" style={{ letterSpacing: '0.32em', opacity: 0.85 }}>
+          <p className="mt-[0.45em] text-[1.14em]" style={{ letterSpacing: '0.32em', opacity: 0.92 }}>
             {formatEventTime(draft.event_time)}
           </p>
         </div>
@@ -96,14 +96,14 @@ export function SceauAcademique({ draft }: TemplateProps) {
             >
               {draft.venue_name}
             </p>
-            <p className="mt-[0.3em] text-[0.9em] opacity-75">{draft.venue_address}</p>
+            <p className="mt-[0.3em] text-[1.08em] opacity-88">{draft.venue_address}</p>
             {draft.venue_details ? (
-              <p className="mt-[0.5em] text-[0.8em] italic opacity-65">{draft.venue_details}</p>
+              <p className="mt-[0.5em] text-[0.96em] italic opacity-80">{draft.venue_details}</p>
             ) : null}
           </div>
         ) : null}
 
-        <p className="mt-auto pt-[2em] text-[0.85em] uppercase" style={{ letterSpacing: '0.35em', opacity: 0.6 }}>
+        <p className="mt-auto pt-[2em] text-[1.02em] uppercase" style={{ letterSpacing: '0.35em', opacity: 0.72 }}>
           Honneur à la réussite
         </p>
       </div>

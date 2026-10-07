@@ -22,7 +22,7 @@ export function SoireeFormelle({ draft }: TemplateProps) {
     <InvitationPaper style={{ backgroundColor: EMERALD, color: CHAMPAGNE }}>
       <div className="flex flex-1 flex-col items-center px-[6em] py-[4.5em] text-center">
         <p
-          className="font-display text-[1em] italic"
+          className="font-display text-[1.2em] italic"
           style={{ color: '#C7A96B', letterSpacing: '0.16em' }}
         >
           Le plaisir de votre présence serait un honneur
@@ -68,7 +68,7 @@ export function SoireeFormelle({ draft }: TemplateProps) {
           {guestLabel(draft)}
         </p>
         {draft.message ? (
-          <p className="mt-[1em] max-w-[29em] text-pretty text-[0.95em] leading-[1.85] break-words opacity-85">
+          <p className="mt-[1em] max-w-[29em] text-pretty text-[1.14em] leading-[1.85] break-words opacity-95">
             {draft.message}
           </p>
         ) : null}
@@ -80,7 +80,7 @@ export function SoireeFormelle({ draft }: TemplateProps) {
           >
             {formatEventDate(draft.event_date)}
           </p>
-          <p className="mt-[0.5em] text-[1em]" style={{ letterSpacing: '0.42em' }}>
+          <p className="mt-[0.5em] text-[1.2em]" style={{ letterSpacing: '0.42em' }}>
             {formatEventTime(draft.event_time)}
           </p>
         </div>
@@ -93,14 +93,14 @@ export function SoireeFormelle({ draft }: TemplateProps) {
             >
               {draft.venue_name}
             </p>
-            <p className="mt-[0.3em] text-[0.9em] opacity-75">{draft.venue_address}</p>
+            <p className="mt-[0.3em] text-[1.08em] opacity-88">{draft.venue_address}</p>
             {draft.venue_details ? (
-              <p className="mt-[0.5em] text-[0.8em] italic opacity-65">{draft.venue_details}</p>
+              <p className="mt-[0.5em] text-[0.96em] italic opacity-80">{draft.venue_details}</p>
             ) : null}
           </div>
         ) : null}
 
-        <p className="mt-auto pt-[2em] text-[0.85em] uppercase" style={{ letterSpacing: '0.42em', opacity: 0.55 }}>
+        <p className="mt-auto pt-[2em] text-[1.02em] uppercase" style={{ letterSpacing: '0.42em', opacity: 0.7 }}>
           Tenue de soirée exigée
         </p>
       </div>

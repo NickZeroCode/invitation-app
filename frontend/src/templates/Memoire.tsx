@@ -32,7 +32,7 @@ export function Memoire({ draft }: TemplateProps) {
         </div>
 
         <p
-          className="mt-[2.4em] text-[0.85em] uppercase"
+          className="mt-[2.4em] text-[1.02em] uppercase"
           style={{ color: SAGE, letterSpacing: '0.5em' }}
         >
           En souvenir
@@ -46,7 +46,7 @@ export function Memoire({ draft }: TemplateProps) {
         </h1>
 
         {draft.message ? (
-          <p className="mt-[2em] max-w-[27em] text-pretty font-display text-[1em] italic leading-[1.9] break-words opacity-80">
+          <p className="mt-[2em] max-w-[27em] text-pretty font-display text-[1.2em] italic leading-[1.9] break-words opacity-92">
             {draft.message}
           </p>
         ) : null}
@@ -58,7 +58,7 @@ export function Memoire({ draft }: TemplateProps) {
           >
             {formatEventDate(draft.event_date)}
           </p>
-          <p className="mt-[0.5em] text-[0.95em]" style={{ letterSpacing: '0.28em', opacity: 0.7 }}>
+          <p className="mt-[0.5em] text-[1.14em]" style={{ letterSpacing: '0.28em', opacity: 0.8 }}>
             {formatEventTime(draft.event_time)}
           </p>
         </div>
@@ -66,14 +66,14 @@ export function Memoire({ draft }: TemplateProps) {
         {draft.venue_name || draft.venue_address ? (
           <div className="mt-[2em]">
             <p className="font-display text-[1.1em]">{draft.venue_name}</p>
-            <p className="mt-[0.35em] text-[0.9em] opacity-70">{draft.venue_address}</p>
+            <p className="mt-[0.35em] text-[1.08em] opacity-85">{draft.venue_address}</p>
             {draft.venue_details ? (
-              <p className="mt-[0.5em] text-[0.82em] italic opacity-60">{draft.venue_details}</p>
+              <p className="mt-[0.5em] text-[0.98em] italic opacity-78">{draft.venue_details}</p>
             ) : null}
           </div>
         ) : null}
 
-        <p className="mt-auto pt-[2.4em] text-[0.9em] italic" style={{ color: SAGE }}>
+        <p className="mt-auto pt-[2.4em] text-[1.08em] italic" style={{ color: SAGE }}>
           {guestLabel(draft)}
         </p>
       </div>

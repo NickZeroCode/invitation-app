@@ -35,7 +35,7 @@ export function HeritageLuxe({ draft }: TemplateProps) {
       <div className="flex flex-1 flex-col items-center px-[7em] py-[4.5em] text-center">
         <GoldRule />
         <p
-          className="mt-[2em] text-[0.85em] uppercase"
+          className="mt-[2em] text-[1.02em] uppercase"
           style={{ color: GOLD, letterSpacing: '0.55em' }}
         >
           Vous êtes invités
@@ -61,7 +61,7 @@ export function HeritageLuxe({ draft }: TemplateProps) {
         </h1>
 
         {draft.message ? (
-          <p className="mt-[1.6em] max-w-[30em] text-pretty text-[1em] leading-[1.7] break-words opacity-80">
+          <p className="mt-[1.6em] max-w-[30em] text-pretty text-[1.2em] leading-[1.7] break-words opacity-92">
             {draft.message}
           </p>
         ) : null}
@@ -74,7 +74,7 @@ export function HeritageLuxe({ draft }: TemplateProps) {
           >
             {formatEventDate(draft.event_date)}
           </p>
-          <p className="mt-[0.5em] text-[1em] uppercase" style={{ letterSpacing: '0.35em' }}>
+          <p className="mt-[0.5em] text-[1.2em] uppercase" style={{ letterSpacing: '0.35em' }}>
             à {formatEventTime(draft.event_time)}
           </p>
         </div>
@@ -87,9 +87,9 @@ export function HeritageLuxe({ draft }: TemplateProps) {
             >
               {draft.venue_name}
             </p>
-            <p className="mt-[0.35em] text-[0.95em] opacity-75">{draft.venue_address}</p>
+            <p className="mt-[0.35em] text-[1.14em] opacity-88">{draft.venue_address}</p>
             {draft.venue_details ? (
-              <p className="mt-[0.6em] text-[0.85em] italic opacity-65">{draft.venue_details}</p>
+              <p className="mt-[0.6em] text-[1.02em] italic opacity-80">{draft.venue_details}</p>
             ) : null}
           </div>
         ) : null}

@@ -43,7 +43,7 @@ export function Confetti({ draft }: TemplateProps) {
       <ConfettiDots />
       <div className="flex flex-1 flex-col items-center px-[5.5em] pb-[3.5em] pt-[9em] text-center">
         <p
-          className="rounded-full px-[1.6em] py-[0.55em] text-[0.85em] font-bold uppercase"
+          className="rounded-full px-[1.6em] py-[0.55em] text-[1.02em] font-bold uppercase"
           style={{ backgroundColor: AMBER, color: '#7C2D12', letterSpacing: '0.28em' }}
         >
           Vous êtes convié(e)
@@ -66,13 +66,13 @@ export function Confetti({ draft }: TemplateProps) {
         ) : null}
 
         <p
-          className="mt-[1.8em] rounded-full px-[1.4em] py-[0.5em] text-[0.95em] font-semibold"
+          className="mt-[1.8em] rounded-full px-[1.4em] py-[0.5em] text-[1.14em] font-semibold"
           style={{ backgroundColor: '#FCE7F3', color: PINK }}
         >
           {guestLabel(draft)}
         </p>
         {draft.message ? (
-          <p className="mt-[1.1em] max-w-[28em] text-pretty text-[1em] leading-[1.7] break-words opacity-85">{draft.message}</p>
+          <p className="mt-[1.1em] max-w-[28em] text-pretty text-[1.2em] leading-[1.7] break-words opacity-95">{draft.message}</p>
         ) : null}
 
         <div
@@ -85,21 +85,21 @@ export function Confetti({ draft }: TemplateProps) {
           >
             {formatEventDate(draft.event_date)}
           </p>
-          <p className="mt-[0.4em] text-[1em]" style={{ color: AMBER, letterSpacing: '0.22em' }}>
+          <p className="mt-[0.4em] text-[1.2em]" style={{ color: AMBER, letterSpacing: '0.22em' }}>
             À {formatEventTime(draft.event_time)}
           </p>
           {draft.venue_name ? (
-            <p className="mt-[0.7em] text-[0.95em] opacity-90">
+            <p className="mt-[0.7em] text-[1.14em] opacity-90">
               {draft.venue_name}
               {draft.venue_address ? ` — ${draft.venue_address}` : ''}
             </p>
           ) : null}
           {draft.venue_details ? (
-            <p className="mt-[0.35em] text-[0.8em] italic opacity-75">{draft.venue_details}</p>
+            <p className="mt-[0.35em] text-[0.96em] italic opacity-88">{draft.venue_details}</p>
           ) : null}
         </div>
 
-        <p className="mt-auto pt-[1.8em] text-[0.9em] font-semibold" style={{ color: PINK }}>
+        <p className="mt-auto pt-[1.8em] text-[1.08em] font-semibold" style={{ color: PINK }}>
           Venez nombreux, la fête est pour vous !
         </p>
       </div>
