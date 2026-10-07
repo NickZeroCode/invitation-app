@@ -77,7 +77,7 @@ export function LoginPage() {
       {/* Brand panel */}
       <aside className="hidden w-[42%] max-w-xl flex-col justify-between bg-ink px-12 py-10 text-white lg:flex">
         <div className="flex justify-center">
-          <LogoMark className="h-40 w-40 rounded-2xl xl:h-48 xl:w-48" />
+          <LogoMark plate={false} className="h-28 w-28 xl:h-32 xl:w-32" />
         </div>
         <div>
           <h1 className="font-display text-4xl font-semibold leading-tight">{fr.login.heroTitle}</h1>

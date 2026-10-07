@@ -3,10 +3,11 @@
  * (`frontend/public/logo/`, gold & ivory):
  *
  * - `nickevents-emblem.webp` — the gold "N" emblem WITHOUT text (ribbon
- *   effect, transparent), the compact brand mark. It needs a dark plate
- *   behind it to read, so the mark renders on black.
- * - `nickevents-logo.webp` — the full lockup (emblem + wordmark + tagline)
- *   on its own black plate, displayed big on the home page.
+ *   effect, transparent), the compact brand mark. The artwork has a
+ *   transparent background, so on light surfaces it rides a dark plate
+ *   (default); pass `plate={false}` to drop it on dark surfaces.
+ * - `nickevents-logo.webp` — the full lockup (emblem + wordmark + tagline),
+ *   displayed plateless on the dark band of the home page's final CTA.
  *
  * The SVG `viewBox` windows the source bitmap (1536×1024) to the exact
  * region needed, so the real logo is used at every size without redrawing
@@ -16,11 +17,21 @@
 const EMBLEM_SRC = '/logo/nickevents-emblem.webp'
 const LOGO_SRC = '/logo/nickevents-logo.webp'
 
-/** The gold "N" emblem (no text) on its dark plate — the compact brand mark. */
-export function LogoMark({ className = 'h-8 w-8 rounded-md' }: { className?: string }) {
+/**
+ * The gold "N" emblem (no text) — the compact brand mark. The artwork is
+ * transparent: on light surfaces it rides a dark plate (`plate`, default);
+ * pass `plate={false}` on dark surfaces.
+ */
+export function LogoMark({
+  className = 'h-8 w-8 rounded-md',
+  plate = true,
+}: {
+  className?: string
+  plate?: boolean
+}) {
   return (
     <span
-      className={`flex shrink-0 items-center justify-center overflow-hidden bg-black ${className}`}
+      className={`flex shrink-0 items-center justify-center overflow-hidden ${plate ? 'bg-black' : ''} ${className}`}
     >
       <svg viewBox="283 23 970 970" className="h-full w-full" aria-hidden="true" focusable="false">
         <image href={EMBLEM_SRC} width="1536" height="1024" />
@@ -53,12 +64,12 @@ export function BrandLockup({
   )
 }
 
-/** The full logo lockup (emblem + wordmark + tagline) on its black plate. */
+/** The full logo lockup (emblem + wordmark + tagline) — transparent, no plate. */
 export function LogoArtwork({ className = 'w-64' }: { className?: string }) {
   return (
     <svg
       viewBox="310 210 920 630"
-      className={`h-auto overflow-hidden rounded-2xl bg-black ${className}`}
+      className={`h-auto ${className}`}
       role="img"
       aria-label="NickEvents"
     >

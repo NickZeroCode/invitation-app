@@ -369,16 +369,11 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* Brand showcase — the full logo lockup, big enough to read. */}
-        <section className="border-t border-line">
-          <div className="mx-auto flex max-w-4xl justify-center px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
-            <LogoArtwork className="w-[min(88vw,42rem)]" />
-          </div>
-        </section>
-
         <section className="border-t border-line bg-ink">
-          <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 lg:px-8 lg:py-20">
-            <h2 className="font-display text-3xl leading-tight text-white sm:text-4xl">
+          <div className="mx-auto flex max-w-3xl flex-col items-center px-4 py-16 text-center sm:px-6 lg:px-8 lg:py-20">
+            {/* The full logo lockup, plateless on the dark band. */}
+            <LogoArtwork className="w-[min(64vw,24rem)]" />
+            <h2 className="mt-10 font-display text-3xl leading-tight text-white sm:text-4xl">
               {fr.landing.finalCta.title}
             </h2>
             <p className="mt-4 text-base leading-relaxed text-white/75">
