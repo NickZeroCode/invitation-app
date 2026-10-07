@@ -13,9 +13,19 @@ DEBUG = False
 
 # Required in production — env() raises when absent.
 SECRET_KEY = env("DJANGO_SECRET_KEY")
-ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS")
-CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
-CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS")
+# nickevents.com is always allowed/ trusted, even when the Vercel env vars
+# are empty or stale (they can only extend these lists, never shrink them).
+ALLOWED_HOSTS = sorted(
+    set(env_list("DJANGO_ALLOWED_HOSTS")) | {"nickevents.com", "www.nickevents.com"}
+)
+CSRF_TRUSTED_ORIGINS = sorted(
+    set(env_list("CSRF_TRUSTED_ORIGINS"))
+    | {"https://nickevents.com", "https://www.nickevents.com"}
+)
+CORS_ALLOWED_ORIGINS = sorted(
+    set(env_list("CORS_ALLOWED_ORIGINS"))
+    | {"https://nickevents.com", "https://www.nickevents.com"}
+)
 
 # HTTPS hardening (Vercel terminates TLS and sets X-Forwarded-Proto).
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

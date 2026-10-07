@@ -11,6 +11,11 @@ component with its own root directory, and public routing happens through
 top-level rewrites that dispatch to a service by name. Everything shares one
 deployment and one domain, so the SPA and the API are **same-origin**.
 
+**Production domain:** `https://www.nickevents.com` (apex `nickevents.com`
+redirects). `prod.py` always trusts both hosts/origins, so the custom domain
+works even when the Vercel env vars are stale; env vars can only extend the
+lists.
+
 ```
  browser ──► https://<domain>
               │
