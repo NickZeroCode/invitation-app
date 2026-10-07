@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qsl, urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -78,15 +78,18 @@ def parse_database_url(url: str, base_dir: Path) -> dict:
     if parsed.scheme not in {"postgres", "postgresql"}:
         raise ImproperlyConfigured(f"Unsupported DATABASE_URL scheme: {parsed.scheme!r}")
 
-    query = parse_qs(parsed.query)
-    sslmode = (query.get("sslmode") or ["prefer"])[0]
+    # Every query parameter is forwarded to libpq verbatim (sslmode,
+    # channel_binding, ...) — pooled Neon strings carry both, e.g.
+    # postgresql://user:pass@host/db?sslmode=require&channel_binding=require
+    options = dict(parse_qsl(parsed.query))
+    options.setdefault("sslmode", "prefer")
     return {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": parsed.path.lstrip("/") or "postgres",
         "USER": parsed.username or "",
         "PASSWORD": parsed.password or "",
         "HOST": parsed.hostname or "",
-        "PORT": str(parsed.port or ""),
+        "PORT": str(parsed.port or "5432"),
         "CONN_MAX_AGE": env_int("DATABASE_CONN_MAX_AGE", "60"),
-        "OPTIONS": {"sslmode": sslmode},
+        "OPTIONS": options,
     }
