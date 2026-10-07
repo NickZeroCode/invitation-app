@@ -4,6 +4,8 @@ Fails fast when required secrets are missing. Deployed on Vercel's Python
 runtime behind TLS termination (see docs/deployment.md for the topology that
 still needs live verification).
 """
+import re
+
 from config.env import ImproperlyConfigured  # noqa: F401
 from .base import *  # noqa: F401,F403
 
@@ -49,7 +51,19 @@ AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
 # AWS S3. The boto3-native AWS_ENDPOINT_URL_S3 / AWS_REGION spellings used
 # in vendor .env samples are accepted as fallbacks.
 AWS_S3_ENDPOINT_URL = env("AWS_S3_ENDPOINT_URL", "") or env("AWS_ENDPOINT_URL_S3", "") or None
-AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME", "") or env("AWS_REGION", "") or None
+# Tolerate stray quotes/whitespace. botocore only rejects a malformed region
+# at upload time (500 on PUT /api/events/<id>/cover/ with InvalidRegionError),
+# so validate here and fail fast with an actionable message instead.
+AWS_S3_REGION_NAME = (
+    env("AWS_S3_REGION_NAME", "") or env("AWS_REGION", "") or ""
+).strip().strip('"').strip("'") or None
+if AWS_S3_REGION_NAME is not None and not re.fullmatch(
+    r"[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*", AWS_S3_REGION_NAME
+):
+    raise ImproperlyConfigured(
+        f"AWS_S3_REGION_NAME is malformed: {AWS_S3_REGION_NAME!r}. "
+        "Use the storage project's full region, e.g. us-east-2 (see .env.example)."
+    )
 # S3-compatible endpoints serve a wildcard TLS cert for the bare host only —
 # virtual-hosted-style URLs (bucket.host) fail certificate validation, so
 # path-style is required ("virtual" only for real AWS S3).
