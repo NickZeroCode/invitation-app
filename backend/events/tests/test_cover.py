@@ -65,7 +65,7 @@ def test_cover_rejects_oversized_image(auth_client, organizer, settings, tmp_pat
     )
 
     assert response.status_code == 400
-    assert response.json()["error"]["fields"]["image"] == ["L'image ne doit pas dépasser 5 Mo."]
+    assert response.json()["error"]["fields"]["image"] == ["L'image ne doit pas dépasser 4 Mo."]
 
 
 def test_cover_rejects_non_image_payload(auth_client, organizer, settings, tmp_path):

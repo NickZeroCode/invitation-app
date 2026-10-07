@@ -32,7 +32,8 @@ COVER_CONTENT_TYPES = {
     "image/png": ".png",
     "image/webp": ".webp",
 }
-MAX_COVER_BYTES = 5 * 1024 * 1024  # 5 MB
+MAX_COVER_BYTES = 4 * 1024 * 1024  # 4 MB: under Vercel Functions' 4.5 MB request
+# body cap (a 5 MB body is rejected 413 before Django validates).
 
 
 class CoverUploadSerializer(serializers.Serializer):
@@ -128,7 +129,7 @@ class EventModelCoverView(APIView):
             )
         if uploaded.size > MAX_COVER_BYTES:
             raise serializers.ValidationError(
-                {"image": "L'image ne doit pas dépasser 5 Mo."}
+                {"image": "L'image ne doit pas dépasser 4 Mo."}
             )
 
         with transaction.atomic():

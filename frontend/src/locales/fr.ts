@@ -164,11 +164,11 @@ export const fr = {
     venueAddressLabel: 'Adresse',
     venueDetailsLabel: 'Précisions',
     coverTitle: 'Image de couverture',
-    coverHint: 'JPEG, PNG ou WebP, 5 Mo maximum.',
+    coverHint: 'JPEG, PNG ou WebP, 4 Mo maximum.',
     coverUpload: 'Choisir une image',
     coverRemove: "Retirer l'image",
     coverRejected: 'Format d\u2019image non supporté (JPEG, PNG ou WebP uniquement).',
-    coverTooLarge: "L'image ne doit pas dépasser 5 Mo.",
+    coverTooLarge: "L'image ne doit pas dépasser 4 Mo.",
     emphasisTitle: 'Mise en forme',
     emphasisHint: "Choisissez les éléments à mettre en valeur dans le modèle.",
     emphasisFields: {

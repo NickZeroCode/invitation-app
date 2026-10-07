@@ -171,7 +171,7 @@ describe('EventEditorPage', () => {
     await user.upload(input, big)
 
     expect(
-      await screen.findByText("L'image ne doit pas dépasser 5 Mo."),
+      await screen.findByText("L'image ne doit pas dépasser 4 Mo."),
     ).toBeInTheDocument()
   })
 

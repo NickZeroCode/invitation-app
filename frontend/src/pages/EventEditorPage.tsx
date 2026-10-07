@@ -26,7 +26,7 @@ import { TEMPLATES, emptyDraft, getTemplate } from '../templates/registry.tsx'
 import type { InvitationDraft } from '../templates/types.ts'
 
 const COVER_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-const MAX_COVER_BYTES = 5 * 1024 * 1024
+const MAX_COVER_BYTES = 4 * 1024 * 1024
 
 interface QuestionDraft {
   id?: number
