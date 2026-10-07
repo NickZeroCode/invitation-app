@@ -20,6 +20,8 @@ export interface InvitationDraft {
   venue_details: string
   cover_url: string | null
   emphasis: string[]
+  /** Key from `MESSAGE_FONTS` — typeface of the message block. */
+  messageFont?: string
   /** Placeholder for Phase 3 individual invitations. */
   guestName?: string
 }

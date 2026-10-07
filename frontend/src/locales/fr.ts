@@ -155,6 +155,8 @@ export const fr = {
     contentTitle: "Contenu de l'invitation",
     titleLabel: 'Titre de l\u2019événement',
     messageLabel: "Message d'invitation",
+    messageFontLabel: 'Police du message',
+    messageFontHint: 'Appliquée au texte du message sur l’invitation.',
     scheduleTitle: 'Date et lieu',
     dateLabel: 'Date',
     timeLabel: 'Heure',

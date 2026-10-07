@@ -10,6 +10,7 @@ import {
   isEmphasized,
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
+import { messageFontCss } from './messageFonts.ts'
 
 const EMERALD = '#0E2A22'
 const CHAMPAGNE = '#E8D8B0'
@@ -68,7 +69,7 @@ export function SoireeFormelle({ draft }: TemplateProps) {
           {guestLabel(draft)}
         </p>
         {draft.message ? (
-          <p className="mt-[1em] max-w-[29em] text-pretty text-[1.14em] leading-[1.85] break-words opacity-95">
+          <p className="mt-[1em] max-w-[29em] text-pretty text-[1.14em] leading-[1.85] break-words opacity-95" style={{ fontFamily: messageFontCss(draft.messageFont) }}>
             {draft.message}
           </p>
         ) : null}

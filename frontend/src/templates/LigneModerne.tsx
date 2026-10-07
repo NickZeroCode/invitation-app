@@ -11,6 +11,7 @@ import {
   isEmphasized,
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
+import { messageFontCss } from './messageFonts.ts'
 
 const ACCENT = '#C8102E'
 const INK = '#16181D'
@@ -50,7 +51,7 @@ export function LigneModerne({ draft }: TemplateProps) {
         {draft.message ? (
           <p
             className="mt-[1.4em] max-w-[30em] text-pretty leading-[1.75] break-words"
-            style={{
+            style={{ fontFamily: messageFontCss(draft.messageFont),
               fontSize: messageEm ? '1.25em' : '1em',
               fontWeight: messageEm ? 600 : 400,
               opacity: messageEm ? 1 : 0.8,

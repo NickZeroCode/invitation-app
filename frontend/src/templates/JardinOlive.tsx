@@ -11,6 +11,7 @@ import {
   isEmphasized,
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
+import { messageFontCss } from './messageFonts.ts'
 
 const OLIVE = '#5B6B4B'
 const INK = '#2C3526'
@@ -117,7 +118,7 @@ export function JardinOlive({ draft }: TemplateProps) {
         </div>
 
         {draft.message ? (
-          <p className="mt-[1.4em] max-w-[29em] text-pretty text-[1.2em] leading-[1.8] break-words opacity-90">
+          <p className="mt-[1.4em] max-w-[29em] text-pretty text-[1.2em] leading-[1.8] break-words opacity-90" style={{ fontFamily: messageFontCss(draft.messageFont) }}>
             {draft.message}
           </p>
         ) : null}

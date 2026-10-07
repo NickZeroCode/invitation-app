@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from django.db import transaction
 from rest_framework import serializers
 
-from events.models import EventModel
+from events.models import MESSAGE_FONT_KEYS, EventModel
 from preferences.serializers import (
     MAX_QUESTIONS,
     PreferenceQuestionSerializer,
@@ -58,6 +58,7 @@ class EventModelSerializer(serializers.ModelSerializer):
             "template_detail",
             "title",
             "message",
+            "message_font",
             "event_date",
             "event_time",
             "timezone",
@@ -94,6 +95,12 @@ class EventModelSerializer(serializers.ModelSerializer):
         value = value.strip()
         if not value:
             raise serializers.ValidationError("Le titre de l'événement est obligatoire.")
+        return value
+
+    def validate_message_font(self, value: str) -> str:
+        value = (value or "").strip()
+        if value and value not in MESSAGE_FONT_KEYS:
+            raise serializers.ValidationError("Police du message invalide.")
         return value
 
     def validate_display_config(self, value: dict) -> dict:

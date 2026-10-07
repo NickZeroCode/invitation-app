@@ -119,6 +119,7 @@ export interface EventModel {
   template_detail: InvitationTemplate
   title: string
   message: string
+  message_font?: string
   event_date: string
   event_time: string
   timezone: string
@@ -152,6 +153,7 @@ export interface EventPayload {
   template: string
   title: string
   message: string
+  message_font?: string
   event_date: string
   event_time: string
   timezone: string
@@ -287,6 +289,7 @@ export interface PublicInvitationPayload {
   event: {
     title: string
     message: string
+    message_font?: string
     event_date: string
     event_time: string
     timezone: string

@@ -11,6 +11,7 @@ import {
   isEmphasized,
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
+import { messageFontCss } from './messageFonts.ts'
 
 const GOLD = '#E2C27C'
 const STAR = '#F2ECDC'
@@ -150,7 +151,7 @@ export function NuitCeleste({ draft }: TemplateProps) {
         </h1>
 
         {draft.message ? (
-          <p className="mt-[1.7em] max-w-[29em] text-pretty text-[1.2em] leading-[1.8] break-words opacity-90">
+          <p className="mt-[1.7em] max-w-[29em] text-pretty text-[1.2em] leading-[1.8] break-words opacity-90" style={{ fontFamily: messageFontCss(draft.messageFont) }}>
             {draft.message}
           </p>
         ) : null}

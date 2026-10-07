@@ -11,6 +11,18 @@ from django.db import models
 from accounts.models import Organizer
 from templates_app.models import InvitationTemplate
 
+# Typeface keys for the invitation message block — mirrored by
+# `MESSAGE_FONTS` in frontend/src/templates/messageFonts.ts.
+MESSAGE_FONT_KEYS = (
+    "classique",
+    "elegante",
+    "ronde",
+    "scripte",
+    "parisienne",
+    "ceremonie",
+    "moderne",
+)
+
 
 class EventModel(models.Model):
     organizer = models.ForeignKey(Organizer, on_delete=models.CASCADE, related_name="event_models")
@@ -18,6 +30,8 @@ class EventModel(models.Model):
 
     title = models.CharField("titre de l'événement", max_length=200)
     message = models.TextField("message d'invitation", blank=True)
+    # Empty = template default typeface (legacy behaviour).
+    message_font = models.CharField("police du message", max_length=32, blank=True, default="")
 
     event_date = models.DateField("date de l'événement")
     event_time = models.TimeField("heure de l'événement")

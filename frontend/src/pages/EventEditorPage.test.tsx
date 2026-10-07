@@ -8,6 +8,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 vi.mock('html-to-image', () => ({
   toJpeg: vi.fn(async () => 'data:image/jpeg;base64,JPEGDATA'),
 }))
+vi.mock('qrcode', () => ({
+  default: { toDataURL: vi.fn(async () => 'data:image/png;base64,QRDATA') },
+}))
 
 import { AuthProvider } from '../auth/AuthContext.tsx'
 import { ProtectedRoute } from '../auth/ProtectedRoute.tsx'
@@ -99,6 +102,7 @@ describe('EventEditorPage', () => {
 
     await user.type(await screen.findByLabelText(/^Titre de l/), 'Les 30 ans de Sarah')
     await user.type(screen.getByLabelText(/^Message/), 'Une soirée festive vous attend.')
+    await user.click(screen.getByRole('radio', { name: 'Ronde' }))
     fireEvent.change(document.getElementById('event-date') as HTMLInputElement, {
       target: { value: '2026-12-12' },
     })
@@ -124,6 +128,7 @@ describe('EventEditorPage', () => {
       template: 'confetti',
       title: 'Les 30 ans de Sarah',
       message: 'Une soirée festive vous attend.',
+      message_font: 'ronde',
       event_date: '2026-12-12',
       event_time: '15:00',
       timezone: 'Africa/Kinshasa',
@@ -194,9 +199,10 @@ describe('EventEditorPage', () => {
     expect(downloads[0].download).toMatch(/^invitation-.*\.jpg$/)
     expect(downloads[0].href).toContain('data:image/jpeg')
     expect(toJpeg).toHaveBeenCalledTimes(1)
-    // The editor export has no QR band — it captures the preview card only.
+    // The editor export embeds the verification QR band under the card.
     const captured = vi.mocked(toJpeg).mock.calls[0]?.[0] as HTMLElement
-    expect(captured.textContent ?? '').not.toContain('Invitation vérifiée par QR code')
+    expect(captured.textContent ?? '').toContain('Invitation vérifiée par QR code')
+    expect(captured.querySelector('img[src="data:image/png;base64,QRDATA"]')).not.toBeNull()
     clickSpy.mockRestore()
   })
 })

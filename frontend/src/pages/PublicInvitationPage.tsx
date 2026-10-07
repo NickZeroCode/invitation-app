@@ -137,6 +137,7 @@ export function PublicInvitationPage() {
   const draft: InvitationDraft = {
     title: data.event.title,
     message: data.event.message,
+    messageFont: data.event.message_font,
     event_date: data.event.event_date,
     event_time: data.event.event_time,
     timezone: data.event.timezone,

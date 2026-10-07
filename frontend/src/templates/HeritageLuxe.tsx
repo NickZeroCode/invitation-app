@@ -10,6 +10,7 @@ import {
   isEmphasized,
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
+import { messageFontCss } from './messageFonts.ts'
 
 const GOLD = '#A67C3D'
 const INK = '#2B2620'
@@ -61,7 +62,7 @@ export function HeritageLuxe({ draft }: TemplateProps) {
         </h1>
 
         {draft.message ? (
-          <p className="mt-[1.6em] max-w-[30em] text-pretty text-[1.2em] leading-[1.7] break-words opacity-92">
+          <p className="mt-[1.6em] max-w-[30em] text-pretty text-[1.2em] leading-[1.7] break-words opacity-92" style={{ fontFamily: messageFontCss(draft.messageFont) }}>
             {draft.message}
           </p>
         ) : null}

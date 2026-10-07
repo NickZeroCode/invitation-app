@@ -73,6 +73,7 @@ def build_public_payload(invitation: Invitation, request) -> dict:
         "event": {
             "title": event.title,
             "message": event.message,
+            "message_font": event.message_font,
             "event_date": event.event_date.isoformat(),
             "event_time": event.event_time.isoformat(),
             "timezone": event.timezone,

@@ -10,6 +10,7 @@ import {
   isEmphasized,
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
+import { messageFontCss } from './messageFonts.ts'
 
 const NAVY = '#14213D'
 const GOLD = '#C9A227'
@@ -62,7 +63,7 @@ export function SceauAcademique({ draft }: TemplateProps) {
           {guestLabel(draft)}
         </p>
         {draft.message ? (
-          <p className="mt-[1em] max-w-[29em] text-pretty text-[1.14em] leading-[1.8] break-words opacity-95">
+          <p className="mt-[1em] max-w-[29em] text-pretty text-[1.14em] leading-[1.8] break-words opacity-95" style={{ fontFamily: messageFontCss(draft.messageFont) }}>
             {draft.message}
           </p>
         ) : null}

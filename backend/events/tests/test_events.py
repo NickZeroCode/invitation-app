@@ -93,6 +93,22 @@ def test_create_validates_timezone(auth_client):
     assert response.json()["error"]["fields"]["timezone"] == ["Fuseau horaire invalide."]
 
 
+def test_create_persists_message_font(auth_client):
+    response = auth_client.post(ENDPOINT, make_payload(message_font="scripte"), format="json")
+
+    assert response.status_code == 201
+    assert response.json()["message_font"] == "scripte"
+    event = EventModel.objects.get(pk=response.json()["id"])
+    assert event.message_font == "scripte"
+
+
+def test_create_rejects_invalid_message_font(auth_client):
+    response = auth_client.post(ENDPOINT, make_payload(message_font="comic-sans"), format="json")
+
+    assert response.status_code == 400
+    assert response.json()["error"]["fields"]["message_font"] == ["Police du message invalide."]
+
+
 def test_create_rejects_unknown_template(auth_client):
     response = auth_client.post(ENDPOINT, make_payload(template="modele-inconnu"), format="json")
 

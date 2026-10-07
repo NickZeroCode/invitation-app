@@ -12,6 +12,7 @@ import {
   isEmphasized,
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
+import { messageFontCss } from './messageFonts.ts'
 
 const GOLD = '#D8B36A'
 const GOLD_SOFT = '#EBD3A0'
@@ -96,7 +97,7 @@ export function EterniteOr({ draft }: TemplateProps) {
         </h1>
 
         {draft.message ? (
-          <p className="mt-[1.8em] max-w-[30em] text-pretty text-[1.2em] leading-[1.75] break-words opacity-90">
+          <p className="mt-[1.8em] max-w-[30em] text-pretty text-[1.2em] leading-[1.75] break-words opacity-90" style={{ fontFamily: messageFontCss(draft.messageFont) }}>
             {draft.message}
           </p>
         ) : null}

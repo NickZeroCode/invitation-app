@@ -10,6 +10,7 @@ import {
   isEmphasized,
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
+import { messageFontCss } from './messageFonts.ts'
 
 const INDIGO = '#4338CA'
 const AMBER = '#F59E0B'
@@ -72,7 +73,7 @@ export function Confetti({ draft }: TemplateProps) {
           {guestLabel(draft)}
         </p>
         {draft.message ? (
-          <p className="mt-[1.1em] max-w-[28em] text-pretty text-[1.2em] leading-[1.7] break-words opacity-95">{draft.message}</p>
+          <p className="mt-[1.1em] max-w-[28em] text-pretty text-[1.2em] leading-[1.7] break-words opacity-95" style={{ fontFamily: messageFontCss(draft.messageFont) }}>{draft.message}</p>
         ) : null}
 
         <div

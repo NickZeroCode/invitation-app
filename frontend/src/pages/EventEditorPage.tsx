@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import QRCode from 'qrcode'
 
 import { Alert } from '../design-system/Alert.tsx'
 import { Button } from '../design-system/Button.tsx'
@@ -23,6 +24,7 @@ import type {
 } from '../lib/types.ts'
 import { fr } from '../locales/fr.ts'
 import { InvitationDownloadButton } from '../templates/InvitationDownloadButton.tsx'
+import { MESSAGE_FONTS } from '../templates/messageFonts.ts'
 import { TEMPLATES, emptyDraft, getTemplate } from '../templates/registry.tsx'
 import type { InvitationDraft } from '../templates/types.ts'
 
@@ -68,6 +70,7 @@ export function EventEditorPage() {
   )
   const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')
+  const [messageFont, setMessageFont] = useState('classique')
   const [eventDate, setEventDate] = useState('')
   const [eventTime, setEventTime] = useState('')
   const [timezone, setTimezone] = useState('Africa/Kinshasa')
@@ -91,6 +94,7 @@ export function EventEditorPage() {
   })
   const hydrated = useRef(false)
   const previewCardRef = useRef<HTMLDivElement>(null)
+  const [qrDataUrl, setQrDataUrl] = useState('')
 
   const template = getTemplate(templateKey) ?? TEMPLATES[0]
 
@@ -101,6 +105,7 @@ export function EventEditorPage() {
     setTemplateKey(data.template)
     setTitle(data.title)
     setMessage(data.message)
+    setMessageFont(data.message_font || 'classique')
     setEventDate(data.event_date)
     setEventTime(data.event_time)
     setTimezone(data.timezone)
@@ -122,11 +127,30 @@ export function EventEditorPage() {
     )
   }, [eventQuery.data])
 
+  useEffect(() => {
+    let cancelled = false
+    QRCode.toDataURL(`${window.location.origin}/`, {
+      width: 340,
+      margin: 1,
+      color: { dark: '#1a261f', light: '#ffffff' },
+    })
+      .then((url) => {
+        if (!cancelled) setQrDataUrl(url)
+      })
+      .catch(() => {
+        if (!cancelled) setQrDataUrl('')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const previewDraft: InvitationDraft = useMemo(
     () =>
       emptyDraft({
         title: title || 'Titre de l’événement',
         message,
+        messageFont,
         event_date: eventDate,
         event_time: eventTime,
         timezone,
@@ -139,6 +163,7 @@ export function EventEditorPage() {
     [
       title,
       message,
+      messageFont,
       eventDate,
       eventTime,
       timezone,
@@ -158,6 +183,7 @@ export function EventEditorPage() {
         template: templateKey,
         title: title.trim(),
         message: message.trim(),
+        message_font: messageFont,
         event_date: eventDate,
         event_time: eventTime,
         timezone: timezone.trim() || 'Africa/Kinshasa',
@@ -387,6 +413,44 @@ export function EventEditorPage() {
                   className="w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
                   onChange={(event) => setMessage(event.target.value)}
                 />
+              </Field>
+              <Field
+                id="event-message-font"
+                label={fr.editor.messageFontLabel}
+                hint={fr.editor.messageFontHint}
+              >
+                <div
+                  role="radiogroup"
+                  aria-label={fr.editor.messageFontLabel}
+                  className="flex flex-wrap gap-2"
+                >
+                  {MESSAGE_FONTS.map((font) => {
+                    const selected = font.key === messageFont
+                    return (
+                      <button
+                        key={font.key}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() => setMessageFont(font.key)}
+                        className={`flex items-center gap-2 rounded-pill border px-3.5 py-2 text-sm transition-colors duration-150 ${
+                          selected
+                            ? 'border-brand bg-brand text-paper'
+                            : 'border-line-strong text-ink-soft hover:border-brand/60 hover:text-ink'
+                        }`}
+                      >
+                        <span
+                          className="text-lg leading-none"
+                          style={{ fontFamily: font.css }}
+                          aria-hidden="true"
+                        >
+                          Aa
+                        </span>
+                        <span>{font.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
               </Field>
             </CardBody>
           </Card>
@@ -743,7 +807,11 @@ export function EventEditorPage() {
                 </div>
               </div>
               <div className="mt-4 border-t border-line pt-4">
-                <InvitationDownloadButton targetRef={previewCardRef} title={previewDraft.title} />
+                <InvitationDownloadButton
+              targetRef={previewCardRef}
+              title={previewDraft.title}
+              qrDataUrl={qrDataUrl}
+            />
               </div>
             </CardBody>
           </Card>

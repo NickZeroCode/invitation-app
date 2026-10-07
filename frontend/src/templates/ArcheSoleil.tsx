@@ -11,6 +11,7 @@ import {
   isEmphasized,
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
+import { messageFontCss } from './messageFonts.ts'
 
 const TERRA = '#BE5330'
 const OCHRE = '#D89A52'
@@ -128,7 +129,7 @@ export function ArcheSoleil({ draft }: TemplateProps) {
         </div>
 
         {draft.message ? (
-          <p className="mt-[1.3em] max-w-[29em] text-pretty text-[1.2em] leading-[1.75] break-words opacity-92">
+          <p className="mt-[1.3em] max-w-[29em] text-pretty text-[1.2em] leading-[1.75] break-words opacity-92" style={{ fontFamily: messageFontCss(draft.messageFont) }}>
             {draft.message}
           </p>
         ) : null}

@@ -10,6 +10,7 @@ import {
   isEmphasized,
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
+import { messageFontCss } from './messageFonts.ts'
 
 const STONE = '#4B463F'
 const SAGE = '#8A8377'
@@ -46,7 +47,7 @@ export function Memoire({ draft }: TemplateProps) {
         </h1>
 
         {draft.message ? (
-          <p className="mt-[2em] max-w-[27em] text-pretty font-display text-[1.2em] italic leading-[1.9] break-words opacity-92">
+          <p className="mt-[2em] max-w-[27em] text-pretty font-display text-[1.2em] italic leading-[1.9] break-words opacity-92" style={{ fontFamily: messageFontCss(draft.messageFont) }}>
             {draft.message}
           </p>
         ) : null}
