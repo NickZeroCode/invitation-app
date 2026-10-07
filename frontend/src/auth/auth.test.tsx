@@ -30,7 +30,7 @@ function renderApp(initialPath: string) {
             }
           />
           <Route
-            path="/"
+            path="/accueil"
             element={
               <ProtectedRoute>
                 <div>espace-protege</div>
@@ -52,7 +52,7 @@ describe('auth routing', () => {
   it('shows a loading state while the session is being resolved', async () => {
     mockFetch([{ url: '/api/auth/me/', status: 401, body: null }])
 
-    renderApp('/')
+    renderApp('/accueil')
     expect(screen.getByRole('status')).toBeInTheDocument()
     await screen.findByText('page-connexion')
   })
@@ -60,14 +60,14 @@ describe('auth routing', () => {
   it('redirects anonymous visitors to the login page', async () => {
     mockFetch([{ url: '/api/auth/me/', status: 401, body: null }])
 
-    renderApp('/')
+    renderApp('/accueil')
     expect(await screen.findByText('page-connexion')).toBeInTheDocument()
   })
 
   it('renders protected content for an authenticated organizer', async () => {
     mockFetch([{ url: '/api/auth/me/', body: ORGANIZER }])
 
-    renderApp('/')
+    renderApp('/accueil')
     expect(await screen.findByText('espace-protege')).toBeInTheDocument()
   })
 

@@ -24,7 +24,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/', label: fr.nav.overview, icon: IconOverview, end: true },
+  { to: '/accueil', label: fr.nav.overview, icon: IconOverview, end: true },
   { to: '/evenements', label: fr.nav.events, icon: IconEvents },
   { to: '/modeles', label: fr.nav.templates, icon: IconTemplates },
   { to: '/parametres', label: fr.nav.settings, icon: IconSettings },

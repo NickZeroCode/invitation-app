@@ -33,7 +33,7 @@ function renderLogin(routes: MockRoute[]): MockFetch {
             }
           />
           <Route
-            path="/"
+            path="/accueil"
             element={
               <ProtectedRoute>
                 <div>espace-protege</div>

@@ -305,6 +305,109 @@ export const fr = {
     next: 'Suivant',
     page: 'Page {page}',
   },
+  landing: {
+    nav: {
+      ariaLabel: 'Navigation principale',
+      skipToContent: 'Aller au contenu principal',
+      templates: 'Modèles',
+      benefits: 'Avantages',
+      howItWorks: 'Comment ça marche',
+      verification: 'Vérification',
+      login: 'Se connecter',
+    },
+    hero: {
+      eyebrow: 'Plateforme d\u2019invitations · République démocratique du Congo',
+      title: 'Des invitations dignes de vos plus beaux moments.',
+      text: "NickEvents réunit des modèles d'exception, un partage digital fluide et une vérification par QR code — de la première annonce au jour J.",
+      primaryCta: 'Se connecter',
+      secondaryCta: 'Découvrir les modèles',
+      point1: 'Sans application pour vos invités',
+      point2: 'QR code de vérification',
+      point3: 'Réponses centralisées',
+    },
+    benefits: {
+      title: 'Pensé pour les organisateurs exigeants',
+      subtitle: 'Des outils sobres et fiables, du premier invité à la dernière danse.',
+      items: [
+        {
+          title: "Modèles d'exception",
+          text: "Sept compositions artistiques, typographie soignée et mise en page équilibrée, prêtes à personnaliser pour votre événement.",
+        },
+        {
+          title: 'Un lien pour chaque invité',
+          text: "Partagez sur WhatsApp, par e-mail ou en main propre : chaque invité reçoit une invitation nominative, sans compte ni application.",
+        },
+        {
+          title: 'Vérification par QR code',
+          text: "Chaque invitation porte un QR code unique. Vérifiez son authenticité à l'entrée de votre événement, en un instant.",
+        },
+        {
+          title: 'Réponses centralisées',
+          text: "Présences, préférences et souhaits de vos invités rassemblés dans un tableau de bord clair, toujours à jour.",
+        },
+      ],
+    },
+    howItWorks: {
+      title: 'Comment ça fonctionne',
+      subtitle: 'Quatre étapes, de la création au jour J.',
+      steps: [
+        {
+          title: 'Créez votre événement',
+          text: "Titre, date, lieu et message : l'essentiel en quelques minutes.",
+        },
+        {
+          title: 'Choisissez votre modèle',
+          text: 'Sept univers visuels raffinés, du classique chic au plus festif.',
+        },
+        {
+          title: 'Invitez vos invités',
+          text: 'Générez des liens nominatifs avec QR code et partagez-les comme vous le souhaitez.',
+        },
+        {
+          title: 'Suivez les réponses',
+          text: 'Consultez présences et préférences en temps réel, sans tableur ni fil de discussion.',
+        },
+      ],
+    },
+    categories: {
+      title: 'Pour chaque célébration',
+      subtitle: 'Des modèles pensés pour tous les moments de la vie, des plus intimes aux plus solennels.',
+      items: [
+        { name: 'Mariage', text: 'Cérémonies et réceptions nuptiales.' },
+        { name: 'Anniversaire de mariage', text: 'Des noces de perle aux noces d\u2019or.' },
+        { name: 'Entreprise', text: 'Lancements, galas et événements professionnels.' },
+        { name: 'Anniversaire', text: 'Fêtes privées et grandes tablées.' },
+        { name: 'Remise de diplômes', text: 'Célébrations de réussite et de promotion.' },
+        { name: 'Réception / cérémonie', text: 'Réceptions officielles et soirées de gala.' },
+        { name: 'Hommage', text: 'Célébrer une vie, avec dignité.' },
+      ],
+    },
+    verification: {
+      title: 'Des invitations vérifiables, partagées en un instant',
+      text: "L'invitation numérique se transmet en un lien et se vérifie en un scan. Aucun papier perdu, aucune imitation.",
+      points: [
+        "Un QR code unique sur chaque invitation, pour une vérification instantanée à l'entrée.",
+        'Un lien nominatif que vos invités ouvrent sur n\u2019importe quel téléphone, sans installation.',
+        "Des invitations toujours à jour : un changement de lieu ou d'horaire, et tout le monde est informé.",
+      ],
+      qrAlt: 'QR code de vérification',
+      qrCaption: 'Exemple de QR code de vérification',
+    },
+    showcase: {
+      title: 'Une collection signée par le design',
+      subtitle: 'Sept modèles originaux, dessinés comme des pièces de papeterie : hiérarchie typographique, ornements et couleurs harmonieuses.',
+      cta: 'Se connecter pour choisir votre modèle',
+    },
+    finalCta: {
+      title: 'Prêt à créer votre invitation ?',
+      text: "Connectez-vous à votre espace organisateur et commencez à créer dès aujourd'hui.",
+      button: 'Se connecter',
+    },
+    footer: {
+      tagline: "L'art d'inviter, avec élégance et simplicité.",
+      rights: 'Tous droits réservés.',
+    },
+  },
   notFound: {
     title: 'Page introuvable',
     description: "La page que vous recherchez n'existe pas ou a été déplacée.",

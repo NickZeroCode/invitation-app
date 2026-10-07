@@ -26,7 +26,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 export function GuestRoute({ children }: { children: ReactNode }) {
   const { status } = useAuth()
   const location = useLocation()
-  const from = (location.state as { from?: string } | null)?.from ?? '/'
+  const from = (location.state as { from?: string } | null)?.from ?? '/accueil'
 
   if (status === 'loading') {
     return (

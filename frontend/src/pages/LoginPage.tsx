@@ -13,7 +13,7 @@ export function LoginPage() {
   const { login, status } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: string } | null)?.from ?? '/'
+  const from = (location.state as { from?: string } | null)?.from ?? '/accueil'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
