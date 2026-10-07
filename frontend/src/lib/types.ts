@@ -219,3 +219,80 @@ export interface InvitationBulkResult {
   count: number
   invitations: Invitation[]
 }
+
+export interface GuestResponseAnswerPayload {
+  question: number
+  question_label: string
+  input_type: 'single' | 'multiple'
+  options: Array<{ id: number; label: string }>
+}
+
+export interface GuestResponsePayload {
+  id: number
+  invitation: number
+  guest_name: string
+  display_name: string
+  invitation_status: InvitationState
+  submitted_at: string
+  updated_at: string
+  answers: GuestResponseAnswerPayload[]
+}
+
+/** Submission body: one entry per answered question, option ids only. */
+export interface GuestResponseSubmission {
+  answers: Array<{ question: number; options: number[] }>
+}
+
+export interface PublicInvitationPayload {
+  status: InvitationState
+  is_valid: boolean
+  invitation: {
+    guest_name: string
+    civility: InvitationCivility
+    display_name: string
+    issued_at: string
+    expires_at: string | null
+  }
+  event: {
+    title: string
+    message: string
+    event_date: string
+    event_time: string
+    timezone: string
+    venue_name: string
+    venue_address: string
+    venue_details: string
+    cover_url: string | null
+    display_config: { emphasis?: string[] }
+    template: {
+      key: string
+      name: string
+      config: {
+        supports_cover: boolean
+        sections: string[]
+        emphasis_fields: string[]
+      }
+    }
+  }
+  preferences: {
+    enabled: boolean
+    questions: Array<{
+      id: number
+      label: string
+      help_text: string | null
+      input_type: 'single' | 'multiple'
+      required: boolean
+      order: number
+      options: Array<{ id: number; label: string; order: number }>
+    }>
+  }
+  response: GuestResponsePayload | null
+}
+
+export interface PublicInvitationVerification {
+  result: 'valid' | 'expired' | 'revoked' | 'invalid'
+  is_valid: boolean
+  verified_at: string
+  guest_name?: string
+  event_title?: string
+}

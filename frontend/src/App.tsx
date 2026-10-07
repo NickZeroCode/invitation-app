@@ -13,6 +13,7 @@ import { TemplatesPage } from './pages/TemplatesPage.tsx'
 import { EventsPage } from './pages/EventsPage.tsx'
 import { EventEditorPage } from './pages/EventEditorPage.tsx'
 import { GuestsPage } from './pages/GuestsPage.tsx'
+import { PublicInvitationPage } from './pages/PublicInvitationPage.tsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,6 +46,7 @@ export default function App() {
                 </GuestRoute>
               }
             />
+            <Route path="/i/:token" element={<PublicInvitationPage />} />
             <Route
               element={
                 <ProtectedRoute>

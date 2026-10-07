@@ -87,9 +87,7 @@ class InvitationSerializer(serializers.ModelSerializer):
     # --- Derived display fields ----------------------------------------
 
     def get_status(self, obj: Invitation) -> str:
-        if obj.state == Invitation.State.ACTIVE and not obj.is_currently_valid():
-            return Invitation.State.EXPIRED
-        return obj.state
+        return obj.status
 
     def get_is_valid(self, obj: Invitation) -> bool:
         return obj.is_currently_valid()

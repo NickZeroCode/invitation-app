@@ -23,9 +23,13 @@ import type {
   InvitationListPage,
   InvitationPayload,
   InvitationTemplate,
+  GuestResponsePayload,
+  GuestResponseSubmission,
   LoginPayload,
   Organizer,
   ProfileUpdatePayload,
+  PublicInvitationPayload,
+  PublicInvitationVerification,
 } from './types.ts'
 
 const NETWORK_MESSAGE = 'Impossible de joindre le serveur. Vérifiez votre connexion internet.'
@@ -203,6 +207,22 @@ export const eventsApi = {
     return request<CoverUploadResponse>('PUT', `/api/events/${id}/cover/`, form)
   },
   removeCover: (id: number) => request<void>('DELETE', `/api/events/${id}/cover/`),
+}
+
+export const publicApi = {
+  invitation: (token: string) =>
+    request<PublicInvitationPayload>('GET', `/api/public/invitations/${encodeURIComponent(token)}/`),
+  verify: (token: string) =>
+    request<PublicInvitationVerification>(
+      'GET',
+      `/api/public/invitations/${encodeURIComponent(token)}/verify/`,
+    ),
+  submitResponse: (token: string, payload: GuestResponseSubmission) =>
+    request<GuestResponsePayload>(
+      'POST',
+      `/api/public/invitations/${encodeURIComponent(token)}/response/`,
+      payload,
+    ),
 }
 
 export const invitationsApi = {

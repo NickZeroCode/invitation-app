@@ -80,3 +80,17 @@ class Invitation(models.Model):
         if self.expires_at is not None and self.expires_at <= timezone_now():
             return False
         return True
+
+    @property
+    def status(self) -> str:
+        """Derived, user-facing status (stored state combined with expiry).
+
+        An ACTIVE invitation past its expiry reads as ``expired`` so dashboards,
+        public pages and QR verification agree with the effective state. A
+        deleted tombstone keeps its own state so callers can filter it out.
+        """
+        if self.state in (self.State.DELETED, self.State.REVOKED):
+            return self.state
+        if not self.is_currently_valid():
+            return self.State.EXPIRED
+        return self.State.ACTIVE

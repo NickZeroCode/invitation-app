@@ -1,6 +1,7 @@
 from django.urls import path
 
 from events.views import EventModelCoverView, EventModelViewSet
+from invitations.public import PublicInvitationView, PublicVerificationView
 from invitations.views import (
     InvitationBulkGenerateView,
     InvitationDetailView,
@@ -8,6 +9,7 @@ from invitations.views import (
     InvitationRevokeView,
     EventInvitationsView,
 )
+from preferences.views import EventResponsesView, GuestResponseSubmitView
 from templates_app.views import InvitationTemplateViewSet
 
 from . import views
@@ -52,5 +54,23 @@ urlpatterns = [
         "invitations/<int:pk>/duplicate/",
         InvitationDuplicateView.as_view(),
         name="invitation-duplicate",
+    ),
+    # Guest responses for one event (organizer reporting, Section 13).
+    path("events/<int:pk>/responses/", EventResponsesView.as_view(), name="event-responses"),
+    # Public, token-scoped endpoints (Sections 10–11, 13).
+    path(
+        "public/invitations/<str:token>/",
+        PublicInvitationView.as_view(),
+        name="public-invitation",
+    ),
+    path(
+        "public/invitations/<str:token>/verify/",
+        PublicVerificationView.as_view(),
+        name="public-invitation-verify",
+    ),
+    path(
+        "public/invitations/<str:token>/response/",
+        GuestResponseSubmitView.as_view(),
+        name="public-invitation-response",
     ),
 ]
