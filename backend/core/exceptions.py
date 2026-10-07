@@ -51,6 +51,23 @@ class EventHasInvitationsError(APIException):
     )
 
 
+class EventHasResponsesError(APIException):
+    """Domain error: an event model with recorded guest answers cannot be deleted.
+
+    `GuestResponseAnswer.question` is PROTECT ("a question with recorded
+    answers can never be silently destroyed"), so the ORM refuses the
+    cascade. This surfaces that refusal as a clean 400 envelope instead of
+    leaking a raw ProtectedError as a 500.
+    """
+
+    status_code = 400
+    default_code = "event_has_responses"
+    default_detail = (
+        "Cet événement contient des réponses d'invités. "
+        "Les questions auxquelles des invités ont répondu ne peuvent pas être supprimées."
+    )
+
+
 class DomainValidationError(APIException):
     """Domain rule rejection whose sentence survives as the envelope `message`.
 

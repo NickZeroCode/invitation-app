@@ -3,6 +3,7 @@ import datetime
 
 from events.models import EventModel
 from invitations.models import Invitation
+from preferences.models import GuestResponse, GuestResponseAnswer, PreferenceOption, PreferenceQuestion
 from templates_app.models import InvitationTemplate
 
 ENDPOINT = "/api/events/"
@@ -202,6 +203,31 @@ def test_delete_blocked_when_invitations_exist(auth_client, organizer):
     allowed = auth_client.delete(f"{ENDPOINT}{event.pk}/")
     assert allowed.status_code == 204
     assert not EventModel.objects.filter(pk=event.pk).exists()
+
+
+def test_delete_blocked_when_responses_exist(auth_client, organizer):
+    event = make_event(organizer)
+    question = PreferenceQuestion.objects.create(event_model=event, label="Serez-vous présent ?")
+    option = PreferenceOption.objects.create(question=question, label="Oui")
+    invitation = Invitation.objects.create(event_model=event, guest_name="Josué")
+    response = GuestResponse.objects.create(invitation=invitation)
+    answer = GuestResponseAnswer.objects.create(response=response, question=question)
+    answer.options.add(option)
+
+    # Clear the guest list first (tombstone), so the delete reaches the
+    # answered questions — which are PROTECT and must yield a clean 400,
+    # never a 500, and must not destroy anything.
+    invitation.state = Invitation.State.DELETED
+    invitation.save(update_fields=["state"])
+
+    res = auth_client.delete(f"{ENDPOINT}{event.pk}/")
+
+    assert res.status_code == 400
+    error = res.json()["error"]
+    assert error["code"] == "event_has_responses"
+    assert "réponses" in error["message"]
+    assert EventModel.objects.filter(pk=event.pk).exists()
+    assert question.pk and GuestResponseAnswer.objects.filter(pk=answer.pk).exists()
 
 
 def test_delete_event_without_invitations(auth_client, organizer):

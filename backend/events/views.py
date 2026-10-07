@@ -11,6 +11,7 @@ import uuid
 from django.core.files.storage import default_storage
 from django.db import transaction
 from django.db.models import Count, Q
+from django.db.models.deletion import ProtectedError
 from rest_framework import serializers, status, viewsets
 from rest_framework.exceptions import NotFound
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -18,7 +19,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.exceptions import EventHasInvitationsError
+from core.exceptions import EventHasInvitationsError, EventHasResponsesError
 from core.pagination import StandardPagination
 from events.models import EventModel
 from events.serializers import EventModelSerializer
@@ -82,14 +83,25 @@ class EventModelViewSet(viewsets.ModelViewSet):
 
         Soft-deleted (tombstoned) invitations count as already removed, so an
         organizer who cleared the guest list can delete the event model.
+        Recorded guest answers are PROTECT at the model layer, so a delete
+        that reaches answered questions is refused with a clean domain error
+        instead of a server error.
         """
         event = self.get_object()
         if event.invitations.exclude(state=Invitation.State.DELETED).exists():
             raise EventHasInvitationsError()
+        cover = event.cover_image
         with transaction.atomic():
-            if event.cover_image:
-                event.cover_image.delete(save=False)
-            event.delete()
+            try:
+                event.delete()
+            except ProtectedError as exc:
+                # GuestResponseAnswer.question is PROTECT: recorded answers
+                # must never be silently destroyed along with the event.
+                raise EventHasResponsesError() from exc
+        # Storage cleanup runs only after the row delete succeeded, so a
+        # blocked deletion can never leave the event coverless in S3.
+        if cover:
+            cover.delete(save=False)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
