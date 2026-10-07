@@ -1,10 +1,13 @@
 /**
  * Shared primitives for invitation templates.
  *
- * Every template is rendered inside `InvitationPaper`, a CSS container
- * (container-type: inline-size) whose font size tracks its own width. All
- * internal spacing uses `em`, so a template scales perfectly from a small
- * gallery thumbnail to a full editor preview — no transform hacks.
+ * Every template is rendered inside `InvitationPaper`. Its outer wrapper is
+ * the CSS container (container-type: inline-size), so the paper's font size
+ * (`2.6cqw`) tracks the paper's own width — the container must be an
+ * ANCESTOR of the element using `cqw`; an element can never be its own
+ * container (the units would fall back to the viewport). All internal
+ * spacing uses `em`, so a template scales perfectly from a small gallery
+ * thumbnail to a full editor preview — no transform hacks.
  */
 /* oxlint-disable react/only-export-components -- pure helpers + one primitive component */
 import type { CSSProperties, ReactNode } from 'react'
@@ -21,22 +24,24 @@ export function InvitationPaper({
   style?: CSSProperties
 }) {
   return (
-    <article
-      className="relative flex min-h-full w-full flex-col overflow-hidden"
-      style={{
-        containerType: 'inline-size',
-        fontSize: PAPER_FONT_SIZE,
-        // Typographic craft: full OpenType shaping and crisp serif rendering.
-        fontFeatureSettings: "'kern', 'liga', 'calt'",
-        fontKerning: 'normal',
-        WebkitFontSmoothing: 'antialiased',
-        // Printing must keep the designed paper colour, not a white blank.
-        printColorAdjust: 'exact',
-        ...style,
-      }}
-    >
-      {children}
-    </article>
+    <div className="h-full w-full" style={{ containerType: 'inline-size' }}>
+      <article
+        className="relative flex min-h-full w-full flex-col overflow-hidden"
+        style={{
+          containerType: 'inline-size',
+          fontSize: PAPER_FONT_SIZE,
+          // Typographic craft: full OpenType shaping and crisp serif rendering.
+          fontFeatureSettings: "'kern', 'liga', 'calt'",
+          fontKerning: 'normal',
+          WebkitFontSmoothing: 'antialiased',
+          // Printing must keep the designed paper colour, not a white blank.
+          printColorAdjust: 'exact',
+          ...style,
+        }}
+      >
+        {children}
+      </article>
+    </div>
   )
 }
 
