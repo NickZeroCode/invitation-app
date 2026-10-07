@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../auth/AuthContext.tsx'
 import {
+  BrandLockup,
   Button,
   IconChevronLeft,
   IconClose,
@@ -42,18 +43,7 @@ function initials(name: string): string {
 }
 
 function Brand({ compact = false }: { compact?: boolean }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-brand font-display text-sm font-semibold text-white">
-        N
-      </span>
-      {compact ? null : (
-        <span className="font-display text-lg font-semibold tracking-tight text-ink">
-          {fr.appName}
-        </span>
-      )}
-    </div>
-  )
+  return <BrandLockup compact={compact} />
 }
 
 interface SidebarContentProps {

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import QRCode from 'qrcode'
 
 import { Button } from '../design-system/Button.tsx'
+import { LogoMark } from '../design-system/Logo.tsx'
 import { InvitationExportButtons } from '../templates/InvitationExportButtons.tsx'
 import { ErrorState, LoadingState } from '../design-system/states.tsx'
 import { ApiError, publicApi } from '../lib/api.ts'
@@ -150,11 +151,12 @@ export function PublicInvitationPage() {
   const statusKey = verification.result ?? (data.is_valid ? 'valid' : 'expired')
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(18,111,93,0.18),_transparent_38%),linear-gradient(135deg,#f7f4ee_0%,#f1efe8_32%,#f7f5f1_100%)] px-4 py-10 text-ink">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(212,162,75,0.18),_transparent_38%),linear-gradient(135deg,#f7f4ee_0%,#f1efe8_32%,#f7f5f1_100%)] px-4 py-10 text-ink">
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex items-center justify-between gap-4 px-1">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.35em] text-ink-faint">
+            <p className="flex items-center gap-2.5 text-xs font-medium uppercase tracking-[0.35em] text-ink-faint">
+              <LogoMark className="h-7 w-7 rounded-md" />
               NickEvents
             </p>
             <h1 className="mt-2 text-2xl font-semibold text-ink md:text-3xl">Invitation</h1>

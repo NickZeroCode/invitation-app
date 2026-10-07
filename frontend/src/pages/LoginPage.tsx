@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../auth/AuthContext.tsx'
-import { Alert, Button, Field, Input, PasswordInput } from '../design-system/index.ts'
+import { Alert, BrandLockup, Button, Field, Input, LogoMark, PasswordInput } from '../design-system/index.ts'
 import { ApiError } from '../lib/api.ts'
 import { fr } from '../locales/fr.ts'
 
@@ -75,12 +75,9 @@ export function LoginPage() {
   return (
     <div className="flex min-h-svh bg-paper">
       {/* Brand panel */}
-      <aside className="hidden w-[42%] max-w-xl flex-col justify-between bg-brand-strong px-12 py-10 text-white lg:flex">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-white/10 font-display text-sm font-semibold">
-            N
-          </span>
-          <span className="font-display text-lg font-semibold tracking-tight">{fr.appName}</span>
+      <aside className="hidden w-[42%] max-w-xl flex-col justify-between bg-ink px-12 py-10 text-white lg:flex">
+        <div className="flex justify-center">
+          <LogoMark className="h-40 w-40 rounded-2xl xl:h-48 xl:w-48" />
         </div>
         <div>
           <h1 className="font-display text-4xl font-semibold leading-tight">{fr.login.heroTitle}</h1>
@@ -102,15 +99,8 @@ export function LoginPage() {
       {/* Form panel */}
       <main className="flex flex-1 items-center justify-center px-4 py-12 sm:px-8">
         <div className="w-full max-w-sm">
-          <div className="lg:hidden">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-brand font-display text-sm font-semibold text-white">
-                N
-              </span>
-              <span className="font-display text-lg font-semibold tracking-tight text-ink">
-                {fr.appName}
-              </span>
-            </div>
+          <div className="flex justify-center lg:hidden">
+            <BrandLockup />
           </div>
 
           <h2 className="mt-8 text-2xl font-semibold tracking-tight text-ink lg:mt-0">

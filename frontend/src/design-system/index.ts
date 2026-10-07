@@ -22,6 +22,7 @@ export {
   type IconProps,
 } from './icons.tsx'
 export { Input, PasswordInput, Select, type InputProps, type SelectProps } from './Input.tsx'
+export { BrandLockup, LogoArtwork, LogoMark } from './Logo.tsx'
 export { Spinner } from './Spinner.tsx'
 export { EmptyState, ErrorState, LoadingState } from './states.tsx'
 export { Stat, type StatProps } from './Stat.tsx'

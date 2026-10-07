@@ -11,10 +11,13 @@ import QRCode from 'qrcode'
 
 import {
   Badge,
+  BrandLockup,
   IconCheck,
   IconEvents,
   IconInbox,
   IconTemplates,
+  LogoArtwork,
+  LogoMark,
 } from '../design-system/index.ts'
 import { fr } from '../locales/fr.ts'
 import { getTemplate, sampleDraft, TEMPLATES } from '../templates/registry.tsx'
@@ -88,13 +91,8 @@ export function LandingPage() {
 
       <header className="sticky top-0 z-20 border-b border-line bg-paper">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <Link to="/" className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-brand font-display text-sm font-semibold text-white">
-              N
-            </span>
-            <span className="font-display text-lg font-semibold text-ink">
-              {fr.appName}
-            </span>
+          <Link to="/">
+            <BrandLockup />
           </Link>
           <nav
             aria-label={fr.landing.nav.ariaLabel}
@@ -371,7 +369,14 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="border-t border-line bg-brand-strong">
+        {/* Brand showcase — the full logo lockup, big enough to read. */}
+        <section className="border-t border-line">
+          <div className="mx-auto flex max-w-4xl justify-center px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
+            <LogoArtwork className="w-[min(88vw,42rem)]" />
+          </div>
+        </section>
+
+        <section className="border-t border-line bg-ink">
           <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 lg:px-8 lg:py-20">
             <h2 className="font-display text-3xl leading-tight text-white sm:text-4xl">
               {fr.landing.finalCta.title}
@@ -394,9 +399,7 @@ export function LandingPage() {
       <footer className="border-t border-line bg-paper">
         <div className="mx-auto flex max-w-6xl flex-col items-start gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-brand font-display text-sm font-semibold text-white">
-              N
-            </span>
+            <LogoMark />
             <div>
               <p className="text-sm font-semibold text-ink">{fr.appName}</p>
               <p className="text-xs text-ink-faint">{fr.landing.footer.tagline}</p>

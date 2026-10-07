@@ -1,9 +1,10 @@
 @import 'tailwindcss';
 
 /*
- * NickEvents design tokens — "paper & ink" editorial system with a deep
- * emerald brand accent. Tailwind v4 theme namespace: each token below
- * generates utilities (bg-paper, text-ink, font-display, rounded-md, ...).
+ * NickEvents design tokens — "paper & ink" editorial system with the
+ * signature gold of the NickEvents logo (gold & ivory on black). Tailwind
+ * v4 theme namespace: each token below generates utilities
+ * (bg-paper, text-ink, font-display, rounded-md, ...).
  */
 @theme {
   /* Surfaces */
@@ -20,10 +21,14 @@
   --color-line: #e7e5e4;
   --color-line-strong: #d6d3d1;
 
-  /* Brand — deep emerald */
-  --color-brand: #0e5b48;
-  --color-brand-strong: #0a4739;
-  --color-brand-soft: #e6efec;
+  /* Brand — signature gold from the NickEvents logo. The deep gold keeps
+     white-on-gold buttons accessible and gold text readable on ivory. */
+  --color-brand: #8f6518;
+  --color-brand-strong: #6b4711;
+  --color-brand-soft: #f6edda;
+
+  /* Gold — the logo's bright champagne gold, for dark surfaces. */
+  --color-gold: #d4a24b;
 
   /* Semantic */
   --color-danger: #b42318;
