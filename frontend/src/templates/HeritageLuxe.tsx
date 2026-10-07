@@ -54,14 +54,14 @@ export function HeritageLuxe({ draft }: TemplateProps) {
           {guestLabel(draft)}
         </p>
         <h1
-          className="mt-[0.7em] font-display leading-[1.15]"
+          className="mt-[0.7em] break-words text-balance font-display leading-[1.15]"
           style={{ fontSize: titleEm ? '3.6em' : '2.6em', color: INK }}
         >
           {draft.title}
         </h1>
 
         {draft.message ? (
-          <p className="mt-[1.6em] max-w-[30em] text-[1em] leading-[1.7] opacity-80">
+          <p className="mt-[1.6em] max-w-[30em] text-pretty text-[1em] leading-[1.7] break-words opacity-80">
             {draft.message}
           </p>
         ) : null}

@@ -63,7 +63,7 @@ export function JardinFloral({ draft }: TemplateProps) {
         </p>
 
         <h1
-          className="mt-[1em] font-display italic leading-[1.2]"
+          className="mt-[1em] break-words text-balance font-display italic leading-[1.2]"
           style={{ fontSize: titleEm ? '3.4em' : '2.5em', color: '#5C3A43' }}
         >
           {draft.title}
@@ -82,7 +82,7 @@ export function JardinFloral({ draft }: TemplateProps) {
           {guestLabel(draft)}
         </p>
         {draft.message ? (
-          <p className="mt-[1em] max-w-[28em] text-[0.95em] leading-[1.75] opacity-80">
+          <p className="mt-[1em] max-w-[28em] text-pretty text-[0.95em] leading-[1.75] break-words opacity-80">
             {draft.message}
           </p>
         ) : null}

@@ -50,7 +50,7 @@ export function Confetti({ draft }: TemplateProps) {
         </p>
 
         <h1
-          className="mt-[1.1em] font-extrabold leading-[1.1]"
+          className="mt-[1.1em] break-words text-balance font-extrabold leading-[1.1]"
           style={{ fontSize: titleEm ? '3.4em' : '2.5em', color: INDIGO }}
         >
           {draft.title}
@@ -72,7 +72,7 @@ export function Confetti({ draft }: TemplateProps) {
           {guestLabel(draft)}
         </p>
         {draft.message ? (
-          <p className="mt-[1.1em] max-w-[28em] text-[1em] leading-[1.7] opacity-85">{draft.message}</p>
+          <p className="mt-[1.1em] max-w-[28em] text-pretty text-[1em] leading-[1.7] break-words opacity-85">{draft.message}</p>
         ) : null}
 
         <div

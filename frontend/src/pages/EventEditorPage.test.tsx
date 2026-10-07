@@ -1,8 +1,14 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { toPng } from 'html-to-image'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('html-to-image', () => ({
+  toPng: vi.fn(async () => 'data:image/png;base64,PNGDATA'),
+  toJpeg: vi.fn(async () => 'data:image/jpeg;base64,JPEGDATA'),
+}))
 
 import { AuthProvider } from '../auth/AuthContext.tsx'
 import { ProtectedRoute } from '../auth/ProtectedRoute.tsx'
@@ -167,5 +173,28 @@ describe('EventEditorPage', () => {
     expect(
       await screen.findByText("L'image ne doit pas dépasser 5 Mo."),
     ).toBeInTheDocument()
+  })
+
+  it('exports the preview card as a downloadable PNG', async () => {
+    const user = userEvent.setup()
+    const downloads: Array<{ download: string; href: string }> = []
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(function (this: HTMLAnchorElement) {
+        downloads.push({ download: this.download, href: this.href })
+      })
+
+    renderEditor([
+      { url: '/api/auth/me/', body: ORGANIZER },
+      CSRF,
+    ])
+
+    await user.click(await screen.findByRole('button', { name: 'Télécharger PNG' }))
+
+    await waitFor(() => expect(downloads).toHaveLength(1))
+    expect(downloads[0].download).toMatch(/^invitation-.*\.png$/)
+    expect(downloads[0].href).toContain('data:image/png')
+    expect(toPng).toHaveBeenCalledTimes(1)
+    clickSpy.mockRestore()
   })
 })

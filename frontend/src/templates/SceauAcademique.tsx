@@ -46,7 +46,7 @@ export function SceauAcademique({ draft }: TemplateProps) {
         </p>
 
         <h1
-          className="mt-[1.2em] font-display leading-[1.2]"
+          className="mt-[1.2em] break-words text-balance font-display leading-[1.2]"
           style={{ fontSize: titleEm ? '3.2em' : '2.4em', color: '#FFFFFF' }}
         >
           {draft.title}
@@ -62,7 +62,7 @@ export function SceauAcademique({ draft }: TemplateProps) {
           {guestLabel(draft)}
         </p>
         {draft.message ? (
-          <p className="mt-[1em] max-w-[29em] text-[0.95em] leading-[1.8] opacity-85">
+          <p className="mt-[1em] max-w-[29em] text-pretty text-[0.95em] leading-[1.8] break-words opacity-85">
             {draft.message}
           </p>
         ) : null}

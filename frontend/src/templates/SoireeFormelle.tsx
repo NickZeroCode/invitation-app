@@ -29,7 +29,7 @@ export function SoireeFormelle({ draft }: TemplateProps) {
         </p>
 
         <h1
-          className="mt-[1.4em] uppercase leading-[1.25]"
+          className="mt-[1.4em] break-words text-balance uppercase leading-[1.25]"
           style={{
             fontSize: titleEm ? '3em' : '2.2em',
             fontWeight: 600,
@@ -68,7 +68,7 @@ export function SoireeFormelle({ draft }: TemplateProps) {
           {guestLabel(draft)}
         </p>
         {draft.message ? (
-          <p className="mt-[1em] max-w-[29em] text-[0.95em] leading-[1.85] opacity-85">
+          <p className="mt-[1em] max-w-[29em] text-pretty text-[0.95em] leading-[1.85] break-words opacity-85">
             {draft.message}
           </p>
         ) : null}

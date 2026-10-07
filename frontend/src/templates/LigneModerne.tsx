@@ -37,7 +37,7 @@ export function LigneModerne({ draft }: TemplateProps) {
         <span className="mt-[1.2em] h-[0.35em] w-full" style={{ backgroundColor: INK }} />
 
         <h1
-          className="mt-[1.6em] font-semibold uppercase leading-[1.12]"
+          className="mt-[1.6em] break-words text-balance font-semibold uppercase leading-[1.12]"
           style={{ fontSize: titleEm ? '3.3em' : '2.35em', letterSpacing: '0.02em' }}
         >
           {draft.title}
@@ -49,7 +49,7 @@ export function LigneModerne({ draft }: TemplateProps) {
 
         {draft.message ? (
           <p
-            className="mt-[1.4em] max-w-[30em] leading-[1.75]"
+            className="mt-[1.4em] max-w-[30em] text-pretty leading-[1.75] break-words"
             style={{
               fontSize: messageEm ? '1.25em' : '1em',
               fontWeight: messageEm ? 600 : 400,

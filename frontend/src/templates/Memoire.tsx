@@ -39,14 +39,14 @@ export function Memoire({ draft }: TemplateProps) {
         </p>
 
         <h1
-          className="mt-[1.6em] font-display leading-[1.3]"
+          className="mt-[1.6em] break-words text-balance font-display leading-[1.3]"
           style={{ fontSize: titleEm ? '2.9em' : '2.15em', color: '#3A352E' }}
         >
           {draft.title}
         </h1>
 
         {draft.message ? (
-          <p className="mt-[2em] max-w-[27em] font-display text-[1em] italic leading-[1.9] opacity-80">
+          <p className="mt-[2em] max-w-[27em] text-pretty font-display text-[1em] italic leading-[1.9] break-words opacity-80">
             {draft.message}
           </p>
         ) : null}

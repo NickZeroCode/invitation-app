@@ -23,7 +23,17 @@ export function InvitationPaper({
   return (
     <article
       className="relative flex min-h-full w-full flex-col overflow-hidden"
-      style={{ containerType: 'inline-size', fontSize: PAPER_FONT_SIZE, ...style }}
+      style={{
+        containerType: 'inline-size',
+        fontSize: PAPER_FONT_SIZE,
+        // Typographic craft: full OpenType shaping and crisp serif rendering.
+        fontFeatureSettings: "'kern', 'liga', 'calt'",
+        fontKerning: 'normal',
+        WebkitFontSmoothing: 'antialiased',
+        // Printing must keep the designed paper colour, not a white blank.
+        printColorAdjust: 'exact',
+        ...style,
+      }}
     >
       {children}
     </article>
