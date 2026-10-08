@@ -91,19 +91,17 @@ export function ArcheSoleil({ draft }: TemplateProps) {
 
       {/* Decorations frame the text zone (below the cover photo). */}
       <div className="relative flex flex-1 flex-col">
-        <HexFrame
-          className="pointer-events-none absolute inset-[1.8em]"
-          color={GOLD_WARM}
-          opacity={0.55}
-        />
+        <div className="pointer-events-none absolute inset-[1.8em]">
+          <HexFrame className="h-full w-full" color={GOLD_WARM} opacity={0.55} />
+        </div>
         <WatercolorSpray
           palette={BLUSH}
-          className="pointer-events-none absolute right-[-1em] top-[-0.8em] w-[14.5em]"
+          className="pointer-events-none absolute right-[-1em] top-[-0.8em] w-[14em]"
           style={{ transform: 'scaleX(-1)' }}
         />
         <WatercolorSpray
           palette={BLUSH}
-          className="pointer-events-none absolute bottom-[-0.8em] left-[-1em] w-[13em]"
+          className="pointer-events-none absolute bottom-[-0.8em] left-[-1em] w-[14em]"
         />
 
         <div className="relative flex flex-1 flex-col items-center px-[6em] pt-[4.6em] pb-[4.2em] text-center">

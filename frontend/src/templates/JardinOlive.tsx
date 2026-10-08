@@ -34,7 +34,7 @@ function Sprig() {
       <g transform="translate(46 12) rotate(-24) scale(0.62)">
         <path d={LEAF_PATH} fill={OLIVE} opacity="0.85" />
       </g>
-      <g transform="translate(74 12) rotate(204) scale(0.62)">
+      <g transform="translate(74 12) scale(-1 1) rotate(-24) scale(0.62)">
         <path d={LEAF_PATH} fill={OLIVE} opacity="0.85" />
       </g>
       <path d="M60 3 L67 12 L60 21 L53 12 Z" fill={GOLD} />
@@ -63,18 +63,16 @@ export function JardinOlive({ draft }: TemplateProps) {
       <div className="relative flex flex-1 flex-col">
         <WatercolorSpray
           palette={SAGE}
-          className="pointer-events-none absolute left-[-1.2em] top-[-1em] w-[15.5em]"
+          className="pointer-events-none absolute left-[-1.2em] top-[-1em] w-[14.5em]"
         />
         <WatercolorSpray
           palette={SAGE}
-          className="pointer-events-none absolute bottom-[-1em] right-[-1.2em] w-[12em]"
+          className="pointer-events-none absolute bottom-[-1em] right-[-1.2em] w-[14.5em]"
           style={{ transform: 'rotate(180deg)' }}
         />
-        <ArchFrame
-          className="pointer-events-none absolute inset-[1.6em]"
-          color={GOLD}
-          opacity={0.45}
-        />
+        <div className="pointer-events-none absolute inset-[1.6em]">
+          <ArchFrame className="h-full w-full" color={GOLD} opacity={0.45} />
+        </div>
 
         <div className="relative flex flex-1 flex-col items-center px-[6.5em] py-[6em] text-center">
         <p className="text-[1.02em] uppercase" style={{ color: OLIVE, letterSpacing: '0.52em' }}>
@@ -149,7 +147,7 @@ export function JardinOlive({ draft }: TemplateProps) {
           titleStyle={{ letterSpacing: '0.52em' }}
         />
 
-        <div className="mt-auto pt-[2.4em]">
+        <div className="mt-auto flex w-full flex-col items-center pt-[2.4em]">
           <Sprig />
           <p className="mt-[1em] text-[1.02em] italic opacity-75">
             Sous le signe de l'olivier, symbole de paix et d'amour.

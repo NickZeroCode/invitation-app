@@ -50,12 +50,15 @@ function PanelCard({
   templateKey,
   title,
   action,
+  ornament,
   children,
 }: {
   theme: TemplateTheme
   templateKey: string
   title: string
   action?: ReactNode
+  /** Template motif under the title; light utility panels opt out. */
+  ornament?: boolean
   children: ReactNode
 }) {
   return (
@@ -76,11 +79,13 @@ function PanelCard({
         </p>
         {action}
       </div>
-      <TemplateOrnament
-        templateKey={templateKey}
-        color={theme.accent}
-        className="mx-auto mt-3 block h-auto w-36"
-      />
+      {ornament !== false ? (
+        <TemplateOrnament
+          templateKey={templateKey}
+          color={theme.accent}
+          className="mx-auto mt-3 block h-auto w-36"
+        />
+      ) : null}
       {children}
     </section>
   )
@@ -282,6 +287,7 @@ export function PublicInvitationPage() {
               theme={theme}
               templateKey={data.event.template.key}
               title="Vérification QR"
+              ornament={false}
               action={
                 <span className={`rounded-full px-2 py-1 text-[0.65rem] font-semibold ${STATUS_TONE[statusKey] ?? 'bg-surface-muted text-ink-soft'}`}>
                   {STATUS_LABEL[statusKey] ?? 'Valide'}
@@ -315,7 +321,7 @@ export function PublicInvitationPage() {
             </PanelCard>
 
             {data.preferences.enabled ? (
-              <PanelCard theme={theme} templateKey={data.event.template.key} title="Préférences">
+              <PanelCard theme={theme} templateKey={data.event.template.key} title="Préférences" ornament={false}>
                 <form
                   className="mt-4 space-y-4"
                   onSubmit={(event) => {
