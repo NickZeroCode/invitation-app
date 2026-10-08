@@ -14,6 +14,7 @@ import {
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
+import { TemplateOrnament } from './ornaments.tsx'
 
 const INDIGO = '#4338CA'
 const AMBER = '#F59E0B'
@@ -44,7 +45,6 @@ export function Confetti({ draft }: TemplateProps) {
   const dateEm = isEmphasized(draft, 'date')
   return (
     <InvitationPaper style={{ backgroundColor: '#FFF8E7', color: '#312E81' }}>
-      <ConfettiDots />
       <CoverHero
         draft={draft}
         bandColor="rgba(49,46,129,0.58)"
@@ -55,7 +55,11 @@ export function Confetti({ draft }: TemplateProps) {
           color: '#FFF8E7',
         }}
       />
-      <div className="flex flex-1 flex-col items-center px-[5.5em] pb-[3.5em] pt-[9em] text-center">
+
+      {/* Decorations frame the text zone (below the cover photo). */}
+      <div className="relative flex flex-1 flex-col">
+        <ConfettiDots />
+        <div className="relative flex flex-1 flex-col items-center px-[5.5em] pb-[3.5em] pt-[9em] text-center">
         <p
           className="rounded-full px-[1.6em] py-[0.55em] text-[1.02em] font-bold uppercase"
           style={{ backgroundColor: AMBER, color: '#7C2D12', letterSpacing: '0.28em' }}
@@ -104,12 +108,31 @@ export function Confetti({ draft }: TemplateProps) {
           ) : null}
         </div>
 
-        <ProgramSection draft={draft} accent={PINK} ink="#312E81" />
-        <DressCodeSection draft={draft} accent={PINK} ink="#312E81" />
+        <ProgramSection
+          draft={draft}
+          accent={PINK}
+          ink="#312E81"
+          ornament={
+            <TemplateOrnament templateKey="confetti" color={PINK} className="block h-auto w-full" />
+          }
+          titleClassName="font-extrabold"
+          titleStyle={{ letterSpacing: '0.22em' }}
+        />
+        <DressCodeSection
+          draft={draft}
+          accent={PINK}
+          ink="#312E81"
+          ornament={
+            <TemplateOrnament templateKey="confetti" color={PINK} className="block h-auto w-full" />
+          }
+          titleClassName="font-extrabold"
+          titleStyle={{ letterSpacing: '0.22em' }}
+        />
 
         <p className="mt-auto pt-[1.8em] text-[1.08em] font-semibold" style={{ color: PINK }}>
           Venez nombreux, la fête est pour vous !
         </p>
+        </div>
       </div>
     </InvitationPaper>
   )

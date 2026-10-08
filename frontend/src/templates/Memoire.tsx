@@ -17,6 +17,17 @@ import { messageFontCss } from './messageFonts.ts'
 const STONE = '#4B463F'
 const SAGE = '#8A8377'
 
+/** Hairline rule with a small sage diamond at its centre. */
+function DiamondRule() {
+  return (
+    <div className="flex w-full items-center justify-center gap-[1em]" aria-hidden="true">
+      <span className="h-px flex-1" style={{ backgroundColor: '#C9C2B4' }} />
+      <span className="h-[0.4em] w-[0.4em] rotate-45" style={{ backgroundColor: SAGE }} />
+      <span className="h-px flex-1" style={{ backgroundColor: '#C9C2B4' }} />
+    </div>
+  )
+}
+
 export function Memoire({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -28,10 +39,8 @@ export function Memoire({ draft }: TemplateProps) {
         aria-hidden="true"
       />
       <div className="flex flex-1 flex-col items-center px-[7.5em] py-[5em] text-center">
-        <div className="flex items-center gap-[1em]" aria-hidden="true">
-          <span className="h-px w-[6em]" style={{ backgroundColor: '#C9C2B4' }} />
-          <span className="h-[0.4em] w-[0.4em] rotate-45" style={{ backgroundColor: SAGE }} />
-          <span className="h-px w-[6em]" style={{ backgroundColor: '#C9C2B4' }} />
+        <div className="w-[12em]">
+          <DiamondRule />
         </div>
 
         <p
@@ -76,8 +85,20 @@ export function Memoire({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <ProgramSection draft={draft} accent={SAGE} ink={STONE} />
-        <DressCodeSection draft={draft} accent={SAGE} ink={STONE} />
+        <ProgramSection
+          draft={draft}
+          accent={SAGE}
+          ink={STONE}
+          ornament={<DiamondRule />}
+          titleStyle={{ letterSpacing: '0.5em' }}
+        />
+        <DressCodeSection
+          draft={draft}
+          accent={SAGE}
+          ink={STONE}
+          ornament={<DiamondRule />}
+          titleStyle={{ letterSpacing: '0.5em' }}
+        />
 
         <p className="mt-auto pt-[2.4em] text-[1.08em] italic" style={{ color: SAGE }}>
           {guestLabel(draft)}

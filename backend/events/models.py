@@ -53,6 +53,9 @@ class EventModel(models.Model):
     venue_details = models.TextField("précisions sur le lieu", blank=True)
 
     cover_image = models.ImageField("image de couverture", upload_to="covers/%Y/%m/", blank=True)
+    # Texte superposé à la photo de couverture (noms des concernés) — valeur
+    # distincte du titre de l'événement.
+    cover_title = models.CharField("texte de couverture", max_length=200, blank=True, default="")
     # Per-template display/emphasis configuration (validated by the API layer).
     display_config = models.JSONField("mise en forme", default=dict, blank=True)
 

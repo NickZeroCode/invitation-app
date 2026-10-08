@@ -127,3 +127,22 @@ export const TEMPLATE_THEMES: Record<string, TemplateTheme> = {
 export function themeFor(key: string): TemplateTheme {
   return TEMPLATE_THEMES[key] ?? FALLBACK
 }
+
+/** Per-template panel corner radius — panels follow the motif's geometry. */
+const PANEL_RADIUS: Record<string, string> = {
+  'heritage-luxe': '0.9rem',
+  'eternite-or': '0.9rem',
+  'jardin-olive': '1.35rem',
+  'arche-soleil': '1.35rem',
+  'nuit-celeste': '1.15rem',
+  'jardin-floral': '1.75rem',
+  confetti: '1.75rem',
+  'ligne-moderne': '0.55rem',
+  'sceau-academique': '0.8rem',
+  'soiree-formelle': '1.15rem',
+  memoire: '1.25rem',
+}
+
+export function panelRadiusFor(key: string): string {
+  return PANEL_RADIUS[key] ?? '1.25rem'
+}

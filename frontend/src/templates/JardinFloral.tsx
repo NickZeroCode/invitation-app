@@ -14,6 +14,7 @@ import {
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
+import { TemplateOrnament } from './ornaments.tsx'
 
 const ROSE = '#B4636F'
 const SAGE = '#7C8B6B'
@@ -56,8 +57,6 @@ export function JardinFloral({ draft }: TemplateProps) {
   const venueEm = isEmphasized(draft, 'venue')
   return (
     <InvitationPaper style={{ backgroundColor: '#FCF3F1', color: '#4A3238' }}>
-      <FloralCorner />
-      <FloralCorner flipX />
       <CoverHero
         draft={draft}
         bandColor="rgba(252,243,241,0.82)"
@@ -68,7 +67,12 @@ export function JardinFloral({ draft }: TemplateProps) {
           color: '#5C3A43',
         }}
       />
-      <div className="flex flex-1 flex-col items-center px-[6.5em] py-[4em] text-center">
+
+      {/* Decorations frame the text zone (below the cover photo). */}
+      <div className="relative flex flex-1 flex-col">
+        <FloralCorner />
+        <FloralCorner flipX />
+        <div className="relative flex flex-1 flex-col items-center px-[6.5em] py-[4em] text-center">
         <p
           className="font-display text-[1.2em] italic"
           style={{ color: ROSE, letterSpacing: '0.22em' }}
@@ -122,12 +126,31 @@ export function JardinFloral({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <ProgramSection draft={draft} accent={ROSE} ink="#5C3A43" />
-        <DressCodeSection draft={draft} accent={ROSE} ink="#5C3A43" />
+        <ProgramSection
+          draft={draft}
+          accent={ROSE}
+          ink="#5C3A43"
+          ornament={
+            <TemplateOrnament templateKey="jardin-floral" color={ROSE} className="block h-auto w-full" />
+          }
+          titleClassName="font-display italic"
+          titleStyle={{ letterSpacing: '0.18em', textTransform: 'none' }}
+        />
+        <DressCodeSection
+          draft={draft}
+          accent={ROSE}
+          ink="#5C3A43"
+          ornament={
+            <TemplateOrnament templateKey="jardin-floral" color={ROSE} className="block h-auto w-full" />
+          }
+          titleClassName="font-display italic"
+          titleStyle={{ letterSpacing: '0.18em', textTransform: 'none' }}
+        />
 
         <p className="mt-auto pt-[2em] text-[0.96em] italic opacity-78">
           Au plaisir de vous y retrouver
         </p>
+        </div>
       </div>
     </InvitationPaper>
   )

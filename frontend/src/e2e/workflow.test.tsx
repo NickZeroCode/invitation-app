@@ -158,6 +158,7 @@ const SEEDED_EVENT: EventModel = {
   venue_address: '',
   venue_details: '',
   cover_url: null,
+  cover_title: '',
   display_config: { emphasis: ['title'] },
   preference_questions: [],
   program_items: [],
@@ -255,6 +256,7 @@ function publicPayload(fixture: PublicFixture): unknown {
       venue_address: event.venue_address,
       venue_details: event.venue_details,
       cover_url: event.cover_url,
+      cover_title: event.cover_title,
       display_config: event.display_config,
       template: {
         key: event.template,
@@ -358,6 +360,7 @@ function createBackend(initialFixtures: Record<string, PublicFixture> = {}): Bac
           venue_address: payload.venue_address,
           venue_details: payload.venue_details,
           cover_url: null,
+          cover_title: '',
           display_config: payload.display_config,
           preference_questions: payload.preference_questions.map((question, index) => ({
             ...question,

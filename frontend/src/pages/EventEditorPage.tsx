@@ -111,6 +111,7 @@ export function EventEditorPage() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [coverRemoved, setCoverRemoved] = useState(false)
   const [coverError, setCoverError] = useState<string | null>(null)
+  const [coverText, setCoverText] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
   const [previewDockOpen, setPreviewDockOpen] = useState(true)
@@ -141,6 +142,7 @@ export function EventEditorPage() {
     setVenueName(data.venue_name)
     setVenueAddress(data.venue_address)
     setVenueDetails(data.venue_details)
+    setCoverText(data.cover_title)
     setEmphasis(data.display_config.emphasis ?? [])
     setCoverRemoved(false)
     setQuestions(
@@ -205,6 +207,7 @@ export function EventEditorPage() {
         venue_address: venueAddress,
         venue_details: venueDetails,
         cover_url: coverPreview ?? (coverRemoved ? null : (eventQuery.data?.cover_url ?? null)),
+        coverTitle: coverText,
         emphasis,
         dressCode: dressRows.map((row) => ({ url: row.url, caption: row.caption })),
         program: programRows
@@ -229,6 +232,7 @@ export function EventEditorPage() {
       coverPreview,
       coverRemoved,
       eventQuery.data?.cover_url,
+      coverText,
       emphasis,
       dressRows,
       programRows,
@@ -249,6 +253,7 @@ export function EventEditorPage() {
         venue_name: venueName.trim(),
         venue_address: venueAddress.trim(),
         venue_details: venueDetails.trim(),
+        cover_title: coverText.trim(),
         display_config: { emphasis },
         preference_questions: questions.map(
           (question, index): PreferenceQuestionPayload => ({
@@ -754,6 +759,19 @@ export function EventEditorPage() {
                     {coverError}
                   </p>
                 ) : null}
+                <Field
+                  id="event-cover-text"
+                  label={fr.editor.coverTextLabel}
+                  hint={fr.editor.coverTextHelp}
+                  error={fieldErrors.cover_title?.[0]}
+                >
+                  <Input
+                    id="event-cover-text"
+                    value={coverText}
+                    placeholder={fr.editor.coverTextPlaceholder}
+                    onChange={(event) => setCoverText(event.target.value)}
+                  />
+                </Field>
               </CardBody>
             </Card>
           ) : null}

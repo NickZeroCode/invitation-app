@@ -79,20 +79,6 @@ export function EterniteOr({ draft }: TemplateProps) {
   const venueEm = isEmphasized(draft, 'venue')
   return (
     <InvitationPaper style={{ backgroundImage: PAPER_BG, color: IVORY }}>
-      <DecoFan corner="tl" />
-      <DecoFan corner="tr" />
-      <DecoFan corner="br" />
-      <DecoFan corner="bl" />
-
-      {/* Inset double frame. */}
-      <div className="pointer-events-none absolute inset-[1.6em]" aria-hidden="true">
-        <div className="absolute inset-0 border" style={{ borderColor: 'rgba(216,179,106,0.45)' }} />
-        <div
-          className="absolute inset-[0.55em] border"
-          style={{ borderColor: 'rgba(216,179,106,0.22)' }}
-        />
-      </div>
-
       <CoverHero
         draft={draft}
         bandColor="rgba(15,11,7,0.6)"
@@ -107,7 +93,23 @@ export function EterniteOr({ draft }: TemplateProps) {
         }}
       />
 
-      <div className="relative flex flex-1 flex-col items-center px-[6em] py-[5.5em] text-center">
+      {/* Decorations frame the text zone (below the cover photo). */}
+      <div className="relative flex flex-1 flex-col">
+        <DecoFan corner="tl" />
+        <DecoFan corner="tr" />
+        <DecoFan corner="br" />
+        <DecoFan corner="bl" />
+
+        {/* Inset double frame. */}
+        <div className="pointer-events-none absolute inset-[1.6em]" aria-hidden="true">
+          <div className="absolute inset-0 border" style={{ borderColor: 'rgba(216,179,106,0.45)' }} />
+          <div
+            className="absolute inset-[0.55em] border"
+            style={{ borderColor: 'rgba(216,179,106,0.22)' }}
+          />
+        </div>
+
+        <div className="relative flex flex-1 flex-col items-center px-[6em] py-[5.5em] text-center">
         <p className="text-[1.02em] uppercase" style={{ color: GOLD, letterSpacing: '0.42em' }}>
           Cérémonie de mariage
         </p>
@@ -170,11 +172,24 @@ export function EterniteOr({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <ProgramSection draft={draft} accent={GOLD} ink={GOLD_SOFT} />
-        <DressCodeSection draft={draft} accent={GOLD} ink={GOLD_SOFT} />
+        <ProgramSection
+          draft={draft}
+          accent={GOLD}
+          ink={GOLD_SOFT}
+          ornament={<DecoRule />}
+          titleStyle={{ letterSpacing: '0.42em' }}
+        />
+        <DressCodeSection
+          draft={draft}
+          accent={GOLD}
+          ink={GOLD_SOFT}
+          ornament={<DecoRule />}
+          titleStyle={{ letterSpacing: '0.42em' }}
+        />
 
         <div className="mt-auto w-full pt-[2.6em]">
           <DecoRule tone={GOLD_SOFT} />
+        </div>
         </div>
       </div>
     </InvitationPaper>

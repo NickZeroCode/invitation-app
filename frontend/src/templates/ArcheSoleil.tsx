@@ -75,21 +75,6 @@ export function ArcheSoleil({ draft }: TemplateProps) {
   const venueEm = isEmphasized(draft, 'venue')
   return (
     <InvitationPaper style={{ backgroundImage: PAPER_BG, color: PLUM }}>
-      <HexFrame
-        className="pointer-events-none absolute inset-[1.8em]"
-        color={GOLD_WARM}
-        opacity={0.55}
-      />
-      <WatercolorSpray
-        palette={BLUSH}
-        className="pointer-events-none absolute right-[-1em] top-[-0.8em] w-[14.5em]"
-        style={{ transform: 'scaleX(-1)' }}
-      />
-      <WatercolorSpray
-        palette={BLUSH}
-        className="pointer-events-none absolute bottom-[-0.8em] left-[-1em] w-[13em]"
-      />
-
       <CoverHero
         draft={draft}
         bandColor="rgba(71,40,43,0.52)"
@@ -104,7 +89,24 @@ export function ArcheSoleil({ draft }: TemplateProps) {
         }}
       />
 
-      <div className="relative flex flex-1 flex-col items-center px-[6em] pt-[4.6em] pb-[4.2em] text-center">
+      {/* Decorations frame the text zone (below the cover photo). */}
+      <div className="relative flex flex-1 flex-col">
+        <HexFrame
+          className="pointer-events-none absolute inset-[1.8em]"
+          color={GOLD_WARM}
+          opacity={0.55}
+        />
+        <WatercolorSpray
+          palette={BLUSH}
+          className="pointer-events-none absolute right-[-1em] top-[-0.8em] w-[14.5em]"
+          style={{ transform: 'scaleX(-1)' }}
+        />
+        <WatercolorSpray
+          palette={BLUSH}
+          className="pointer-events-none absolute bottom-[-0.8em] left-[-1em] w-[13em]"
+        />
+
+        <div className="relative flex flex-1 flex-col items-center px-[6em] pt-[4.6em] pb-[4.2em] text-center">
         <Sun />
         <p
           className="mt-[1.2em] text-[1.02em] uppercase"
@@ -165,8 +167,20 @@ export function ArcheSoleil({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <ProgramSection draft={draft} accent={TERRA} ink={PLUM} />
-        <DressCodeSection draft={draft} accent={TERRA} ink={PLUM} />
+        <ProgramSection
+          draft={draft}
+          accent={TERRA}
+          ink={PLUM}
+          ornament={<DotBand />}
+          titleStyle={{ letterSpacing: '0.55em' }}
+        />
+        <DressCodeSection
+          draft={draft}
+          accent={TERRA}
+          ink={PLUM}
+          ornament={<DotBand />}
+          titleStyle={{ letterSpacing: '0.55em' }}
+        />
 
         <div className="mt-auto w-full pt-[1.8em]">
           <DotBand />
@@ -176,6 +190,7 @@ export function ArcheSoleil({ draft }: TemplateProps) {
           >
             Avec joie
           </p>
+        </div>
         </div>
       </div>
     </InvitationPaper>

@@ -14,6 +14,7 @@ import {
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
+import { TemplateOrnament } from './ornaments.tsx'
 
 const ACCENT = '#C8102E'
 const INK = '#16181D'
@@ -105,8 +106,28 @@ export function LigneModerne({ draft }: TemplateProps) {
           </div>
         </div>
 
-        <ProgramSection draft={draft} accent={ACCENT} ink={INK} />
-        <DressCodeSection draft={draft} accent={ACCENT} ink={INK} />
+        <ProgramSection
+          draft={draft}
+          accent={ACCENT}
+          ink={INK}
+          ornamentAlign="left"
+          ornament={
+            <TemplateOrnament templateKey="ligne-moderne" color={ACCENT} className="block h-auto w-full" />
+          }
+          titleClassName="font-semibold"
+          titleStyle={{ letterSpacing: '0.42em' }}
+        />
+        <DressCodeSection
+          draft={draft}
+          accent={ACCENT}
+          ink={INK}
+          ornamentAlign="left"
+          ornament={
+            <TemplateOrnament templateKey="ligne-moderne" color={ACCENT} className="block h-auto w-full" />
+          }
+          titleClassName="font-semibold"
+          titleStyle={{ letterSpacing: '0.42em' }}
+        />
 
         <div className="mt-auto">
           <span className="mt-[2.4em] block h-px w-full" style={{ backgroundColor: INK, opacity: 0.2 }} />

@@ -15,9 +15,10 @@ import type {
   PublicInvitationVerification,
 } from '../lib/types.ts'
 import { fontScaleStyle } from '../templates/fontSizes.ts'
+import { TemplateOrnament } from '../templates/ornaments.tsx'
 import { getTemplate } from '../templates/registry.tsx'
 import { formatEventDate, formatEventTime } from '../templates/shared.tsx'
-import { themeFor } from '../templates/themes.ts'
+import { panelRadiusFor, themeFor } from '../templates/themes.ts'
 import type { TemplateTheme } from '../templates/themes.ts'
 import type { InvitationDraft } from '../templates/types.ts'
 
@@ -46,19 +47,25 @@ const STATUS_LABEL: Record<string, string> = {
  */
 function PanelCard({
   theme,
+  templateKey,
   title,
   action,
   children,
 }: {
   theme: TemplateTheme
+  templateKey: string
   title: string
   action?: ReactNode
   children: ReactNode
 }) {
   return (
     <section
-      className="rounded-[1.75rem] border p-5 shadow-[0_18px_40px_rgba(28,25,23,0.06)]"
-      style={{ backgroundColor: theme.surface, borderColor: theme.line }}
+      className="border p-5 shadow-[0_18px_40px_rgba(28,25,23,0.06)]"
+      style={{
+        backgroundColor: theme.surface,
+        borderColor: theme.line,
+        borderRadius: panelRadiusFor(templateKey),
+      }}
     >
       <div className="flex items-center justify-between gap-3">
         <p
@@ -69,10 +76,10 @@ function PanelCard({
         </p>
         {action}
       </div>
-      <span
-        className="mt-3 block h-px w-full"
-        style={{ backgroundColor: theme.line }}
-        aria-hidden="true"
+      <TemplateOrnament
+        templateKey={templateKey}
+        color={theme.accent}
+        className="mx-auto mt-3 block h-auto w-36"
       />
       {children}
     </section>
@@ -195,6 +202,7 @@ export function PublicInvitationPage() {
     venue_address: data.event.venue_address,
     venue_details: data.event.venue_details,
     cover_url: data.event.cover_url,
+    coverTitle: data.event.cover_title,
     emphasis: data.event.display_config.emphasis ?? data.event.template.config.emphasis_fields,
     guestName: data.invitation.display_name,
     dressCode: dressCode.map((image) => ({ url: image.url, caption: image.caption })),
@@ -241,7 +249,7 @@ export function PublicInvitationPage() {
           </div>
 
           <aside className="min-w-0 space-y-5 [overflow-wrap:anywhere]">
-            <PanelCard theme={theme} title="Détails de l’invitation">
+            <PanelCard theme={theme} templateKey={data.event.template.key} title="Détails de l’invitation">
               <div className="mt-4 space-y-2 text-sm" style={{ color: theme.inkSoft }}>
                 <p>
                   <span className="font-semibold" style={{ color: theme.accent }}>Invité :</span>{' '}
@@ -272,6 +280,7 @@ export function PublicInvitationPage() {
 
             <PanelCard
               theme={theme}
+              templateKey={data.event.template.key}
               title="Vérification QR"
               action={
                 <span className={`rounded-full px-2 py-1 text-[0.65rem] font-semibold ${STATUS_TONE[statusKey] ?? 'bg-surface-muted text-ink-soft'}`}>
@@ -306,7 +315,7 @@ export function PublicInvitationPage() {
             </PanelCard>
 
             {data.preferences.enabled ? (
-              <PanelCard theme={theme} title="Préférences">
+              <PanelCard theme={theme} templateKey={data.event.template.key} title="Préférences">
                 <form
                   className="mt-4 space-y-4"
                   onSubmit={(event) => {
@@ -408,7 +417,7 @@ export function PublicInvitationPage() {
               </PanelCard>
             ) : null}
 
-            <PanelCard theme={theme} title="Actions">
+            <PanelCard theme={theme} templateKey={data.event.template.key} title="Actions">
               <div className="mt-4 space-y-3">
                 <InvitationDownloadButton
                   targetRef={cardRef}

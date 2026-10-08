@@ -110,6 +110,7 @@ class EventModelSerializer(serializers.ModelSerializer):
             "venue_address",
             "venue_details",
             "cover_url",
+            "cover_title",
             "display_config",
             "preference_questions",
             "program_items",

@@ -31,17 +31,6 @@ export function HeritageLuxe({ draft }: TemplateProps) {
   return (
     <InvitationPaper style={{ backgroundColor: PAPER_BG, color: INK }}>
       <PaperGrain opacity={0.05} />
-      <GoldRoseCorner className="pointer-events-none absolute left-[0.4em] top-[0.4em] w-[11em] opacity-90" />
-      <GoldRoseCorner
-        className="pointer-events-none absolute bottom-[0.4em] right-[0.4em] w-[11em] opacity-90"
-        style={{ transform: 'rotate(180deg)' }}
-      />
-
-      {/* Inset double gold frame. */}
-      <div className="pointer-events-none absolute inset-[2.2em]" aria-hidden="true">
-        <div className="absolute inset-0 border" style={{ borderColor: 'rgba(166,124,61,0.5)' }} />
-        <div className="absolute inset-[0.55em] border" style={{ borderColor: 'rgba(166,124,61,0.24)' }} />
-      </div>
 
       <CoverHero
         draft={draft}
@@ -57,7 +46,21 @@ export function HeritageLuxe({ draft }: TemplateProps) {
         }}
       />
 
-      <div className="relative flex flex-1 flex-col items-center px-[7em] py-[5em] text-center">
+      {/* Decorations frame the text zone (below the cover photo). */}
+      <div className="relative flex flex-1 flex-col">
+        <GoldRoseCorner className="pointer-events-none absolute left-[0.4em] top-[0.4em] w-[11em] opacity-90" />
+        <GoldRoseCorner
+          className="pointer-events-none absolute bottom-[0.4em] right-[0.4em] w-[11em] opacity-90"
+          style={{ transform: 'rotate(180deg)' }}
+        />
+
+        {/* Inset double gold frame. */}
+        <div className="pointer-events-none absolute inset-[2.2em]" aria-hidden="true">
+          <div className="absolute inset-0 border" style={{ borderColor: 'rgba(166,124,61,0.5)' }} />
+          <div className="absolute inset-[0.55em] border" style={{ borderColor: 'rgba(166,124,61,0.24)' }} />
+        </div>
+
+        <div className="relative flex flex-1 flex-col items-center px-[7em] py-[5em] text-center">
         <p className="mt-[4.8em] text-[1em] uppercase" style={{ color: GOLD, letterSpacing: '0.38em' }}>
           Vous êtes invités
         </p>
@@ -114,8 +117,18 @@ export function HeritageLuxe({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <ProgramSection draft={draft} accent={GOLD} ink={INK} />
-        <DressCodeSection draft={draft} accent={GOLD} ink={INK} />
+        <ProgramSection
+          draft={draft}
+          accent={GOLD}
+          ink={INK}
+          ornament={<FlourishRule className="h-[1.3em] w-full" color={GOLD} />}
+        />
+        <DressCodeSection
+          draft={draft}
+          accent={GOLD}
+          ink={INK}
+          ornament={<FlourishRule className="h-[1.3em] w-full" color={GOLD} />}
+        />
 
         <div className="mt-auto w-full pt-[2.5em]">
           <FlourishRule className="mx-auto h-[1.4em] w-[17em]" color={GOLD} />
@@ -125,6 +138,7 @@ export function HeritageLuxe({ draft }: TemplateProps) {
           >
             Réception à suivre
           </p>
+        </div>
         </div>
       </div>
     </InvitationPaper>

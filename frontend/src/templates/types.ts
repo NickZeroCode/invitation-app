@@ -34,6 +34,8 @@ export interface InvitationDraft {
   venue_address: string
   venue_details: string
   cover_url: string | null
+  /** Texte superposé à la photo de couverture (noms des concernés). */
+  coverTitle: string
   emphasis: string[]
   /** Key from `MESSAGE_FONTS` — typeface of the message block. */
   messageFont?: string

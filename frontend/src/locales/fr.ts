@@ -171,6 +171,10 @@ export const fr = {
     coverHint: 'JPEG, PNG ou WebP, 4 Mo maximum.',
     coverUpload: 'Choisir une image',
     coverRemove: "Retirer l'image",
+    coverTextLabel: 'Texte sur la photo',
+    coverTextPlaceholder: 'Noms des concernés — ex. Marie-Charlotte & Jean-Baptiste',
+    coverTextHelp:
+      'Affiché sur la photo de couverture, à la place du titre (les deux sont indépendants).',
     coverRejected: 'Format d\u2019image non supporté (JPEG, PNG ou WebP uniquement).',
     coverTooLarge: "L'image ne doit pas dépasser 4 Mo.",
     dressCodeTitle: 'Code vestimentaire',

@@ -18,6 +18,19 @@ import { messageFontCss } from './messageFonts.ts'
 const EMERALD = '#0E2A22'
 const CHAMPAGNE = '#E8D8B0'
 
+/** Hairline rule with a champagne sparkle at its centre. */
+function SparkleRule() {
+  return (
+    <div className="flex w-full items-center justify-center gap-[1em]" aria-hidden="true">
+      <span className="h-px flex-1" style={{ backgroundColor: '#C7A96B66' }} />
+      <svg viewBox="0 0 24 24" className="h-[1.1em] w-[1.1em]" fill="#C7A96B">
+        <path d="M12 2c2.2 4.6 5.2 6.4 10 8-4.8 1.6-7.8 3.4-10 8-2.2-4.6-5.2-6.4-10-8 4.8-1.6 7.8-3.4 10-8z" />
+      </svg>
+      <span className="h-px flex-1" style={{ backgroundColor: '#C7A96B66' }} />
+    </div>
+  )
+}
+
 export function SoireeFormelle({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -56,12 +69,8 @@ export function SoireeFormelle({ draft }: TemplateProps) {
           {draft.title}
         </h1>
 
-        <div className="mt-[1.6em] flex w-full items-center justify-center gap-[1em]" aria-hidden="true">
-          <span className="h-px flex-1" style={{ backgroundColor: '#C7A96B66' }} />
-          <svg viewBox="0 0 24 24" className="h-[1.1em] w-[1.1em]" fill="#C7A96B">
-            <path d="M12 2c2.2 4.6 5.2 6.4 10 8-4.8 1.6-7.8 3.4-10 8-2.2-4.6-5.2-6.4-10-8 4.8-1.6 7.8-3.4 10-8z" />
-          </svg>
-          <span className="h-px flex-1" style={{ backgroundColor: '#C7A96B66' }} />
+        <div className="mt-[1.6em]">
+          <SparkleRule />
         </div>
 
         <p className="mt-[1.8em] font-display text-[1.15em] italic" style={{ color: '#C7A96B' }}>
@@ -100,8 +109,22 @@ export function SoireeFormelle({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <ProgramSection draft={draft} accent={CHAMPAGNE} ink={CHAMPAGNE} />
-        <DressCodeSection draft={draft} accent={CHAMPAGNE} ink={CHAMPAGNE} />
+        <ProgramSection
+          draft={draft}
+          accent={CHAMPAGNE}
+          ink={CHAMPAGNE}
+          ornament={<SparkleRule />}
+          titleClassName="font-semibold"
+          titleStyle={{ letterSpacing: '0.24em' }}
+        />
+        <DressCodeSection
+          draft={draft}
+          accent={CHAMPAGNE}
+          ink={CHAMPAGNE}
+          ornament={<SparkleRule />}
+          titleClassName="font-semibold"
+          titleStyle={{ letterSpacing: '0.24em' }}
+        />
 
         <p className="mt-auto pt-[2em] text-[1.02em] uppercase" style={{ letterSpacing: '0.42em', opacity: 0.7 }}>
           Tenue de soirée exigée

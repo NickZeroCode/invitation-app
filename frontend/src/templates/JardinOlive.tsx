@@ -48,21 +48,6 @@ export function JardinOlive({ draft }: TemplateProps) {
   const venueEm = isEmphasized(draft, 'venue')
   return (
     <InvitationPaper style={{ backgroundImage: PAPER_BG, color: INK }}>
-      <WatercolorSpray
-        palette={SAGE}
-        className="pointer-events-none absolute left-[-1.2em] top-[-1em] w-[15.5em]"
-      />
-      <WatercolorSpray
-        palette={SAGE}
-        className="pointer-events-none absolute bottom-[-1em] right-[-1.2em] w-[12em]"
-        style={{ transform: 'rotate(180deg)' }}
-      />
-      <ArchFrame
-        className="pointer-events-none absolute inset-[1.6em]"
-        color={GOLD}
-        opacity={0.45}
-      />
-
       <CoverHero
         draft={draft}
         bandColor="rgba(248,244,234,0.78)"
@@ -74,7 +59,24 @@ export function JardinOlive({ draft }: TemplateProps) {
         }}
       />
 
-      <div className="relative flex flex-1 flex-col items-center px-[6.5em] py-[6em] text-center">
+      {/* Decorations frame the text zone (below the cover photo). */}
+      <div className="relative flex flex-1 flex-col">
+        <WatercolorSpray
+          palette={SAGE}
+          className="pointer-events-none absolute left-[-1.2em] top-[-1em] w-[15.5em]"
+        />
+        <WatercolorSpray
+          palette={SAGE}
+          className="pointer-events-none absolute bottom-[-1em] right-[-1.2em] w-[12em]"
+          style={{ transform: 'rotate(180deg)' }}
+        />
+        <ArchFrame
+          className="pointer-events-none absolute inset-[1.6em]"
+          color={GOLD}
+          opacity={0.45}
+        />
+
+        <div className="relative flex flex-1 flex-col items-center px-[6.5em] py-[6em] text-center">
         <p className="text-[1.02em] uppercase" style={{ color: OLIVE, letterSpacing: '0.52em' }}>
           Mariage
         </p>
@@ -132,14 +134,27 @@ export function JardinOlive({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <ProgramSection draft={draft} accent={OLIVE} ink={INK} />
-        <DressCodeSection draft={draft} accent={OLIVE} ink={INK} />
+        <ProgramSection
+          draft={draft}
+          accent={OLIVE}
+          ink={INK}
+          ornament={<Sprig />}
+          titleStyle={{ letterSpacing: '0.52em' }}
+        />
+        <DressCodeSection
+          draft={draft}
+          accent={OLIVE}
+          ink={INK}
+          ornament={<Sprig />}
+          titleStyle={{ letterSpacing: '0.52em' }}
+        />
 
         <div className="mt-auto pt-[2.4em]">
           <Sprig />
           <p className="mt-[1em] text-[1.02em] italic opacity-75">
             Sous le signe de l'olivier, symbole de paix et d'amour.
           </p>
+        </div>
         </div>
       </div>
     </InvitationPaper>

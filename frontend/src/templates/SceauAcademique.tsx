@@ -14,6 +14,7 @@ import {
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
+import { TemplateOrnament } from './ornaments.tsx'
 
 const NAVY = '#14213D'
 const GOLD = '#C9A227'
@@ -35,11 +36,6 @@ export function SceauAcademique({ draft }: TemplateProps) {
   const venueEm = isEmphasized(draft, 'venue')
   return (
     <InvitationPaper style={{ backgroundColor: NAVY, color: '#F4EFE4' }}>
-      <div
-        className="absolute inset-[1.2em] rounded-[0.3em] border"
-        style={{ borderColor: '#C9A22766' }}
-        aria-hidden="true"
-      />
       <CoverHero
         draft={draft}
         bandColor="rgba(13,23,41,0.62)"
@@ -50,7 +46,15 @@ export function SceauAcademique({ draft }: TemplateProps) {
           color: '#FFFFFF',
         }}
       />
-      <div className="flex flex-1 flex-col items-center px-[6.5em] py-[4.5em] text-center">
+
+      {/* Decorations frame the text zone (below the cover photo). */}
+      <div className="relative flex flex-1 flex-col">
+        <div
+          className="absolute inset-[1.2em] rounded-[0.3em] border"
+          style={{ borderColor: '#C9A22766' }}
+          aria-hidden="true"
+        />
+        <div className="relative flex flex-1 flex-col items-center px-[6.5em] py-[4.5em] text-center">
         <Seal />
         <p
           className="mt-[1.4em] text-[1.02em] uppercase"
@@ -108,12 +112,29 @@ export function SceauAcademique({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <ProgramSection draft={draft} accent={GOLD} ink="#F4EFE4" />
-        <DressCodeSection draft={draft} accent={GOLD} ink="#F4EFE4" />
+        <ProgramSection
+          draft={draft}
+          accent={GOLD}
+          ink="#F4EFE4"
+          ornament={
+            <TemplateOrnament templateKey="sceau-academique" color={GOLD} className="block h-auto w-full" />
+          }
+          titleStyle={{ letterSpacing: '0.5em' }}
+        />
+        <DressCodeSection
+          draft={draft}
+          accent={GOLD}
+          ink="#F4EFE4"
+          ornament={
+            <TemplateOrnament templateKey="sceau-academique" color={GOLD} className="block h-auto w-full" />
+          }
+          titleStyle={{ letterSpacing: '0.5em' }}
+        />
 
         <p className="mt-auto pt-[2em] text-[1.02em] uppercase" style={{ letterSpacing: '0.35em', opacity: 0.72 }}>
           Honneur à la réussite
         </p>
+        </div>
       </div>
     </InvitationPaper>
   )

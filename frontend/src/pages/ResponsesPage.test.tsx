@@ -41,6 +41,7 @@ const EVENT = {
   venue_address: 'Avenue de la Paix, Kinshasa',
   venue_details: '',
   cover_url: null,
+  cover_title: '',
   display_config: { emphasis: ['title'] },
   preference_questions: [],
   invitations_count: 2,

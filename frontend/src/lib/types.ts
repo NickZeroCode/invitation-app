@@ -156,6 +156,7 @@ export interface EventModel {
   venue_address: string
   venue_details: string
   cover_url: string | null
+  cover_title: string
   display_config: { emphasis?: string[] }
   preference_questions: PreferenceQuestion[]
   program_items: ProgramItem[]
@@ -192,6 +193,7 @@ export interface EventPayload {
   venue_name: string
   venue_address: string
   venue_details: string
+  cover_title?: string
   display_config: { emphasis: string[] }
   preference_questions: PreferenceQuestionPayload[]
   program_items?: ProgramItemPayload[]
@@ -331,6 +333,7 @@ export interface PublicInvitationPayload {
     venue_address: string
     venue_details: string
     cover_url: string | null
+    cover_title: string
     display_config: { emphasis?: string[] }
     template: {
       key: string

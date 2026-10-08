@@ -67,7 +67,7 @@ def backdate_expiry(invitation):
 
 
 def test_public_detail_renders_event_and_guest(api_client, organizer):
-    event = make_event(organizer)
+    event = make_event(organizer, cover_title="Grâce & Éric")
     invitation = make_invitation(event, civility=Invitation.Civility.MME)
 
     response = api_client.get(public_url(invitation))
@@ -78,6 +78,7 @@ def test_public_detail_renders_event_and_guest(api_client, organizer):
     assert data["is_valid"] is True
     assert data["invitation"]["display_name"] == "Mme Éric Mukendi"
     assert data["event"]["title"] == "Mariage de Grâce et Éric"
+    assert data["event"]["cover_title"] == "Grâce & Éric"
     assert data["event"]["message"] == "Nous serions honorés de votre présence."
     assert data["event"]["venue_name"] == "Salle des Fêtes"
     assert data["event"]["template"]["key"] == "heritage-luxe"

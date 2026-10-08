@@ -197,6 +197,7 @@ export function CoverHero({
   edgeColor?: string
 }) {
   if (!draft.cover_url) return null
+  const names = draft.coverTitle.trim()
   return (
     <div
       data-export-skip=""
@@ -204,24 +205,26 @@ export function CoverHero({
       style={{ aspectRatio: '4 / 5' }}
     >
       <img src={draft.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
-      <div
-        className="absolute inset-x-0 bottom-0 flex flex-col items-center px-[1.6em] pb-[1.8em] pt-[5em]"
-        style={{ background: `linear-gradient(to bottom, transparent, ${bandColor})` }}
-      >
-        {edgeColor ? (
-          <span
-            className="mb-[1.1em] h-px w-[9em]"
-            style={{ backgroundColor: edgeColor }}
-            aria-hidden="true"
-          />
-        ) : null}
-        <h2
-          className={`w-full break-words text-center leading-[1.16] ${titleClassName ?? ''}`}
-          style={titleStyle}
+      {names ? (
+        <div
+          className="absolute inset-x-0 bottom-0 flex flex-col items-center px-[1.6em] pb-[1.8em] pt-[5em]"
+          style={{ background: `linear-gradient(to bottom, transparent, ${bandColor})` }}
         >
-          {draft.title}
-        </h2>
-      </div>
+          {edgeColor ? (
+            <span
+              className="mb-[1.1em] h-px w-[9em]"
+              style={{ backgroundColor: edgeColor }}
+              aria-hidden="true"
+            />
+          ) : null}
+          <h2
+            className={`w-full break-words text-center leading-[1.16] ${titleClassName ?? ''}`}
+            style={titleStyle}
+          >
+            {names}
+          </h2>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -234,18 +237,38 @@ export function ProgramSection({
   draft,
   accent,
   ink,
+  ornament,
+  ornamentAlign,
+  titleStyle,
+  titleClassName,
 }: {
   draft: InvitationDraft
   accent: string
   ink: string
+  /** Small motif drawn under the section title (the template's own drawing). */
+  ornament?: ReactNode
+  ornamentAlign?: 'center' | 'left'
+  titleStyle?: CSSProperties
+  titleClassName?: string
 }) {
   if (!draft.program.length) return null
   return (
-    <section className="mt-[2.6em] w-full">
-      <p className="text-[1em] uppercase" style={{ letterSpacing: '0.38em', color: accent }}>
+    <section className="mt-[3.2em] w-full">
+      <p
+        className={`text-[1em] uppercase ${titleClassName ?? ''}`}
+        style={{ letterSpacing: '0.38em', color: accent, ...titleStyle }}
+      >
         Programme
       </p>
-      <div className="mx-auto mt-[1.5em] grid w-full max-w-[32em] grid-cols-[auto_1fr] gap-x-[1.4em] gap-y-[0.9em] text-left">
+      {ornament ? (
+        <div
+          className={`mt-[1em] flex w-full ${ornamentAlign === 'left' ? 'justify-start' : 'justify-center'}`}
+          aria-hidden="true"
+        >
+          <span className="block w-[10em]">{ornament}</span>
+        </div>
+      ) : null}
+      <div className="mx-auto mt-[1.8em] grid w-full max-w-[32em] grid-cols-[auto_1fr] gap-x-[1.4em] gap-y-[0.9em] text-left">
         {draft.program.map((item, index) => (
           <div key={index} className="contents">
             <span
@@ -272,18 +295,38 @@ export function DressCodeSection({
   draft,
   accent,
   ink,
+  ornament,
+  ornamentAlign,
+  titleStyle,
+  titleClassName,
 }: {
   draft: InvitationDraft
   accent: string
   ink: string
+  /** Small motif drawn under the section title (the template's own drawing). */
+  ornament?: ReactNode
+  ornamentAlign?: 'center' | 'left'
+  titleStyle?: CSSProperties
+  titleClassName?: string
 }) {
   if (!draft.dressCode.length) return null
   return (
-    <section className="mt-[2.6em] w-full">
-      <p className="text-[1em] uppercase" style={{ letterSpacing: '0.38em', color: accent }}>
+    <section className="mt-[3.2em] w-full">
+      <p
+        className={`text-[1em] uppercase ${titleClassName ?? ''}`}
+        style={{ letterSpacing: '0.38em', color: accent, ...titleStyle }}
+      >
         Code vestimentaire
       </p>
-      <div className="mt-[1.5em] flex flex-wrap items-start justify-center gap-[1.4em]">
+      {ornament ? (
+        <div
+          className={`mt-[1em] flex w-full ${ornamentAlign === 'left' ? 'justify-start' : 'justify-center'}`}
+          aria-hidden="true"
+        >
+          <span className="block w-[10em]">{ornament}</span>
+        </div>
+      ) : null}
+      <div className="mt-[1.8em] flex flex-wrap items-start justify-center gap-[1.4em]">
         {draft.dressCode.map((image, index) => (
           <figure key={index} className="w-[11.5em]">
             <img

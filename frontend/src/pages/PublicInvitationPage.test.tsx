@@ -36,6 +36,7 @@ const PUBLIC_PAYLOAD = {
     venue_address: 'Avenue de la Paix, Kinshasa',
     venue_details: 'Tenue de soirée',
     cover_url: null,
+    cover_title: '',
     display_config: { emphasis: ['title', 'date', 'venue'] },
     template: {
       key: 'heritage-luxe',
