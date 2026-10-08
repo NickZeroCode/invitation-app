@@ -14,8 +14,9 @@
  *   3. Dress code + programme — a dedicated page in the template's palette
  *      (LAC MUNKAMBA reference, p.3): dress-code gallery and a symmetric
  *      two-column programme with mirrored badge bullets.
- *   4. Verification QR code — a plain A4 page with the QR code exactly
- *      centered.
+ *   4. Verification QR page — the template's own paper tone and ornaments,
+ *      a stylish « Scannez pour confirmer la présence » title with an arrow
+ *      pointing to the QR code, overlaid print-sharp at the page's center.
  *
  * Page heights follow the content (only the width is the A4 width), so the
  * invitation card lands on a single page whatever its length.
@@ -28,6 +29,7 @@ import QRCode from 'qrcode'
 import { toJpeg } from 'html-to-image'
 
 import { ExportDetailsPage } from '../templates/ExportDetailsPage.tsx'
+import { ExportQrPage } from '../templates/ExportQrPage.tsx'
 import { fontScaleStyle } from '../templates/fontSizes.ts'
 import { getTemplate } from '../templates/registry.tsx'
 import type { DressCodeEntry, InvitationDraft, ProgramEntry } from '../templates/types.ts'
@@ -92,12 +94,18 @@ function triggerDownload(dataUrl: string, fileName: string): void {
   anchor.click()
 }
 
-/** Fetch a remote image and inline it as a data URL (CORS-friendly capture). */
+/**
+ * Fetch a remote image and inline it as a data URL (CORS-friendly capture).
+ * Anything that is not a real image payload (SPA fallback HTML, storage XML
+ * error bodies, …) counts as a failure — those would rasterize as broken
+ * image icons.
+ */
 async function fetchAsDataUrl(url: string): Promise<string | null> {
   try {
     const response = await fetch(url)
     if (!response.ok) return null
     const blob = await response.blob()
+    if (blob.type && !blob.type.startsWith('image/')) return null
     return await new Promise<string | null>((resolve) => {
       const reader = new FileReader()
       reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : null)
@@ -112,7 +120,8 @@ async function fetchAsDataUrl(url: string): Promise<string | null> {
 /**
  * Swap every remote image inside `node` for an inlined data URL so the capture
  * can embed it (presigned storage URLs break under html-to-image's cacheBust).
- * Images that cannot be fetched are left as-is.
+ * Images that cannot be fetched are left untouched on screen and neutralized
+ * with a transparent placeholder at capture time instead.
  */
 async function inlineImages(node: HTMLElement): Promise<void> {
   const images = Array.from(node.querySelectorAll('img'))
@@ -134,32 +143,94 @@ function measure(node: HTMLElement): { widthPx: number; heightPx: number } {
   return { widthPx, heightPx }
 }
 
-/** Rasterize a node at print resolution (JPEG for compact pages). */
+/** Verified 1×1 transparent PNG — stands in for images that cannot be inlined. */
+const IMAGE_PLACEHOLDER =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII='
+
+/**
+ * Computed style properties copied onto the capture clone. Chrome reports
+ * the legacy `-webkit-border-image` shorthand with an implicit `fill`
+ * keyword; replayed on the clone it floods the whole box with the border
+ * gradient (the gilt edge turned entire cards gold). The standard
+ * `border-image` longhands carry the correct, unfilled value.
+ */
+let captureStyleProperties: string[] | null = null
+function styleProperties(): string[] {
+  if (!captureStyleProperties) {
+    captureStyleProperties = Array.from(
+      window.getComputedStyle(document.documentElement),
+    ).filter((name) => name !== '-webkit-border-image')
+  }
+  return captureStyleProperties
+}
+
+/**
+ * Rasterize a node at print resolution (JPEG for compact pages).
+ *
+ * The capture is made bullet-proof:
+ * - no cache-busting (it corrupts presigned storage URLs),
+ * - images that could not be inlined are temporarily replaced by a
+ *   transparent placeholder so the clone never paints a broken-image icon
+ *   (storage XML errors and SPA fallback pages come back as fake images),
+ * - broken images resolve to a transparent placeholder instead of rejecting
+ *   the whole capture (which used to fail the export),
+ * - the clone is forced back on-canvas — the off-screen host's `position:
+ *   fixed` is copied onto the clone and would paint 20 000 px outside the
+ *   capture viewport (blank page).
+ */
 async function captureRaster(node: HTMLElement): Promise<PageRaster> {
   const { widthPx, heightPx } = measure(node)
   const pixelRatio = Math.min(4, Math.max(2, TARGET_RASTER_PX / widthPx))
-  const dataUrl = await toJpeg(node, {
-    pixelRatio,
-    quality: 0.95,
-    backgroundColor: '#ffffff',
-    cacheBust: true,
-  })
-  return { dataUrl, widthPx, heightPx }
+  const neutralized: Array<{ image: HTMLImageElement; source: string }> = []
+  for (const image of Array.from(node.querySelectorAll('img'))) {
+    const source = image.getAttribute('src') ?? ''
+    if (source && !source.startsWith('data:')) {
+      neutralized.push({ image, source })
+      image.setAttribute('src', IMAGE_PLACEHOLDER)
+    }
+  }
+  try {
+    const dataUrl = await toJpeg(node, {
+      pixelRatio,
+      quality: 0.95,
+      backgroundColor: '#ffffff',
+      imagePlaceholder: IMAGE_PLACEHOLDER,
+      onImageErrorHandler: () => undefined,
+      includeStyleProperties: styleProperties(),
+      style: { position: 'static', left: '0px', top: '0px' },
+    })
+    return { dataUrl, widthPx, heightPx }
+  } finally {
+    for (const entry of neutralized) {
+      entry.image.setAttribute('src', entry.source)
+    }
+  }
 }
 
-/** Render a React element off-screen at the A4 page width. */
+/**
+ * Render a React element off-screen at the A4 page width.
+ *
+ * The returned node is the inner static wrapper, not the fixed-position host:
+ * html-to-image copies every computed style of its target onto the clone, so
+ * capturing the host would reproduce `position: fixed; left: -20000px` inside
+ * the capture and rasterize a blank page. The inner wrapper is in normal flow
+ * and captures exactly like the live card.
+ */
 function renderOffscreen(
   element: ReactElement,
 ): { node: HTMLElement; dispose: () => void } {
   const host = document.createElement('div')
   host.style.cssText = `position:fixed;left:-20000px;top:0;width:${PAGE_WIDTH_PX}px;pointer-events:none;`
+  const page = document.createElement('div')
+  page.style.cssText = 'position:static;'
+  host.appendChild(page)
   document.body.appendChild(host)
-  const root = createRoot(host)
+  const root = createRoot(page)
   flushSync(() => {
     root.render(element)
   })
   return {
-    node: host,
+    node: page,
     dispose: () => {
       root.unmount()
       host.remove()
@@ -207,12 +278,16 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       cardNode = offscreen.node
     }
 
+    // Inline every remote image once (cover, card and its hidden sections
+    // alike) so no capture ever depends on network access or expiring
+    // storage URLs — those used to fail the whole export.
+    await inlineImages(cardNode)
+
     const skipped = Array.from(cardNode.querySelectorAll<HTMLElement>('[data-export-skip]'))
 
     // Page 1 — the template's cover hero, full bleed (needs an inlined photo).
     const cover = cardNode.querySelector<HTMLElement>('[data-export-skip="cover"]')
     if (cover) {
-      await inlineImages(cover)
       const coverImage = cover.querySelector('img')
       if (coverImage && (coverImage.getAttribute('src') ?? '').startsWith('data:')) {
         pages.push(await captureRaster(cover))
@@ -244,12 +319,16 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       try {
         await inlineImages(details.node)
         pages.push(await captureRaster(details.node))
+      } catch (error) {
+        console.warn('[exportInvitationPdf] details page skipped', error)
       } finally {
         details.dispose()
       }
     }
 
-    // Verification QR page — generated at print resolution when possible.
+    // Page 4 — the styled verification page (template tone + title + arrow),
+    // with the QR generated at print resolution and overlaid as a crisp PNG.
+    let qrPage: PageRaster | null = null
     let qrDataUrl = ''
     if (content.qrText) {
       qrDataUrl = await QRCode.toDataURL(content.qrText, {
@@ -257,6 +336,16 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
         margin: 1,
         color: QR_COLORS,
       })
+      const qrBackground = renderOffscreen(
+        createElement(ExportQrPage, { templateKey: content.templateKey }),
+      )
+      try {
+        qrPage = await captureRaster(qrBackground.node)
+      } catch (error) {
+        console.warn('[exportInvitationPdf] QR page background skipped', error)
+      } finally {
+        qrBackground.dispose()
+      }
     }
 
     const { jsPDF } = await import('jspdf')
@@ -279,6 +368,9 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
 
     if (qrDataUrl) {
       doc.addPage([A4_WIDTH_MM, A4_HEIGHT_MM], 'portrait')
+      if (qrPage) {
+        doc.addImage(qrPage.dataUrl, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM)
+      }
       doc.addImage(
         qrDataUrl,
         'PNG',

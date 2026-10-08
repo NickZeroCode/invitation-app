@@ -292,9 +292,10 @@ describe('GuestsPage', () => {
     await waitFor(() => expect(downloads).toHaveLength(1))
     expect(downloads[0].download).toBe('invitation-mariage-de-grace-et-eric-mme-eric-mukendi.pdf')
     expect(downloads[0].href).toContain('data:application/pdf')
-    // One capture: the off-screen invitation card (no cover, dress code or
-    // programme in this fixture). The QR code is placed directly on its page.
-    expect(toJpeg).toHaveBeenCalledTimes(1)
+    // Two captures: the off-screen invitation card (no cover, dress code or
+    // programme in this fixture) and the styled verification QR page
+    // background; the QR code itself is overlaid at print resolution.
+    expect(toJpeg).toHaveBeenCalledTimes(2)
     clickSpy.mockRestore()
   })
 })

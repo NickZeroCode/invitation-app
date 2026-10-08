@@ -154,7 +154,8 @@ export function formatEventTime(time: string): string {
 }
 
 /** Programme time in French style: « 19h30 » (minutes dropped when zero). */
-export function formatProgramTime(time: string): string {
+export function formatProgramTime(time: string | null | undefined): string {
+  if (!time) return ''
   const [hours = '', minutes = ''] = time.split(':')
   return minutes === '00' ? `${hours}h` : `${hours}h${minutes}`
 }
@@ -197,7 +198,9 @@ export function CoverHero({
   edgeColor?: string
 }) {
   if (!draft.cover_url) return null
-  const names = draft.coverTitle.trim()
+  // The cover always celebrates something: the chosen names or, when the
+  // organizer left them empty, the event title itself (never a bare photo).
+  const names = draft.coverTitle.trim() || draft.title.trim()
   return (
     <div
       data-export-skip="cover"

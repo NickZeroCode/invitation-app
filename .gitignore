@@ -53,3 +53,6 @@ LAC MUNKAMBA - BOB.pdf
 
 # PDF preview images (never commit)
 .pdf_preview/
+
+# Local development uploads (production media lives on S3)
+backend/media/

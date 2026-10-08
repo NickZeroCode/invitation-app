@@ -13,6 +13,11 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: false,
       },
+      // Uploaded media (covers, dress code) served by Django in development.
+      '/media': {
+        target: 'http://localhost:8000',
+        changeOrigin: false,
+      },
     },
   },
   test: {

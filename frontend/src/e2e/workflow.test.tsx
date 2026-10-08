@@ -788,7 +788,7 @@ describe('Parcours complet (E2E)', () => {
       await waitFor(() => expect(downloads).toHaveLength(1))
       expect(downloads[0].download).toMatch(/^invitation-.*\.pdf$/)
       expect(downloads[0].href).toContain('data:application/pdf')
-      expect(toJpeg).toHaveBeenCalledTimes(1)
+      expect(toJpeg).toHaveBeenCalledTimes(2)
 
       // 10. "Scan" the QR code: follow its decoded payload back to the
       //     invitation (the PDF itself cannot be optically decoded in jsdom).

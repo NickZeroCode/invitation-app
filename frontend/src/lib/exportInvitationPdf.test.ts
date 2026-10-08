@@ -151,14 +151,16 @@ describe('exportInvitationPdf', () => {
     expect(doc.pages[2][1]).toBeCloseTo(297, 1)
     expect(doc.pages[3]).toEqual([210, 297])
 
-    expect(doc.images).toHaveLength(4)
+    expect(doc.images).toHaveLength(5)
     // Cover and card span the full page width with zero margin.
     expect(doc.images[0]).toMatchObject({ format: 'JPEG', x: 0, y: 0, w: 210, page: 0 })
     expect(doc.images[1]).toMatchObject({ format: 'JPEG', x: 0, y: 0, w: 210, page: 1 })
     expect(doc.images[2]).toMatchObject({ format: 'JPEG', x: 0, y: 0, w: 210, page: 2 })
-    // The QR code is 70x70mm exactly centred on its A4 page.
-    expect(doc.images[3]).toMatchObject({ format: 'PNG', x: 70, y: 113.5, w: 70, h: 70, page: 3 })
-    expect(doc.images[3]?.dataUrl).toBe('data:image/png;base64,QRDATA')
+    // The styled QR page fills its A4 page, and the QR code is 70x70mm
+    // exactly centred on top of it.
+    expect(doc.images[3]).toMatchObject({ format: 'JPEG', x: 0, y: 0, w: 210, h: 297, page: 3 })
+    expect(doc.images[4]).toMatchObject({ format: 'PNG', x: 70, y: 113.5, w: 70, h: 70, page: 3 })
+    expect(doc.images[4]?.dataUrl).toBe('data:image/png;base64,QRDATA')
 
     expect(doc.props).toEqual({
       title: 'Mariage de Grâce et Éric',
@@ -201,9 +203,10 @@ describe('exportInvitationPdf', () => {
 
     const doc = pdfState.instances.at(-1) as FakePdfRecord
     expect(doc.pages).toHaveLength(2)
-    expect(toJpeg).toHaveBeenCalledTimes(1)
-    expect(doc.images).toHaveLength(2)
-    expect(doc.images[1]).toMatchObject({ format: 'PNG', x: 70, y: 113.5, w: 70, h: 70, page: 1 })
+    expect(toJpeg).toHaveBeenCalledTimes(2)
+    expect(doc.images).toHaveLength(3)
+    expect(doc.images[1]).toMatchObject({ format: 'JPEG', x: 0, y: 0, w: 210, h: 297, page: 1 })
+    expect(doc.images[2]).toMatchObject({ format: 'PNG', x: 70, y: 113.5, w: 70, h: 70, page: 1 })
     expect(downloads[0]?.download).toBe('invitation-gala.pdf')
     restore()
   })
@@ -221,7 +224,7 @@ describe('exportInvitationPdf', () => {
     })
 
     const doc = pdfState.instances.at(-1) as FakePdfRecord
-    expect(toJpeg).toHaveBeenCalledTimes(1)
+    expect(toJpeg).toHaveBeenCalledTimes(2)
     expect(doc.pages).toHaveLength(2)
     expect(downloads[0]?.download).toBe('invitation-gala.pdf')
     expect(downloads[0]?.href).toContain('data:application/pdf')

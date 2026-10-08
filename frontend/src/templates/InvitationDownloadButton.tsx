@@ -58,7 +58,8 @@ export function InvitationDownloadButton({
         guestName,
         qrText,
       })
-    } catch {
+    } catch (error) {
+      console.error('[exportInvitationPdf] failed', error)
       setExportError('L’export du PDF a échoué. Veuillez réessayer.')
     } finally {
       setBusy(false)

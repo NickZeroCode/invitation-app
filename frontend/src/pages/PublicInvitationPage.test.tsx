@@ -296,10 +296,10 @@ describe('PublicInvitationPage', () => {
     expect(downloads[0].download).toMatch(/^invitation-.*\.pdf$/)
     expect(downloads[0].href).toContain('data:application/pdf')
 
-    // Two captures: the invitation card alone (cover and on-page sections
-    // stripped) then the dress code + programme page. The verification QR
-    // code is placed directly on its own A4 page, without raster capture.
-    expect(toJpeg).toHaveBeenCalledTimes(2)
+    // Three captures: the invitation card (cover and on-page sections
+    // stripped), the dress code + programme page, and the styled verification
+    // QR page background. The QR code itself is overlaid at print resolution.
+    expect(toJpeg).toHaveBeenCalledTimes(3)
     const card = vi.mocked(toJpeg).mock.calls[0]?.[0] as HTMLElement
     expect(card.textContent ?? '').toContain('Mariage de Grâce et Éric')
     clickSpy.mockRestore()
