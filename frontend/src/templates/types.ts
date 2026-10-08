@@ -22,6 +22,8 @@ export interface InvitationDraft {
   emphasis: string[]
   /** Key from `MESSAGE_FONTS` — typeface of the message block. */
   messageFont?: string
+  /** Key from `FONT_SIZES` — scales the whole invitation typography. */
+  fontSize?: string
   /** Placeholder for Phase 3 individual invitations. */
   guestName?: string
 }

@@ -1,21 +1,21 @@
 /**
  * « Nuit Céleste » — celestial midnight wedding. Deep navy gradient, a scatter
- * of four-point gold stars, a crescent moon over the title and a hairline gold
- * frame with star corners. Midnight romance, quietly opulent.
+ * of four-point gold stars, gold line-art roses in the corners, a crescent
+ * moon over the title and glowing gold calligraphy names. Midnight romance,
+ * quietly opulent.
  */
-import {
-  InvitationPaper,
-  formatEventDate,
-  formatEventTime,
-  guestLabel,
-  isEmphasized,
-} from './shared.tsx'
+import { DateBlock, InvitationPaper, guestLabel, isEmphasized } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
+import { GoldRoseCorner } from './florals.tsx'
 
 const GOLD = '#E2C27C'
 const STAR = '#F2ECDC'
 const PAPER_BG = 'linear-gradient(180deg, #0D1530 0%, #17234C 48%, #101A3A 78%, #0B1228 100%)'
+
+/** Gold-leaf gradient for the calligraphy names. */
+const TITLE_GOLD =
+  'linear-gradient(118deg, #C9A24A 0%, #F2E3B8 35%, #D8B36A 55%, #F5E7C4 80%, #C9A24A 100%)'
 
 const STAR_PATH = 'M12 0 L14.3 9.7 L24 12 L14.3 14.3 L12 24 L9.7 14.3 L0 12 L9.7 9.7 Z'
 
@@ -78,7 +78,7 @@ function StarField() {
 }
 
 /** Crescent moon. */
-function Moon({ size = '4.6em' }: { size?: string }) {
+function Moon({ size = '3.9em' }: { size?: string }) {
   return (
     <svg viewBox="0 0 64 64" style={{ width: size, height: size }} aria-hidden="true">
       <path
@@ -112,6 +112,13 @@ export function NuitCeleste({ draft }: TemplateProps) {
   return (
     <InvitationPaper style={{ backgroundImage: PAPER_BG, color: STAR }}>
       <StarField />
+      <GoldRoseCorner
+        className="pointer-events-none absolute left-[0.6em] top-[0.6em] w-[11em] opacity-80"
+      />
+      <GoldRoseCorner
+        className="pointer-events-none absolute bottom-[0.6em] right-[0.6em] w-[11em] opacity-80"
+        style={{ transform: 'rotate(180deg)' }}
+      />
 
       {/* Hairline gold frame with star corners. */}
       <div className="pointer-events-none absolute inset-[1.8em]" aria-hidden="true">
@@ -141,55 +148,67 @@ export function NuitCeleste({ draft }: TemplateProps) {
           Invitation
         </p>
 
-        <p className="mt-[2em] font-display text-[1.25em] italic opacity-92">{guestLabel(draft)}</p>
+        {draft.cover_url ? (
+          <div
+            data-export-skip=""
+            className="mt-[2.2em] w-full max-w-[23em] rounded-t-[11em] p-[0.4em]"
+            style={{ border: '1px solid rgba(226,194,124,0.55)' }}
+          >
+            <img src={draft.cover_url} alt="" className="w-full rounded-t-[10.3em]" />
+          </div>
+        ) : null}
+
+        <p className="mt-[2.3em] font-display text-[1.25em] italic opacity-92">{guestLabel(draft)}</p>
 
         <h1
-          className="mt-[0.6em] break-words text-balance font-display leading-[1.12]"
-          style={{ fontSize: titleEm ? '3.4em' : '2.5em', color: STAR, textShadow: '0 0.06em 0.35em rgba(8,12,30,0.45)' }}
+          className="mt-[0.5em] break-words text-balance leading-[1.22]"
+          style={{
+            fontSize: titleEm ? '4.1em' : '3.1em',
+            fontFamily: "'Great Vibes', cursive",
+            backgroundImage: TITLE_GOLD,
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+            filter: 'drop-shadow(0 0.04em 0.22em rgba(226,194,124,0.35))',
+          }}
         >
           {draft.title}
         </h1>
 
         {draft.message ? (
-          <p className="mt-[1.7em] max-w-[29em] text-pretty text-[1.2em] leading-[1.8] break-words opacity-90" style={{ fontFamily: messageFontCss(draft.messageFont) }}>
+          <p
+            className="mt-[1.7em] max-w-[29em] text-pretty text-[1.2em] leading-[1.8] break-words opacity-90"
+            style={{ fontFamily: messageFontCss(draft.messageFont) }}
+          >
             {draft.message}
           </p>
         ) : null}
 
-        {draft.cover_url ? (
-          <div data-export-skip="" className="mt-[2.2em] w-full max-w-[24em]">
-            <img
-              src={draft.cover_url}
-              alt=""
-              className="w-full rounded-t-[10em]"
-              style={{ border: '1px solid rgba(226,194,124,0.55)' }}
-            />
-          </div>
-        ) : null}
-
         <div className="mt-[2.4em] w-full">
           <StarRule />
-          <p
-            className="mt-[1.8em] font-display"
-            style={{ fontSize: dateEm ? '1.95em' : '1.55em', color: GOLD, letterSpacing: '0.04em' }}
-          >
-            {formatEventDate(draft.event_date)}
-          </p>
-          <p className="mt-[0.55em] text-[1.05em] uppercase" style={{ letterSpacing: '0.4em', opacity: 0.82 }}>
-            à {formatEventTime(draft.event_time)}
-          </p>
-          <StarRule />
+          <div className="mt-[1.6em]">
+            <DateBlock draft={draft} accent={GOLD} ink={GOLD} emphasize={dateEm} />
+          </div>
+          <div className="mt-[1.6em]">
+            <StarRule />
+          </div>
         </div>
 
         {draft.venue_name || draft.venue_address ? (
-          <div className="mt-[2.2em]">
-            <p
-              className="font-display text-[1.35em]"
-              style={{ color: venueEm ? GOLD : STAR, fontWeight: venueEm ? 600 : 400 }}
-            >
-              {draft.venue_name}
-            </p>
-            <p className="mt-[0.4em] text-[1.14em] opacity-88">{draft.venue_address}</p>
+          <div className="mt-[2.3em]">
+            {draft.venue_name ? (
+              <p
+                className="font-display text-[1.35em]"
+                style={{ color: venueEm ? GOLD : STAR, fontWeight: venueEm ? 600 : 400 }}
+              >
+                {draft.venue_name}
+              </p>
+            ) : null}
+            {draft.venue_address ? (
+              <p className="mt-[0.45em] text-[1.1em] uppercase opacity-88" style={{ letterSpacing: '0.32em' }}>
+                {draft.venue_address}
+              </p>
+            ) : null}
             {draft.venue_details ? (
               <p className="mt-[0.6em] text-[1.02em] italic opacity-78">{draft.venue_details}</p>
             ) : null}
@@ -198,7 +217,10 @@ export function NuitCeleste({ draft }: TemplateProps) {
 
         <div className="mt-auto pt-[2.4em]">
           <p className="text-[1.02em] uppercase opacity-72" style={{ letterSpacing: '0.38em', color: GOLD }}>
-            Sous les étoiles
+            Sous les
+          </p>
+          <p className="mt-[0.45em] text-[1.02em] uppercase opacity-72" style={{ letterSpacing: '0.38em', color: GOLD }}>
+            étoiles
           </p>
         </div>
       </div>

@@ -120,6 +120,7 @@ export interface EventModel {
   title: string
   message: string
   message_font?: string
+  font_size?: string
   event_date: string
   event_time: string
   timezone: string
@@ -154,6 +155,7 @@ export interface EventPayload {
   title: string
   message: string
   message_font?: string
+  font_size?: string
   event_date: string
   event_time: string
   timezone: string
@@ -290,6 +292,7 @@ export interface PublicInvitationPayload {
     title: string
     message: string
     message_font?: string
+    font_size?: string
     event_date: string
     event_time: string
     timezone: string

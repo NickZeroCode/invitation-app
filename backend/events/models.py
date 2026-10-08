@@ -23,6 +23,15 @@ MESSAGE_FONT_KEYS = (
     "moderne",
 )
 
+# Text-size keys scaling the whole invitation typography — mirrored by
+# `FONT_SIZES` in frontend/src/templates/fontSizes.ts.
+FONT_SIZE_KEYS = (
+    "petite",
+    "normale",
+    "grande",
+    "tres-grande",
+)
+
 
 class EventModel(models.Model):
     organizer = models.ForeignKey(Organizer, on_delete=models.CASCADE, related_name="event_models")
@@ -32,6 +41,8 @@ class EventModel(models.Model):
     message = models.TextField("message d'invitation", blank=True)
     # Empty = template default typeface (legacy behaviour).
     message_font = models.CharField("police du message", max_length=32, blank=True, default="")
+    # Empty = default size (legacy behaviour).
+    font_size = models.CharField("taille du texte", max_length=32, blank=True, default="")
 
     event_date = models.DateField("date de l'événement")
     event_time = models.TimeField("heure de l'événement")

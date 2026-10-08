@@ -1,75 +1,21 @@
 /**
- * « Jardin d'Olive » — fine-art botanical wedding. Soft cream paper, hand-drawn
- * olive branches in the corners, a sprig motif as divider and an arched cover
- * photo. The quiet, organic-luxury palette: olive ink, sage and brushed gold.
+ * « Jardin d'Olive » — fine-art botanical wedding. Soft cream paper, sage
+ * watercolor bouquets in the corners, a thin gold arch around the
+ * composition, olive calligraphy names and a designed date block: quiet,
+ * organic luxury.
  */
-import {
-  InvitationPaper,
-  formatEventDate,
-  formatEventTime,
-  guestLabel,
-  isEmphasized,
-} from './shared.tsx'
+import { DateBlock, InvitationPaper, guestLabel, isEmphasized } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
+import { ArchFrame, SAGE, WatercolorSpray } from './florals.tsx'
 
 const OLIVE = '#5B6B4B'
 const INK = '#2C3526'
+const SCRIPT_INK = '#3E4B2D'
 const GOLD = '#BFA05C'
 const PAPER_BG = 'radial-gradient(120% 100% at 50% 0%, #F8F4EA 0%, #F4EFE3 52%, #EFE8D8 100%)'
 
 const LEAF_PATH = 'M0 0 C4 -6.2 12.4 -8.4 17 -2.6 C12.4 3.6 4 5.8 0 0 Z'
-
-/** Hand-drawn olive branch with leaves along a curved stem. */
-function OliveBranch({ flip = false }: { flip?: boolean }) {
-  const leaves: Array<[number, number, number, number]> = [
-    [26, 100, -142, 1.25],
-    [26, 100, -58, 1.02],
-    [52, 84, -138, 1.3],
-    [52, 84, -52, 1.06],
-    [78, 66, -132, 1.25],
-    [78, 66, -46, 1.02],
-    [104, 46, -128, 1.14],
-    [104, 46, -42, 0.96],
-    [128, 28, -122, 1.02],
-  ]
-  const olives: Array<[number, number]> = [
-    [38, 96],
-    [64, 80],
-    [90, 62],
-    [116, 42],
-  ]
-  return (
-    <svg
-      viewBox="0 0 160 120"
-      className="absolute h-[11em] w-[14.5em]"
-      style={
-        flip
-          ? { top: '1.6em', right: '1.6em', transform: 'scaleX(-1)' }
-          : { top: '1.6em', left: '1.6em' }
-      }
-      aria-hidden="true"
-      fill="none"
-    >
-      <path
-        d="M12 114 C 48 98, 92 70, 138 20"
-        stroke={OLIVE}
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        opacity="0.9"
-      />
-      {leaves.map(([x, y, rot, scale], i) => (
-        <g key={i} transform={`translate(${x} ${y}) rotate(${rot}) scale(${scale})`}>
-          <path d={LEAF_PATH} fill={OLIVE} opacity={i % 2 ? 0.62 : 0.8} />
-        </g>
-      ))}
-      {olives.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="3.1" fill={GOLD} opacity="0.9" />
-      ))}
-      <circle cx="138" cy="20" r="3" fill={GOLD} />
-    </svg>
-  )
-}
 
 /** Olive divider: hairline rule, leaves and a gold diamond at centre. */
 function Sprig() {
@@ -94,8 +40,20 @@ export function JardinOlive({ draft }: TemplateProps) {
   const venueEm = isEmphasized(draft, 'venue')
   return (
     <InvitationPaper style={{ backgroundImage: PAPER_BG, color: INK }}>
-      <OliveBranch />
-      <OliveBranch flip />
+      <WatercolorSpray
+        palette={SAGE}
+        className="pointer-events-none absolute left-[-1.2em] top-[-1em] w-[15.5em]"
+      />
+      <WatercolorSpray
+        palette={SAGE}
+        className="pointer-events-none absolute bottom-[-1em] right-[-1.2em] w-[12em]"
+        style={{ transform: 'rotate(180deg)' }}
+      />
+      <ArchFrame
+        className="pointer-events-none absolute inset-[1.6em]"
+        color={GOLD}
+        opacity={0.45}
+      />
 
       <div className="relative flex flex-1 flex-col items-center px-[6.5em] py-[6em] text-center">
         <p className="text-[1.02em] uppercase" style={{ color: OLIVE, letterSpacing: '0.52em' }}>
@@ -107,54 +65,63 @@ export function JardinOlive({ draft }: TemplateProps) {
         </p>
 
         <h1
-          className="mt-[0.6em] break-words text-balance font-display leading-[1.14]"
-          style={{ fontSize: titleEm ? '3.3em' : '2.45em', color: INK }}
+          className="mt-[0.5em] break-words text-balance leading-[1.22]"
+          style={{
+            fontSize: titleEm ? '4em' : '3em',
+            fontFamily: "'Great Vibes', cursive",
+            color: SCRIPT_INK,
+          }}
         >
           {draft.title}
         </h1>
 
-        <div className="mt-[1.8em]">
+        <div className="mt-[1.6em]">
           <Sprig />
         </div>
 
         {draft.message ? (
-          <p className="mt-[1.4em] max-w-[29em] text-pretty text-[1.2em] leading-[1.8] break-words opacity-90" style={{ fontFamily: messageFontCss(draft.messageFont) }}>
+          <p
+            className="mt-[1.4em] max-w-[29em] text-pretty text-[1.2em] leading-[1.8] break-words opacity-90"
+            style={{ fontFamily: messageFontCss(draft.messageFont) }}
+          >
             {draft.message}
           </p>
         ) : null}
 
         {draft.cover_url ? (
-          <div data-export-skip="" className="mt-[2.2em] w-full max-w-[24em]">
+          <div data-export-skip="" className="relative mt-[2.2em] w-full max-w-[22em]">
             <img
               src={draft.cover_url}
               alt=""
-              className="w-full rounded-t-[10em]"
-              style={{ border: '1px solid rgba(91,107,75,0.35)' }}
+              className="w-full rounded-t-[11em]"
+              style={{ border: '1px solid rgba(191,160,92,0.65)' }}
+            />
+            <WatercolorSpray
+              palette={SAGE}
+              className="absolute -left-[2.8em] bottom-[0.6em] w-[8.5em]"
             />
           </div>
         ) : null}
 
-        <div className="mt-[2.2em]">
-          <p
-            className="font-display italic"
-            style={{ fontSize: dateEm ? '1.95em' : '1.5em', color: OLIVE }}
-          >
-            {formatEventDate(draft.event_date)}
-          </p>
-          <p className="mt-[0.55em] text-[1.08em]" style={{ letterSpacing: '0.32em', opacity: 0.85 }}>
-            à {formatEventTime(draft.event_time)}
-          </p>
+        <div className="mt-[2.3em] w-full">
+          <DateBlock draft={draft} accent={OLIVE} ink={SCRIPT_INK} emphasize={dateEm} />
         </div>
 
         {draft.venue_name || draft.venue_address ? (
-          <div className="mt-[2em]">
-            <p
-              className="font-display text-[1.35em]"
-              style={{ color: venueEm ? OLIVE : INK, fontWeight: venueEm ? 600 : 500 }}
-            >
-              {draft.venue_name}
-            </p>
-            <p className="mt-[0.4em] text-[1.14em] opacity-85">{draft.venue_address}</p>
+          <div className="mt-[2.1em]">
+            {draft.venue_name ? (
+              <p
+                className="font-display text-[1.35em]"
+                style={{ color: venueEm ? OLIVE : INK, fontWeight: venueEm ? 600 : 500 }}
+              >
+                {draft.venue_name}
+              </p>
+            ) : null}
+            {draft.venue_address ? (
+              <p className="mt-[0.45em] text-[1.1em] uppercase opacity-85" style={{ letterSpacing: '0.32em' }}>
+                {draft.venue_address}
+              </p>
+            ) : null}
             {draft.venue_details ? (
               <p className="mt-[0.6em] text-[1.02em] italic opacity-78">{draft.venue_details}</p>
             ) : null}

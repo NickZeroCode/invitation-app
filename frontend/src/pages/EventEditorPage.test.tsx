@@ -103,6 +103,7 @@ describe('EventEditorPage', () => {
     await user.type(await screen.findByLabelText(/^Titre de l/), 'Les 30 ans de Sarah')
     await user.type(screen.getByLabelText(/^Message/), 'Une soirée festive vous attend.')
     await user.click(screen.getByRole('radio', { name: 'Ronde' }))
+    await user.click(screen.getByRole('radio', { name: 'Grande' }))
     fireEvent.change(document.getElementById('event-date') as HTMLInputElement, {
       target: { value: '2026-12-12' },
     })
@@ -129,6 +130,7 @@ describe('EventEditorPage', () => {
       title: 'Les 30 ans de Sarah',
       message: 'Une soirée festive vous attend.',
       message_font: 'ronde',
+      font_size: 'grande',
       event_date: '2026-12-12',
       event_time: '15:00',
       timezone: 'Africa/Kinshasa',

@@ -13,6 +13,7 @@ import type {
   PublicInvitationPayload,
   PublicInvitationVerification,
 } from '../lib/types.ts'
+import { fontScaleStyle } from '../templates/fontSizes.ts'
 import { getTemplate } from '../templates/registry.tsx'
 import { formatEventDate, formatEventTime } from '../templates/shared.tsx'
 import type { InvitationDraft } from '../templates/types.ts'
@@ -138,6 +139,7 @@ export function PublicInvitationPage() {
     title: data.event.title,
     message: data.event.message,
     messageFont: data.event.message_font,
+    fontSize: data.event.font_size,
     event_date: data.event.event_date,
     event_time: data.event.event_time,
     timezone: data.event.timezone,
@@ -172,7 +174,7 @@ export function PublicInvitationPage() {
         <div className="grid gap-6 lg:grid-cols-[1.45fr_0.7fr]">
           <div className="rounded-[1.4rem] border border-line bg-white/75 p-1.5 shadow-[0_18px_60px_rgba(25,32,28,0.08)] ring-1 ring-white/70 backdrop-blur-sm sm:rounded-[2rem] sm:p-3">
             <div className="overflow-hidden rounded-[1.1rem] border border-line bg-white sm:rounded-[1.5rem]">
-              <div ref={cardRef}>
+              <div ref={cardRef} style={fontScaleStyle(data.event.font_size)}>
                 {TemplateComponent ? (
                   <TemplateComponent draft={draft} />
                 ) : (

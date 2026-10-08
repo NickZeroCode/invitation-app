@@ -25,6 +25,7 @@ import type {
 import { fr } from '../locales/fr.ts'
 import { InvitationDownloadButton } from '../templates/InvitationDownloadButton.tsx'
 import { MESSAGE_FONTS } from '../templates/messageFonts.ts'
+import { FONT_SIZES, fontScaleStyle } from '../templates/fontSizes.ts'
 import { TEMPLATES, emptyDraft, getTemplate } from '../templates/registry.tsx'
 import type { InvitationDraft } from '../templates/types.ts'
 
@@ -71,6 +72,7 @@ export function EventEditorPage() {
   const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')
   const [messageFont, setMessageFont] = useState('classique')
+  const [fontSize, setFontSize] = useState('normale')
   const [eventDate, setEventDate] = useState('')
   const [eventTime, setEventTime] = useState('')
   const [timezone, setTimezone] = useState('Africa/Kinshasa')
@@ -106,6 +108,7 @@ export function EventEditorPage() {
     setTitle(data.title)
     setMessage(data.message)
     setMessageFont(data.message_font || 'classique')
+    setFontSize(data.font_size || 'normale')
     setEventDate(data.event_date)
     setEventTime(data.event_time)
     setTimezone(data.timezone)
@@ -151,6 +154,7 @@ export function EventEditorPage() {
         title: title || 'Titre de l’événement',
         message,
         messageFont,
+        fontSize,
         event_date: eventDate,
         event_time: eventTime,
         timezone,
@@ -164,6 +168,7 @@ export function EventEditorPage() {
       title,
       message,
       messageFont,
+      fontSize,
       eventDate,
       eventTime,
       timezone,
@@ -184,6 +189,7 @@ export function EventEditorPage() {
         title: title.trim(),
         message: message.trim(),
         message_font: messageFont,
+        font_size: fontSize,
         event_date: eventDate,
         event_time: eventTime,
         timezone: timezone.trim() || 'Africa/Kinshasa',
@@ -354,7 +360,7 @@ export function EventEditorPage() {
           {previewDockOpen ? (
             <div className="flex justify-center px-4 pb-4">
               <div className="max-h-[60vh] w-[min(52vw,200px)] overflow-y-auto rounded-md border border-line bg-surface-muted">
-                <div className="flex w-full flex-col">
+                <div className="flex w-full flex-col" style={fontScaleStyle(fontSize)}>
                   <template.Component draft={previewDraft} />
                 </div>
               </div>
@@ -447,6 +453,44 @@ export function EventEditorPage() {
                           Aa
                         </span>
                         <span>{font.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+              <Field
+                id="event-font-size"
+                label={fr.editor.fontSizeLabel}
+                hint={fr.editor.fontSizeHint}
+              >
+                <div
+                  role="radiogroup"
+                  aria-label={fr.editor.fontSizeLabel}
+                  className="flex flex-wrap gap-2"
+                >
+                  {FONT_SIZES.map((size) => {
+                    const selected = size.key === fontSize
+                    return (
+                      <button
+                        key={size.key}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() => setFontSize(size.key)}
+                        className={`flex items-center gap-2 rounded-pill border px-3.5 py-2 text-sm transition-colors duration-150 ${
+                          selected
+                            ? 'border-brand bg-brand text-paper'
+                            : 'border-line-strong text-ink-soft hover:border-brand/60 hover:text-ink'
+                        }`}
+                      >
+                        <span
+                          className="leading-none"
+                          style={{ fontSize: `${size.scale * 1.1}rem` }}
+                          aria-hidden="true"
+                        >
+                          Aa
+                        </span>
+                        <span>{size.label}</span>
                       </button>
                     )
                   })}
@@ -802,7 +846,7 @@ export function EventEditorPage() {
             <CardHeader title={fr.editor.previewTitle} description={template.name} />
             <CardBody>
               <div className="max-h-[68vh] w-full overflow-y-auto rounded-md border border-line bg-surface-muted">
-                <div ref={previewCardRef} className="flex w-full flex-col">
+                <div ref={previewCardRef} className="flex w-full flex-col" style={fontScaleStyle(fontSize)}>
                   <template.Component draft={previewDraft} />
                 </div>
               </div>

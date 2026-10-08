@@ -29,7 +29,10 @@ export function InvitationPaper({
         className="relative flex min-h-full w-full flex-col overflow-hidden"
         style={{
           containerType: 'inline-size',
-          fontSize: PAPER_FONT_SIZE,
+          // `--invitation-scale` (see fontSizes.ts) multiplies the paper's
+          // base size; every internal measure is `em`, so the whole
+          // invitation scales together with the chosen text size.
+          fontSize: `calc(var(--invitation-scale, 1) * ${PAPER_FONT_SIZE})`,
           // Typographic craft: full OpenType shaping and crisp serif rendering.
           fontFeatureSettings: "'kern', 'liga', 'calt'",
           fontKerning: 'normal',
@@ -86,6 +89,54 @@ export function formatMonthYear(iso: string): string {
   return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' })
     .format(date)
     .toUpperCase()
+}
+
+/** "SAMEDI" style weekday line. */
+export function formatWeekday(iso: string): string {
+  const date = parseDate(iso)
+  if (!date) return ''
+  return new Intl.DateTimeFormat('fr-FR', { weekday: 'long' })
+    .format(date)
+    .toUpperCase()
+}
+
+/** Designed date block: weekday caps, big day number, month-year and time. */
+export function DateBlock({
+  draft,
+  accent,
+  ink,
+  emphasize = false,
+}: {
+  draft: InvitationDraft
+  accent: string
+  ink: string
+  emphasize?: boolean
+}) {
+  return (
+    <div className="flex w-full max-w-[32em] items-center justify-center gap-[1.4em]">
+      <span className="h-px flex-1" style={{ backgroundColor: accent, opacity: 0.5 }} aria-hidden="true" />
+      <div>
+        <p className="text-[0.95em] uppercase" style={{ letterSpacing: '0.52em', color: accent }}>
+          {formatWeekday(draft.event_date)}
+        </p>
+        <p
+          className="mt-[0.35em] font-display leading-none"
+          style={{ fontSize: emphasize ? '3.6em' : '2.9em', color: ink }}
+        >
+          {formatDayNumber(draft.event_date)}
+        </p>
+        <p className="mt-[0.5em] text-[1em] uppercase" style={{ letterSpacing: '0.42em', color: accent }}>
+          {formatMonthYear(draft.event_date)}
+        </p>
+        {draft.event_time ? (
+          <p className="mt-[0.65em] text-[1.02em] uppercase" style={{ letterSpacing: '0.35em', opacity: 0.82 }}>
+            à {formatEventTime(draft.event_time)}
+          </p>
+        ) : null}
+      </div>
+      <span className="h-px flex-1" style={{ backgroundColor: accent, opacity: 0.5 }} aria-hidden="true" />
+    </div>
+  )
 }
 
 export function formatEventTime(time: string): string {

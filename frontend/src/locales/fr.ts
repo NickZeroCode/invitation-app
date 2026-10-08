@@ -157,6 +157,8 @@ export const fr = {
     messageLabel: "Message d'invitation",
     messageFontLabel: 'Police du message',
     messageFontHint: 'Appliquée au texte du message sur l’invitation.',
+    fontSizeLabel: 'Taille du texte',
+    fontSizeHint: 'Agrandit ou réduit toute la typographie de l’invitation.',
     scheduleTitle: 'Date et lieu',
     dateLabel: 'Date',
     timeLabel: 'Heure',
