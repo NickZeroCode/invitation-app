@@ -44,3 +44,6 @@ Thumbs.db
 
 # Local notes (never commit)
 the-master-prompt.txtx
+
+# Design reference folder (never commit)
+very_beautiful template/
