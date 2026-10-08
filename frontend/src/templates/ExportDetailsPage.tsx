@@ -23,16 +23,16 @@ function SectionTitle({ title, templateKey, color, titleClass }: {
 }) {
   return (
     <div className="flex flex-col items-center text-center">
-      <p
-        className={`text-[0.95rem] font-medium uppercase ${titleClass}`}
-        style={{ letterSpacing: '0.38em', color }}
+      <h2
+        className={`text-[1.6rem] font-semibold uppercase leading-none ${titleClass}`}
+        style={{ letterSpacing: '0.3em', color, paddingLeft: '0.3em' }}
       >
         {title}
-      </p>
+      </h2>
       <TemplateOrnament
         templateKey={templateKey}
         color={color}
-        className="mx-auto mt-3 block h-auto w-40"
+        className="mx-auto mt-4 block h-auto w-52"
       />
     </div>
   )

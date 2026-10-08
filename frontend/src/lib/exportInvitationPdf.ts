@@ -87,11 +87,42 @@ export function invitationPdfFileName(title: string, guestName?: string): string
   return `invitation-${base}${guest ? `-${guest}` : ''}.pdf`
 }
 
-function triggerDownload(dataUrl: string, fileName: string): void {
+/**
+ * Hand the finished PDF to the browser as a real file download.
+ *
+ * A Blob object URL is used instead of a data URI: multi-megabyte data URIs
+ * exceed browser URL limits and are blocked as top-level navigations on
+ * mobile, so the click silently did nothing. The anchor is attached to the
+ * document (required by Firefox / Safari for synthetic clicks) and the URL is
+ * revoked once the download has had time to start.
+ */
+function triggerDownload(
+  doc: { output(type: 'blob'): Blob; output(type: 'datauristring'): string },
+  fileName: string,
+): void {
   const anchor = document.createElement('a')
-  anchor.href = dataUrl
   anchor.download = fileName
+  anchor.rel = 'noopener'
+  anchor.style.display = 'none'
+
+  let objectUrl: string | null = null
+  const blob: unknown = doc.output('blob')
+  if (blob instanceof Blob && typeof URL.createObjectURL === 'function') {
+    objectUrl = URL.createObjectURL(
+      blob.type === 'application/pdf' ? blob : new Blob([blob], { type: 'application/pdf' }),
+    )
+    anchor.href = objectUrl
+  } else {
+    anchor.href = doc.output('datauristring')
+  }
+
+  document.body.appendChild(anchor)
   anchor.click()
+  anchor.remove()
+  if (objectUrl) {
+    const url = objectUrl
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
+  }
 }
 
 /**
@@ -381,7 +412,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       )
     }
 
-    triggerDownload(doc.output('datauristring'), invitationPdfFileName(content.title, content.guestName))
+    triggerDownload(doc, invitationPdfFileName(content.title, content.guestName))
   } finally {
     offscreen?.dispose()
   }
