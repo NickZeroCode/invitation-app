@@ -15,7 +15,8 @@ import {
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
-import { BLUSH, HexFrame, WatercolorSpray } from './florals.tsx'
+import { BLUSH, HexFrame, PaperGrain, WatercolorSpray } from './florals.tsx'
+import { LuxePattern, SunRays, VellumHalo } from './luxeMotifs.tsx'
 
 const TERRA = '#BE5330'
 const OCHRE = '#D89A52'
@@ -91,6 +92,16 @@ export function ArcheSoleil({ draft }: TemplateProps) {
 
       {/* Decorations frame the text zone (below the cover photo). */}
       <div className="relative flex flex-1 flex-col">
+        {/* Zellige star lattice + a rising sun fanning from the top edge. */}
+        <LuxePattern templateKey="arche-soleil" />
+        <VellumHalo color="#F3E5D1" />
+        <PaperGrain opacity={0.06} />
+        <SunRays
+          color={OCHRE}
+          className="pointer-events-none absolute left-1/2 top-0 w-[30em] -translate-x-1/2"
+          style={{ opacity: 0.075 }}
+        />
+
         <div className="pointer-events-none absolute inset-[1.8em]">
           <HexFrame className="h-full w-full" color={GOLD_WARM} opacity={0.55} />
         </div>

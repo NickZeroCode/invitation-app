@@ -15,7 +15,8 @@ import {
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
-import { ArchFrame, SAGE, WatercolorSpray } from './florals.tsx'
+import { ArchFrame, PaperGrain, SAGE, WatercolorSpray } from './florals.tsx'
+import { LuxePattern, MonogramCrest, VellumHalo } from './luxeMotifs.tsx'
 
 const OLIVE = '#5B6B4B'
 const INK = '#2C3526'
@@ -61,6 +62,11 @@ export function JardinOlive({ draft }: TemplateProps) {
 
       {/* Decorations frame the text zone (below the cover photo). */}
       <div className="relative flex flex-1 flex-col">
+        {/* Olive-branch toile print on cotton paper. */}
+        <LuxePattern templateKey="jardin-olive" />
+        <VellumHalo color="#F6F1E5" />
+        <PaperGrain opacity={0.05} />
+
         <WatercolorSpray
           palette={SAGE}
           className="pointer-events-none absolute left-[-1.2em] top-[-1em] w-[14.5em]"
@@ -75,6 +81,7 @@ export function JardinOlive({ draft }: TemplateProps) {
         </div>
 
         <div className="relative flex flex-1 flex-col items-center px-[6.5em] py-[6em] text-center">
+        <MonogramCrest title={draft.title} variant="wreath" color={OLIVE} className="mb-[1.6em]" />
         <p className="text-[1.02em] uppercase" style={{ color: OLIVE, letterSpacing: '0.52em' }}>
           Mariage
         </p>

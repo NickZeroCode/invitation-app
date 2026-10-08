@@ -9,6 +9,7 @@
 import type { CSSProperties } from 'react'
 
 import { BLUSH, DecoCorner, GoldRoseCorner, HexFrame, SAGE, StarField, WatercolorSpray } from './florals.tsx'
+import { LuxePattern } from './luxeMotifs.tsx'
 
 export interface PanelSkin {
   /** Paper background (solid colour or gradient), copied from the template. */
@@ -377,6 +378,8 @@ function decorFor(templateKey: string) {
 export function PanelDecor({ templateKey }: { templateKey: string }) {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      {/* Same tone-on-tone print as the card (sized for the sidebar). */}
+      <LuxePattern templateKey={templateKey} unit="rem" scale={0.62} />
       {decorFor(templateKey)}
     </div>
   )

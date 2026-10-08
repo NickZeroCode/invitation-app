@@ -15,6 +15,7 @@ import {
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
+import { GiltEdge, LuxePattern, MonogramCrest } from './luxeMotifs.tsx'
 
 const GOLD = '#D8B36A'
 const GOLD_SOFT = '#EBD3A0'
@@ -95,6 +96,18 @@ export function EterniteOr({ draft }: TemplateProps) {
 
       {/* Decorations frame the text zone (below the cover photo). */}
       <div className="relative flex flex-1 flex-col">
+        {/* Art-déco harlequin lattice, darkened at the heart of the card. */}
+        <LuxePattern templateKey="eternite-or" />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              'radial-gradient(ellipse 60% 45% at 50% 48%, rgba(23,18,13,0.96) 30%, rgba(23,18,13,0) 100%)',
+          }}
+        />
+        <GiltEdge inset="0.6em" />
+
         <DecoFan corner="tl" />
         <DecoFan corner="tr" />
         <DecoFan corner="br" />
@@ -110,6 +123,18 @@ export function EterniteOr({ draft }: TemplateProps) {
         </div>
 
         <div className="relative flex flex-1 flex-col items-center px-[6em] py-[5.5em] text-center">
+        <MonogramCrest
+          title={draft.title}
+          variant="lozenge"
+          color={GOLD}
+          className="mb-[1.8em]"
+          inkStyle={{
+            backgroundImage: TITLE_GOLD,
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+          }}
+        />
         <p className="text-[1.02em] uppercase" style={{ color: GOLD, letterSpacing: '0.42em' }}>
           Cérémonie de mariage
         </p>

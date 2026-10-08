@@ -16,6 +16,7 @@ import {
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
 import { GoldRoseCorner } from './florals.tsx'
+import { GiltEdge, LuxePattern, MoonGlow } from './luxeMotifs.tsx'
 
 const GOLD = '#E2C27C'
 const STAR = '#F2ECDC'
@@ -135,6 +136,10 @@ export function NuitCeleste({ draft }: TemplateProps) {
 
       {/* Decorations frame the text zone (below the cover photo). */}
       <div className="relative flex flex-1 flex-col">
+        {/* Star-map constellations behind the scattered stars. */}
+        <LuxePattern templateKey="nuit-celeste" />
+        <MoonGlow className="left-1/2 top-[1em] h-[22em] w-[22em] -translate-x-1/2" />
+        <GiltEdge inset="0.7em" width="0.12em" />
         <StarField />
         <GoldRoseCorner
           className="pointer-events-none absolute left-[0.6em] top-[0.6em] w-[11em] opacity-80"

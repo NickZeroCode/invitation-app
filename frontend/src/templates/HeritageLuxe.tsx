@@ -15,6 +15,7 @@ import {
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
 import { FlourishRule, GoldRoseCorner, PaperGrain } from './florals.tsx'
+import { GiltEdge, LuxePattern, MonogramCrest, VellumHalo, monogramFrom } from './luxeMotifs.tsx'
 
 const GOLD = '#A67C3D'
 const INK = '#2B2620'
@@ -48,6 +49,11 @@ export function HeritageLuxe({ draft }: TemplateProps) {
 
       {/* Decorations frame the text zone (below the cover photo). */}
       <div className="relative flex flex-1 flex-col">
+        {/* Tone-on-tone ogee damask, receding behind the reading field. */}
+        <LuxePattern templateKey="heritage-luxe" />
+        <VellumHalo color={PAPER_BG} />
+        <GiltEdge />
+
         <GoldRoseCorner className="pointer-events-none absolute left-[0.4em] top-[0.4em] w-[11em] opacity-90" />
         <GoldRoseCorner
           className="pointer-events-none absolute bottom-[0.4em] right-[0.4em] w-[11em] opacity-90"
@@ -61,7 +67,22 @@ export function HeritageLuxe({ draft }: TemplateProps) {
         </div>
 
         <div className="relative flex flex-1 flex-col items-center px-[7em] py-[5em] text-center">
-        <p className="mt-[4.8em] text-[1em] uppercase" style={{ color: GOLD, letterSpacing: '0.38em' }}>
+        <MonogramCrest
+          title={draft.title}
+          variant="roundel"
+          color={GOLD}
+          className="mt-[1.6em]"
+          inkStyle={{
+            backgroundImage: TITLE_GOLD,
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+          }}
+        />
+        <p
+          className={`${monogramFrom(draft.title) ? 'mt-[1.8em]' : 'mt-[4.8em]'} text-[1em] uppercase`}
+          style={{ color: GOLD, letterSpacing: '0.38em' }}
+        >
           Vous êtes invités
         </p>
         <FlourishRule className="mt-[1.3em] h-[1.4em] w-[17em]" color={GOLD} />
