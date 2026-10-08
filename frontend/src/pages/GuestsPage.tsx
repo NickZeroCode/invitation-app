@@ -3,7 +3,8 @@
  *
  * Individual guest invitations (product brief Section 9): search and filter
  * the guest list, issue single or batch invitations, copy individual links,
- * edit guest details, duplicate, revoke and delete (soft) invitations.
+ * edit guest details, export the invitation PDF, revoke and delete (soft)
+ * invitations.
  */
 import { useState, type FormEvent } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
@@ -15,16 +16,20 @@ import { Button } from '../design-system/Button.tsx'
 import { Card, CardBody, CardHeader } from '../design-system/Card.tsx'
 import { Field } from '../design-system/Field.tsx'
 import { Input, Select } from '../design-system/Input.tsx'
+import { Modal } from '../design-system/Modal.tsx'
 import { EmptyState, ErrorState, LoadingState } from '../design-system/states.tsx'
 import { ApiError, eventsApi, invitationsApi } from '../lib/api.ts'
+import { exportInvitationPdf } from '../lib/exportInvitationPdf.ts'
 import { formatDate } from '../lib/format.ts'
 import type {
+  EventModel,
   Invitation,
   InvitationCivility,
   InvitationPayload,
   InvitationState,
 } from '../lib/types.ts'
 import { fr } from '../locales/fr.ts'
+import { emptyDraft } from '../templates/registry.tsx'
 
 const CIVILITIES: Array<{ value: InvitationCivility; label: string }> = [
   { value: 'none', label: fr.guests.civility.none },
@@ -62,7 +67,7 @@ function errorMessage(err: unknown): string {
   return err instanceof ApiError ? err.message : fr.common.unexpectedError
 }
 
-function AddGuestForm({ eventId }: { eventId: number }) {
+function AddGuestForm({ eventId, onSuccess }: { eventId: number; onSuccess?: () => void }) {
   const [name, setName] = useState('')
   const [civility, setCivility] = useState<InvitationCivility>('none')
   const [expiry, setExpiry] = useState('')
@@ -78,6 +83,7 @@ function AddGuestForm({ eventId }: { eventId: number }) {
       setExpiry('')
       setError(null)
       setSuccess(true)
+      onSuccess?.()
       void queryClient.invalidateQueries({ queryKey: ['invitations'] })
       void queryClient.invalidateQueries({ queryKey: ['event'] })
     },
@@ -154,7 +160,7 @@ function AddGuestForm({ eventId }: { eventId: number }) {
   )
 }
 
-function BulkAddForm({ eventId }: { eventId: number }) {
+function BulkAddForm({ eventId, onSuccess }: { eventId: number; onSuccess?: () => void }) {
   const [lines, setLines] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -166,6 +172,7 @@ function BulkAddForm({ eventId }: { eventId: number }) {
       setLines('')
       setError(null)
       setSuccess(true)
+      onSuccess?.()
       void queryClient.invalidateQueries({ queryKey: ['invitations'] })
       void queryClient.invalidateQueries({ queryKey: ['event'] })
     },
@@ -224,7 +231,14 @@ function BulkAddForm({ eventId }: { eventId: number }) {
   )
 }
 
-function GuestRow({ invitation }: { invitation: Invitation }) {
+function GuestRow({
+  invitation,
+  event,
+}: {
+  invitation: Invitation
+  /** Event model — supplies the artwork for the PDF export. */
+  event: EventModel | undefined
+}) {
   const [editing, setEditing] = useState(false)
   const [confirmingRevoke, setConfirmingRevoke] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -257,15 +271,51 @@ function GuestRow({ invitation }: { invitation: Invitation }) {
     onError: fail,
   })
 
-  const duplicateMutation = useMutation({
-    mutationFn: () => invitationsApi.duplicate(invitation.id),
-    onSuccess: () => {
-      setError(null)
-      setNotice(fr.guests.duplicated)
-      invalidate()
-    },
-    onError: fail,
-  })
+  const [exporting, setExporting] = useState(false)
+
+  async function exportPdf() {
+    if (!event || exporting) return
+    setExporting(true)
+    setNotice(null)
+    setError(null)
+    try {
+      await exportInvitationPdf({
+        templateKey: event.template,
+        draft: emptyDraft({
+          title: event.title,
+          message: event.message,
+          messageFont: event.message_font,
+          fontSize: event.font_size,
+          event_date: event.event_date,
+          event_time: event.event_time,
+          timezone: event.timezone,
+          venue_name: event.venue_name,
+          venue_address: event.venue_address,
+          venue_details: event.venue_details,
+          cover_url: event.cover_url,
+          coverTitle: event.cover_title,
+          emphasis: event.display_config.emphasis ?? [],
+          guestName: invitation.display_name,
+          dressCode: [],
+          program: [],
+        }),
+        dressCode: event.dress_code.map((image) => ({ url: image.url, caption: image.caption })),
+        program: event.program_items.map((item) => ({
+          start_time: item.start_time,
+          end_time: item.end_time,
+          description: item.description,
+        })),
+        title: event.title,
+        guestName: invitation.display_name,
+        qrText: `${window.location.origin}/i/${invitation.token}`,
+      })
+      setNotice(fr.guests.exported)
+    } catch {
+      setError(fr.guests.exportError)
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const revokeMutation = useMutation({
     mutationFn: () => invitationsApi.revoke(invitation.id),
@@ -351,10 +401,11 @@ function GuestRow({ invitation }: { invitation: Invitation }) {
             <Button
               variant="secondary"
               size="sm"
-              loading={duplicateMutation.isPending}
-              onClick={() => duplicateMutation.mutate()}
+              loading={exporting}
+              disabled={!event}
+              onClick={() => void exportPdf()}
             >
-              {fr.guests.duplicate}
+              {fr.guests.export}
             </Button>
             {invitation.status === 'active' ? (
               <Button variant="secondary" size="sm" onClick={() => setConfirmingRevoke(true)}>
@@ -474,6 +525,8 @@ export function GuestsPage() {
   const eventId = Number(id)
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '')
+  const [addOpen, setAddOpen] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const q = searchParams.get('q') ?? ''
   const state = (searchParams.get('etat') ?? '') as InvitationState | ''
@@ -513,6 +566,14 @@ export function GuestsPage() {
           ) : null}
         </div>
         <div className="flex flex-wrap gap-3">
+          <Button
+            onClick={() => {
+              setNotice(null)
+              setAddOpen(true)
+            }}
+          >
+            {fr.guests.addTitle}
+          </Button>
           <Link
             to={`/evenements/${eventId}/reponses`}
             className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-strong"
@@ -532,88 +593,109 @@ export function GuestsPage() {
         <Alert tone="danger">{fr.guests.loadEventError}</Alert>
       ) : null}
 
-      <AddGuestForm eventId={eventId} />
-      <BulkAddForm eventId={eventId} />
+      {notice ? <Alert tone="success">{notice}</Alert> : null}
 
-      <form
-        className="flex flex-wrap items-center gap-3"
-        onSubmit={(event) => {
-          event.preventDefault()
-          updateParam('q', searchInput.trim())
-        }}
-      >
-        <div className="w-full max-w-xs">
-          <Input
-            type="search"
-            aria-label={fr.guests.search}
-            placeholder={fr.guests.searchPlaceholder}
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-          />
-        </div>
-        <Select
-          aria-label={fr.guests.stateLabel}
-          value={state}
-          onChange={(event) => updateParam('etat', event.target.value)}
-        >
-          <option value="">{fr.guests.stateAll}</option>
-          <option value="active">{fr.guests.stateActive}</option>
-          <option value="expired">{fr.guests.stateExpired}</option>
-          <option value="revoked">{fr.guests.stateRevoked}</option>
-        </Select>
-        <Button type="submit" variant="secondary">
-          {fr.common.search}
-        </Button>
-      </form>
-
-      {query.isPending ? <LoadingState /> : null}
-      {query.isError ? (
-        <ErrorState
-          title={fr.guests.error.title}
-          description={fr.guests.error.description}
-          onRetry={() => void query.refetch()}
+      <Modal open={addOpen} onClose={() => setAddOpen(false)} ariaLabel={fr.guests.addTitle}>
+        <AddGuestForm
+          eventId={eventId}
+          onSuccess={() => {
+            setAddOpen(false)
+            setNotice(fr.guests.addSuccess)
+          }}
         />
-      ) : null}
-      {query.isSuccess && results.length === 0 ? (
-        <Card>
-          <CardBody>
-            <EmptyState title={fr.guests.empty.title} description={fr.guests.empty.description} />
-          </CardBody>
-        </Card>
-      ) : null}
+        <BulkAddForm
+          eventId={eventId}
+          onSuccess={() => {
+            setAddOpen(false)
+            setNotice(fr.guests.bulkSuccess)
+          }}
+        />
+      </Modal>
 
-      {results.length > 0 ? (
-        <div className="space-y-3">
-          <h2 className="text-sm font-semibold text-ink">{fr.guests.listTitle}</h2>
-          {results.map((invitation) => (
-            <GuestRow key={invitation.id} invitation={invitation} />
-          ))}
+      <div className="space-y-3">
+        <form
+          className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2.5"
+          onSubmit={(event) => {
+            event.preventDefault()
+            updateParam('q', searchInput.trim())
+          }}
+        >
+          <div className="min-w-[13rem] flex-1">
+            <Input
+              type="search"
+              aria-label={fr.guests.search}
+              placeholder={fr.guests.searchPlaceholder}
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+            />
+          </div>
+          <Select
+            aria-label={fr.guests.stateLabel}
+            value={state}
+            onChange={(event) => updateParam('etat', event.target.value)}
+          >
+            <option value="">{fr.guests.stateAll}</option>
+            <option value="active">{fr.guests.stateActive}</option>
+            <option value="expired">{fr.guests.stateExpired}</option>
+            <option value="revoked">{fr.guests.stateRevoked}</option>
+          </Select>
+          <Button type="submit" variant="secondary">
+            {fr.common.search}
+          </Button>
+        </form>
 
-          {totalPages > 1 ? (
-            <div className="flex items-center justify-between pt-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={page <= 1}
-                onClick={() => updateParam('page', String(page - 1))}
-              >
-                {fr.guests.prev}
-              </Button>
-              <span className="text-xs text-ink-soft">
-                {fr.guests.page.replace('{page}', `${page} / ${totalPages}`)}
-              </span>
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={!query.data?.next}
-                onClick={() => updateParam('page', String(page + 1))}
-              >
-                {fr.guests.next}
-              </Button>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+        {query.isPending ? <LoadingState /> : null}
+        {query.isError ? (
+          <ErrorState
+            title={fr.guests.error.title}
+            description={fr.guests.error.description}
+            onRetry={() => void query.refetch()}
+          />
+        ) : null}
+        {query.isSuccess && results.length === 0 ? (
+          <Card>
+            <CardBody>
+              <EmptyState
+                title={fr.guests.empty.title}
+                description={fr.guests.empty.description}
+              />
+            </CardBody>
+          </Card>
+        ) : null}
+
+        {results.length > 0 ? (
+          <div className="space-y-3">
+            <h2 className="text-sm font-semibold text-ink">{fr.guests.listTitle}</h2>
+            {results.map((invitation) => (
+              <GuestRow key={invitation.id} invitation={invitation} event={eventQuery.data} />
+            ))}
+
+            {totalPages > 1 ? (
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => updateParam('page', String(page - 1))}
+                >
+                  {fr.guests.prev}
+                </Button>
+                <span className="text-xs text-ink-soft">
+                  {fr.guests.page.replace('{page}', `${page} / ${totalPages}`)}
+                </span>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={!query.data?.next}
+                  onClick={() => updateParam('page', String(page + 1))}
+                >
+                  {fr.guests.next}
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }

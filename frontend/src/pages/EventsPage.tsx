@@ -144,124 +144,126 @@ export function EventsPage() {
 
       {deleted ? <Alert tone="success">{fr.events.deleted}</Alert> : null}
 
-      <form
-        className="flex flex-wrap items-center gap-3"
-        onSubmit={(e) => {
-          e.preventDefault()
-          setDeleted(false)
-          updateParam('q', searchInput.trim())
-        }}
-      >
-        <div className="w-full max-w-xs">
-          <Input
-            type="search"
-            aria-label={fr.events.search}
-            placeholder={fr.events.searchPlaceholder}
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
-        </div>
-        <Select
-          aria-label={fr.events.categoryLabel}
-          value={category}
-          onChange={(e) => updateParam('categorie', e.target.value)}
+      <div className="space-y-3">
+        <form
+          className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2.5"
+          onSubmit={(e) => {
+            e.preventDefault()
+            setDeleted(false)
+            updateParam('q', searchInput.trim())
+          }}
         >
-          {CATEGORIES.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </Select>
-        <Select
-          aria-label={fr.events.statusLabel}
-          value={isActive}
-          onChange={(e) => updateParam('statut', e.target.value)}
-        >
-          <option value="">{fr.events.statusAll}</option>
-          <option value="true">{fr.events.statusActive}</option>
-          <option value="false">{fr.events.statusInactive}</option>
-        </Select>
-        <Button type="submit" variant="secondary">
-          {fr.common.search}
-        </Button>
-      </form>
-
-      {query.isPending ? <LoadingState /> : null}
-      {query.isError ? (
-        <ErrorState
-          title={fr.events.error.title}
-          description={fr.events.error.description}
-          onRetry={() => void query.refetch()}
-        />
-      ) : null}
-      {query.isSuccess && results.length === 0 ? (
-        <Card>
-          <CardBody>
-            <EmptyState
-              title={fr.events.empty.title}
-              description={fr.events.empty.description}
-              action={
-                <Link
-                  to="/evenements/nouveau"
-                  className="inline-flex h-9 items-center rounded-md bg-brand px-4 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-strong"
-                >
-                  {fr.events.create}
-                </Link>
-              }
+          <div className="min-w-[13rem] flex-1">
+            <Input
+              type="search"
+              aria-label={fr.events.search}
+              placeholder={fr.events.searchPlaceholder}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
             />
-          </CardBody>
-        </Card>
-      ) : null}
+          </div>
+          <Select
+            aria-label={fr.events.categoryLabel}
+            value={category}
+            onChange={(e) => updateParam('categorie', e.target.value)}
+          >
+            {CATEGORIES.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
+          <Select
+            aria-label={fr.events.statusLabel}
+            value={isActive}
+            onChange={(e) => updateParam('statut', e.target.value)}
+          >
+            <option value="">{fr.events.statusAll}</option>
+            <option value="true">{fr.events.statusActive}</option>
+            <option value="false">{fr.events.statusInactive}</option>
+          </Select>
+          <Button type="submit" variant="secondary">
+            {fr.common.search}
+          </Button>
+        </form>
 
-      {results.length > 0 ? (
-        <div className="space-y-3">
-          {results.map((event) => (
-            <Card key={event.id}>
-              <CardBody className="flex flex-wrap items-center justify-between gap-4 py-4">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="truncate text-sm font-semibold text-ink">{event.title}</h2>
-                    <Badge tone="brand">{event.template_detail.name}</Badge>
-                    {event.is_active ? null : <Badge>{fr.events.statusInactive}</Badge>}
+        {query.isPending ? <LoadingState /> : null}
+        {query.isError ? (
+          <ErrorState
+            title={fr.events.error.title}
+            description={fr.events.error.description}
+            onRetry={() => void query.refetch()}
+          />
+        ) : null}
+        {query.isSuccess && results.length === 0 ? (
+          <Card>
+            <CardBody>
+              <EmptyState
+                title={fr.events.empty.title}
+                description={fr.events.empty.description}
+                action={
+                  <Link
+                    to="/evenements/nouveau"
+                    className="inline-flex h-9 items-center rounded-md bg-brand px-4 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-strong"
+                  >
+                    {fr.events.create}
+                  </Link>
+                }
+              />
+            </CardBody>
+          </Card>
+        ) : null}
+
+        {results.length > 0 ? (
+          <div className="space-y-3">
+            {results.map((event) => (
+              <Card key={event.id}>
+                <CardBody className="flex flex-wrap items-center justify-between gap-4 py-4">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="truncate text-sm font-semibold text-ink">{event.title}</h2>
+                      <Badge tone="brand">{event.template_detail.name}</Badge>
+                      {event.is_active ? null : <Badge>{fr.events.statusInactive}</Badge>}
+                    </div>
+                    <p className="mt-1 text-xs text-ink-soft">
+                      {event.event_date ? formatDate(event.event_date) : '—'}
+                      {' · '}
+                      {event.invitations_count > 0
+                        ? `${event.invitations_count} ${fr.events.invitationsMany}`
+                        : fr.events.noInvitations}
+                    </p>
                   </div>
-                  <p className="mt-1 text-xs text-ink-soft">
-                    {event.event_date ? formatDate(event.event_date) : '—'}
-                    {' · '}
-                    {event.invitations_count > 0
-                      ? `${event.invitations_count} ${fr.events.invitationsMany}`
-                      : fr.events.noInvitations}
-                  </p>
-                </div>
-                <DeleteButton event={event} onDeleted={() => setDeleted(true)} />
-              </CardBody>
-            </Card>
-          ))}
+                  <DeleteButton event={event} onDeleted={() => setDeleted(true)} />
+                </CardBody>
+              </Card>
+            ))}
 
-          {totalPages > 1 ? (
-            <div className="flex items-center justify-between pt-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={page <= 1}
-                onClick={() => updateParam('page', String(page - 1))}
-              >
-                {fr.events.prev}
-              </Button>
-              <span className="text-xs text-ink-soft">
-                {fr.events.page.replace('{page}', `${page} / ${totalPages}`)}
-              </span>
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={!query.data?.next}
-                onClick={() => updateParam('page', String(page + 1))}
-              >
-                {fr.events.next}
-              </Button>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+            {totalPages > 1 ? (
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => updateParam('page', String(page - 1))}
+                >
+                  {fr.events.prev}
+                </Button>
+                <span className="text-xs text-ink-soft">
+                  {fr.events.page.replace('{page}', `${page} / ${totalPages}`)}
+                </span>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={!query.data?.next}
+                  onClick={() => updateParam('page', String(page + 1))}
+                >
+                  {fr.events.next}
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }

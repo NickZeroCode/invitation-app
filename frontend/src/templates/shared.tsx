@@ -200,7 +200,7 @@ export function CoverHero({
   const names = draft.coverTitle.trim()
   return (
     <div
-      data-export-skip=""
+      data-export-skip="cover"
       className="relative w-full shrink-0 overflow-hidden"
       style={{ aspectRatio: '4 / 5' }}
     >
@@ -253,7 +253,7 @@ export function ProgramSection({
 }) {
   if (!draft.program.length) return null
   return (
-    <section className="mt-[3.2em] w-full">
+    <section data-export-skip="" className="mt-[3.2em] w-full">
       <p
         className={`text-[1em] uppercase ${titleClassName ?? ''}`}
         style={{ letterSpacing: '0.38em', color: accent, ...titleStyle }}
@@ -311,7 +311,7 @@ export function DressCodeSection({
 }) {
   if (!draft.dressCode.length) return null
   return (
-    <section className="mt-[3.2em] w-full">
+    <section data-export-skip="" className="mt-[3.2em] w-full">
       <p
         className={`text-[1em] uppercase ${titleClassName ?? ''}`}
         style={{ letterSpacing: '0.38em', color: accent, ...titleStyle }}

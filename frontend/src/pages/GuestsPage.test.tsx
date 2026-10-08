@@ -1,13 +1,32 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { toJpeg } from 'html-to-image'
 import { AuthProvider } from '../auth/AuthContext.tsx'
 import { ProtectedRoute } from '../auth/ProtectedRoute.tsx'
 import { clearCookies, mockFetch, type MockFetch, type MockRoute } from '../test/mockFetch.ts'
+
 import { GuestsPage } from './GuestsPage.tsx'
+
+vi.mock('html-to-image', () => ({
+  toJpeg: vi.fn(async () => 'data:image/jpeg;base64,JPEGDATA'),
+}))
+vi.mock('qrcode', () => ({
+  default: { toDataURL: vi.fn(async () => 'data:image/png;base64,QRDATA') },
+}))
+vi.mock('jspdf', () => ({
+  jsPDF: class {
+    setProperties() {}
+    addPage() {}
+    addImage() {}
+    output() {
+      return 'data:application/pdf;base64,0123456789'
+    }
+  },
+}))
 
 const ORGANIZER = {
   id: 1,
@@ -44,6 +63,8 @@ const EVENT = {
   cover_title: '',
   display_config: { emphasis: ['title'] },
   preference_questions: [],
+  dress_code: [],
+  program_items: [],
   invitations_count: 1,
   is_active: true,
   created_at: '2026-10-07T10:00:00Z',
@@ -150,6 +171,7 @@ describe('GuestsPage', () => {
       },
     ])
 
+    await user.click(await screen.findByRole('button', { name: 'Ajouter un invité' }))
     await screen.findByRole('button', { name: "Créer l'invitation" })
     await user.type(byId('guest-name'), 'Sarah Kabamba')
     await user.selectOptions(byId('guest-civility'), 'mme')
@@ -175,6 +197,7 @@ describe('GuestsPage', () => {
       },
     ])
 
+    await user.click(await screen.findByRole('button', { name: 'Ajouter un invité' }))
     await screen.findByRole('button', { name: 'Générer les invitations' })
     await user.type(byId('guest-bulk'), 'Éric Mukendi{enter}Sarah Kabamba')
     await user.click(screen.getByRole('button', { name: 'Générer les invitations' }))
@@ -248,5 +271,30 @@ describe('GuestsPage', () => {
 
     expect(await screen.findByText('Invitation supprimée.')).toBeInTheDocument()
     expect(mock.callsTo('/api/invitations/41/', 'DELETE')).toHaveLength(1)
+  })
+
+  it('exports the guest invitation as a PDF', async () => {
+    const user = userEvent.setup()
+    const downloads: Array<{ download: string; href: string }> = []
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(function (this: HTMLAnchorElement) {
+        downloads.push({ download: this.download, href: this.href })
+      })
+    renderGuests([
+      { url: '/api/auth/me/', body: ORGANIZER },
+      { url: '/api/events/7/invitations/', body: PAGE },
+      { url: '/api/events/7/', body: EVENT },
+    ])
+
+    await user.click(await screen.findByRole('button', { name: 'Exporter' }))
+
+    await waitFor(() => expect(downloads).toHaveLength(1))
+    expect(downloads[0].download).toBe('invitation-mariage-de-grace-et-eric-mme-eric-mukendi.pdf')
+    expect(downloads[0].href).toContain('data:application/pdf')
+    // One capture: the off-screen invitation card (no cover, dress code or
+    // programme in this fixture). The QR code is placed directly on its page.
+    expect(toJpeg).toHaveBeenCalledTimes(1)
+    clickSpy.mockRestore()
   })
 })

@@ -29,6 +29,16 @@ import { toJpeg } from 'html-to-image'
 vi.mock('html-to-image', () => ({
   toJpeg: vi.fn(async () => 'data:image/jpeg;base64,JPEGDATA'),
 }))
+vi.mock('jspdf', () => ({
+  jsPDF: class {
+    setProperties() {}
+    addPage() {}
+    addImage() {}
+    output() {
+      return 'data:application/pdf;base64,0123456789'
+    }
+  },
+}))
 
 import { AuthProvider } from '../auth/AuthContext.tsx'
 import { GuestRoute, ProtectedRoute } from '../auth/ProtectedRoute.tsx'
@@ -745,7 +755,8 @@ describe('Parcours complet (E2E)', () => {
       await waitFor(() => expect(router.state.location.pathname).toBe('/evenements/7/invitations'))
       expect(await screen.findByText('Aucun invité pour le moment')).toBeInTheDocument()
 
-      // 5. Create the guest invitation.
+      // 5. Create the guest invitation (from the add-guest modal).
+      await user.click(await screen.findByRole('button', { name: 'Ajouter un invité' }))
       fireEvent.change(byId('guest-name') as HTMLInputElement, {
         target: { value: 'Éric Mukendi' },
       })
@@ -772,15 +783,15 @@ describe('Parcours complet (E2E)', () => {
       expect(await screen.findByText('Cette invitation est actuellement valide.')).toBeInTheDocument()
       expect(backend.calls.some((call) => call.url.includes('/verify/'))).toBe(true)
 
-      // 9. Download the invitation image (JPG).
+      // 9. Download the invitation as a PDF.
       await user.click(screen.getByRole('button', { name: "Télécharger l’invitation" }))
       await waitFor(() => expect(downloads).toHaveLength(1))
-      expect(downloads[0].download).toMatch(/^invitation-.*\.jpg$/)
-      expect(downloads[0].href).toContain('data:image/jpeg')
+      expect(downloads[0].download).toMatch(/^invitation-.*\.pdf$/)
+      expect(downloads[0].href).toContain('data:application/pdf')
       expect(toJpeg).toHaveBeenCalledTimes(1)
 
       // 10. "Scan" the QR code: follow its decoded payload back to the
-      //     invitation (the JPG itself cannot be optically decoded in jsdom).
+      //     invitation (the PDF itself cannot be optically decoded in jsdom).
       const encoded = qrSpy.mock.calls.at(-1)?.[0] ?? ''
       const scanned = typeof encoded === 'string' ? encoded : ''
       expect(scanned).toContain('/i/tok-e2e-001')

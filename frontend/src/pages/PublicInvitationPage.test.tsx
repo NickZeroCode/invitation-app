@@ -15,6 +15,16 @@ vi.mock('html-to-image', () => ({
 vi.mock('qrcode', () => ({
   default: { toDataURL: vi.fn(async () => 'data:image/png;base64,QRDATA') },
 }))
+vi.mock('jspdf', () => ({
+  jsPDF: class {
+    setProperties() {}
+    addPage() {}
+    addImage() {}
+    output() {
+      return 'data:application/pdf;base64,0123456789'
+    }
+  },
+}))
 
 const PUBLIC_PAYLOAD = {
   status: 'active',
@@ -227,7 +237,7 @@ describe('PublicInvitationPage', () => {
     expect(await screen.findByText('Réponse enregistrée.')).toBeInTheDocument()
   })
 
-  it('exports the invitation as a JPG with the QR verification band', async () => {
+  it('exports the invitation as a PDF with a verification QR page', async () => {
     const user = (await import('@testing-library/user-event')).default.setup()
     const downloads: Array<{ download: string; href: string }> = []
     const clickSpy = vi
@@ -237,7 +247,30 @@ describe('PublicInvitationPage', () => {
       })
 
     mockFetch([
-      { url: '/api/public/invitations/tok-abc123/', body: PUBLIC_PAYLOAD },
+      {
+        url: '/api/public/invitations/tok-abc123/',
+        body: {
+          ...PUBLIC_PAYLOAD,
+          dress_code: {
+            enabled: true,
+            images: [
+              { url: 'data:image/jpeg;base64,DRESSDATA', caption: 'Tenue de cérémonie', order: 1 },
+            ],
+          },
+          program: {
+            enabled: true,
+            items: [
+              {
+                start_time: '15:00:00',
+                end_time: '16:30:00',
+                description: 'Cérémonie religieuse',
+                order: 1,
+              },
+              { start_time: '18:00:00', end_time: null, description: 'Cocktail', order: 2 },
+            ],
+          },
+        },
+      },
       { url: '/api/public/invitations/tok-abc123/verify/', body: VERIFY },
     ])
 
@@ -260,14 +293,15 @@ describe('PublicInvitationPage', () => {
     await user.click(screen.getByRole('button', { name: "Télécharger l’invitation" }))
 
     await waitFor(() => expect(downloads).toHaveLength(1))
-    expect(downloads[0].download).toMatch(/^invitation-.*\.jpg$/)
-    expect(downloads[0].href).toContain('data:image/jpeg')
-    expect(toJpeg).toHaveBeenCalledTimes(1)
+    expect(downloads[0].download).toMatch(/^invitation-.*\.pdf$/)
+    expect(downloads[0].href).toContain('data:application/pdf')
 
-    // The captured node is one unit: the invitation card + the QR band.
-    const captured = vi.mocked(toJpeg).mock.calls[0]?.[0] as HTMLElement
-    expect(captured.textContent).toContain('Invitation vérifiée par QR code')
-    expect(captured.querySelector('img[src="data:image/png;base64,QRDATA"]')).not.toBeNull()
+    // Two captures: the invitation card alone (cover and on-page sections
+    // stripped) then the dress code + programme page. The verification QR
+    // code is placed directly on its own A4 page, without raster capture.
+    expect(toJpeg).toHaveBeenCalledTimes(2)
+    const card = vi.mocked(toJpeg).mock.calls[0]?.[0] as HTMLElement
+    expect(card.textContent ?? '').toContain('Mariage de Grâce et Éric')
     clickSpy.mockRestore()
   })
 })

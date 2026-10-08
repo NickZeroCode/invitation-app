@@ -8,7 +8,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import QRCode from 'qrcode'
 
 import { Alert } from '../design-system/Alert.tsx'
 import { Button } from '../design-system/Button.tsx'
@@ -123,7 +122,6 @@ export function EventEditorPage() {
   })
   const hydrated = useRef(false)
   const previewCardRef = useRef<HTMLDivElement>(null)
-  const [qrDataUrl, setQrDataUrl] = useState('')
 
   const template = getTemplate(templateKey) ?? TEMPLATES[0]
 
@@ -174,24 +172,6 @@ export function EventEditorPage() {
       })),
     )
   }, [eventQuery.data])
-
-  useEffect(() => {
-    let cancelled = false
-    QRCode.toDataURL(`${window.location.origin}/`, {
-      width: 340,
-      margin: 1,
-      color: { dark: '#1a261f', light: '#ffffff' },
-    })
-      .then((url) => {
-        if (!cancelled) setQrDataUrl(url)
-      })
-      .catch(() => {
-        if (!cancelled) setQrDataUrl('')
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const previewDraft: InvitationDraft = useMemo(
     () =>
@@ -1151,7 +1131,10 @@ export function EventEditorPage() {
                 <InvitationDownloadButton
                   targetRef={previewCardRef}
                   title={previewDraft.title}
-                  qrDataUrl={qrDataUrl}
+                  templateKey={templateKey}
+                  dressCode={previewDraft.dressCode}
+                  program={previewDraft.program}
+                  qrText={`${window.location.origin}/`}
                 />
               </div>
             </CardBody>

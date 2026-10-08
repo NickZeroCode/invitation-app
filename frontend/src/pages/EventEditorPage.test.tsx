@@ -11,6 +11,16 @@ vi.mock('html-to-image', () => ({
 vi.mock('qrcode', () => ({
   default: { toDataURL: vi.fn(async () => 'data:image/png;base64,QRDATA') },
 }))
+vi.mock('jspdf', () => ({
+  jsPDF: class {
+    setProperties() {}
+    addPage() {}
+    addImage() {}
+    output() {
+      return 'data:application/pdf;base64,0123456789'
+    }
+  },
+}))
 
 import { AuthProvider } from '../auth/AuthContext.tsx'
 import { ProtectedRoute } from '../auth/ProtectedRoute.tsx'
@@ -182,7 +192,7 @@ describe('EventEditorPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('exports the preview card as a downloadable JPG', async () => {
+  it('exports the preview card as a downloadable PDF', async () => {
     const user = userEvent.setup()
     const downloads: Array<{ download: string; href: string }> = []
     const clickSpy = vi
@@ -199,13 +209,11 @@ describe('EventEditorPage', () => {
     await user.click(await screen.findByRole('button', { name: "Télécharger l’invitation" }))
 
     await waitFor(() => expect(downloads).toHaveLength(1))
-    expect(downloads[0].download).toMatch(/^invitation-.*\.jpg$/)
-    expect(downloads[0].href).toContain('data:image/jpeg')
+    expect(downloads[0].download).toMatch(/^invitation-.*\.pdf$/)
+    expect(downloads[0].href).toContain('data:application/pdf')
+    // One capture: the preview card alone (no cover, dress code or programme).
+    // The verification QR code is placed directly on its own A4 page.
     expect(toJpeg).toHaveBeenCalledTimes(1)
-    // The editor export embeds the verification QR band under the card.
-    const captured = vi.mocked(toJpeg).mock.calls[0]?.[0] as HTMLElement
-    expect(captured.textContent ?? '').toContain('Invitation vérifiée par QR code')
-    expect(captured.querySelector('img[src="data:image/png;base64,QRDATA"]')).not.toBeNull()
     clickSpy.mockRestore()
   })
 })

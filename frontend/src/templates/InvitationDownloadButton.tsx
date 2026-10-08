@@ -1,23 +1,30 @@
 /**
- * Single download action for a rendered invitation card (JPG).
+ * Single download action for a rendered invitation card (PDF).
  *
  * Shared by the guest-facing public invitation page and the organizer's
- * template preview so both export the identical artwork. The guest view
- * passes its verification QR code, which is composited onto the downloaded
- * picture.
+ * template preview so both export the identical artwork. The PDF is composed
+ * of the cover photo, the full-bleed card, the dress-code / programme page
+ * and the centered verification QR code.
  */
 import { useState, type CSSProperties, type RefObject } from 'react'
 
 import { Button } from '../design-system/Button.tsx'
-import { exportInvitationImage, invitationExportFileName } from '../lib/exportInvitation.ts'
+import { exportInvitationPdf } from '../lib/exportInvitationPdf.ts'
+import type { DressCodeEntry, ProgramEntry } from './types.ts'
 
 interface InvitationDownloadButtonProps {
   /** Wrapper around the rendered template (the exact card to capture). */
   targetRef: RefObject<HTMLElement | null>
   title: string
   guestName?: string
-  /** Verification QR code (data URL) rendered onto the exported picture. */
-  qrDataUrl?: string
+  /** Template key — gives the dress-code / programme page its tone. */
+  templateKey: string
+  /** Dress-code gallery rendered on the PDF's details page. */
+  dressCode?: DressCodeEntry[]
+  /** Programme steps rendered on the PDF's details page. */
+  program?: ProgramEntry[]
+  /** Verification URL encoded on the PDF's final QR page. */
+  qrText?: string
   /** Optional button tint (e.g. the template's accent on the public page). */
   style?: CSSProperties
 }
@@ -26,7 +33,10 @@ export function InvitationDownloadButton({
   targetRef,
   title,
   guestName,
-  qrDataUrl,
+  templateKey,
+  dressCode = [],
+  program = [],
+  qrText,
   style,
 }: InvitationDownloadButtonProps) {
   const [busy, setBusy] = useState(false)
@@ -39,9 +49,17 @@ export function InvitationDownloadButton({
     setBusy(true)
     setExportError('')
     try {
-      await exportInvitationImage(node, invitationExportFileName(title, guestName), { qrDataUrl })
+      await exportInvitationPdf({
+        cardNode: node,
+        templateKey,
+        dressCode,
+        program,
+        title,
+        guestName,
+        qrText,
+      })
     } catch {
-      setExportError('L’export de l’image a échoué. Veuillez réessayer.')
+      setExportError('L’export du PDF a échoué. Veuillez réessayer.')
     } finally {
       setBusy(false)
     }

@@ -520,7 +520,17 @@ export function PublicInvitationPage() {
                   targetRef={cardRef}
                   title={data.event.title}
                   guestName={data.invitation.display_name}
-                  qrDataUrl={qrDataUrl}
+                  templateKey={data.event.template.key}
+                  dressCode={(data.dress_code?.images ?? []).map((image) => ({
+                    url: image.url,
+                    caption: image.caption,
+                  }))}
+                  program={(data.program?.items ?? []).map((item) => ({
+                    start_time: item.start_time,
+                    end_time: item.end_time,
+                    description: item.description,
+                  }))}
+                  qrText={`${window.location.origin}/i/${publicToken}`}
                   style={{ backgroundColor: skin.accent, borderColor: skin.accent, color: skin.onAccent }}
                 />
               </div>
