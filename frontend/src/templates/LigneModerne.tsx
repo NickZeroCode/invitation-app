@@ -3,7 +3,9 @@
  * strict rules, one accent colour and a large date block. No cover image.
  */
 import {
+  DressCodeSection,
   InvitationPaper,
+  ProgramSection,
   formatDayNumber,
   formatEventTime,
   formatMonthYear,
@@ -102,6 +104,9 @@ export function LigneModerne({ draft }: TemplateProps) {
             ) : null}
           </div>
         </div>
+
+        <ProgramSection draft={draft} accent={ACCENT} ink={INK} />
+        <DressCodeSection draft={draft} accent={ACCENT} ink={INK} />
 
         <div className="mt-auto">
           <span className="mt-[2.4em] block h-px w-full" style={{ backgroundColor: INK, opacity: 0.2 }} />

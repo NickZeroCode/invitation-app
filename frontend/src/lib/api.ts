@@ -13,6 +13,7 @@ import type {
   ChangePasswordPayload,
   CoverUploadResponse,
   DashboardOverview,
+  DressCodeImage,
   EventListParams,
   EventListPage,
   EventModel,
@@ -208,6 +209,25 @@ export const eventsApi = {
     return request<CoverUploadResponse>('PUT', `/api/events/${id}/cover/`, form)
   },
   removeCover: (id: number) => request<void>('DELETE', `/api/events/${id}/cover/`),
+  uploadDressCode: (id: number, file: File, caption: string, order?: number) => {
+    const form = new FormData()
+    form.append('image', file)
+    form.append('caption', caption)
+    if (order !== undefined) form.append('order', String(order))
+    return request<DressCodeImage>('POST', `/api/events/${id}/dress-code/`, form)
+  },
+  updateDressCode: (
+    id: number,
+    itemId: number,
+    payload: { caption?: string; order?: number },
+  ) =>
+    request<DressCodeImage>(
+      'PATCH',
+      `/api/events/${id}/dress-code/${itemId}/`,
+      payload,
+    ),
+  removeDressCode: (id: number, itemId: number) =>
+    request<void>('DELETE', `/api/events/${id}/dress-code/${itemId}/`),
   responses: (id: number, params: { page?: number } = {}) => {
     const query = new URLSearchParams()
     if (params.page && params.page > 1) query.set('page', String(params.page))

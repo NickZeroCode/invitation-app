@@ -3,7 +3,10 @@
  * text, spaced uppercase titling and a vignetted cover.
  */
 import {
+  CoverHero,
+  DressCodeSection,
   InvitationPaper,
+  ProgramSection,
   formatEventDate,
   formatEventTime,
   guestLabel,
@@ -21,6 +24,18 @@ export function SoireeFormelle({ draft }: TemplateProps) {
   const venueEm = isEmphasized(draft, 'venue')
   return (
     <InvitationPaper style={{ backgroundColor: EMERALD, color: CHAMPAGNE }}>
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(14,42,34,0.6)"
+        edgeColor="rgba(199,169,107,0.85)"
+        titleStyle={{
+          fontSize: titleEm ? '2.9em' : '2.15em',
+          fontWeight: 600,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: '#F5EBD2',
+        }}
+      />
       <div className="flex flex-1 flex-col items-center px-[6em] py-[4.5em] text-center">
         <p
           className="font-display text-[1.2em] italic"
@@ -48,22 +63,6 @@ export function SoireeFormelle({ draft }: TemplateProps) {
           </svg>
           <span className="h-px flex-1" style={{ backgroundColor: '#C7A96B66' }} />
         </div>
-
-        {draft.cover_url ? (
-          <div data-export-skip="" className="relative mt-[1.8em] w-full max-w-[24em]">
-            <img
-              src={draft.cover_url}
-              alt=""
-              className="w-full"
-              style={{ filter: 'brightness(0.85)' }}
-            />
-            <div
-              className="absolute inset-0"
-              style={{ boxShadow: 'inset 0 0 3em 1em rgba(14,42,34,0.85)' }}
-              aria-hidden="true"
-            />
-          </div>
-        ) : null}
 
         <p className="mt-[1.8em] font-display text-[1.15em] italic" style={{ color: '#C7A96B' }}>
           {guestLabel(draft)}
@@ -100,6 +99,9 @@ export function SoireeFormelle({ draft }: TemplateProps) {
             ) : null}
           </div>
         ) : null}
+
+        <ProgramSection draft={draft} accent={CHAMPAGNE} ink={CHAMPAGNE} />
+        <DressCodeSection draft={draft} accent={CHAMPAGNE} ink={CHAMPAGNE} />
 
         <p className="mt-auto pt-[2em] text-[1.02em] uppercase" style={{ letterSpacing: '0.42em', opacity: 0.7 }}>
           Tenue de soirée exigée

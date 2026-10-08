@@ -32,7 +32,11 @@ def find_public_invitation(token: str) -> Invitation | None:
         Invitation.objects.filter(token=token)
         .exclude(state=Invitation.State.DELETED)
         .select_related("event_model__template")
-        .prefetch_related("event_model__preference_questions__options")
+        .prefetch_related(
+            "event_model__preference_questions__options",
+            "event_model__program_items",
+            "event_model__dress_code_images",
+        )
         .first()
     )
 
@@ -59,6 +63,23 @@ def build_public_payload(invitation: Invitation, request) -> dict:
     questions = [q for q in event.preference_questions.all() if q.is_active]
     response = _load_response(invitation)
     cover_url = request.build_absolute_uri(event.cover_image.url) if event.cover_image else None
+    dress_code = [
+        {
+            "url": request.build_absolute_uri(item.image.url),
+            "caption": item.caption,
+            "order": item.order,
+        }
+        for item in event.dress_code_images.all()
+    ]
+    program = [
+        {
+            "start_time": item.start_time.isoformat(),
+            "end_time": item.end_time.isoformat() if item.end_time else None,
+            "description": item.description,
+            "order": item.order,
+        }
+        for item in event.program_items.all()
+    ]
 
     return {
         "status": invitation.status,
@@ -100,6 +121,10 @@ def build_public_payload(invitation: Invitation, request) -> dict:
                 for q in questions
             ],
         },
+        # Dress code and programme are content-gated: an unfilled section is
+        # reported as disabled so the public page never renders it empty.
+        "dress_code": {"enabled": bool(dress_code), "images": dress_code},
+        "program": {"enabled": bool(program), "items": program},
         "response": GuestResponseSerializer(response).data if response else None,
     }
 

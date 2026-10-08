@@ -3,7 +3,10 @@
  * soft rose accents and an oval portrait cover.
  */
 import {
+  CoverHero,
+  DressCodeSection,
   InvitationPaper,
+  ProgramSection,
   formatEventDate,
   formatEventTime,
   guestLabel,
@@ -55,6 +58,16 @@ export function JardinFloral({ draft }: TemplateProps) {
     <InvitationPaper style={{ backgroundColor: '#FCF3F1', color: '#4A3238' }}>
       <FloralCorner />
       <FloralCorner flipX />
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(252,243,241,0.82)"
+        edgeColor="rgba(180,99,111,0.7)"
+        titleClassName="font-display italic"
+        titleStyle={{
+          fontSize: titleEm ? '3em' : '2.3em',
+          color: '#5C3A43',
+        }}
+      />
       <div className="flex flex-1 flex-col items-center px-[6.5em] py-[4em] text-center">
         <p
           className="font-display text-[1.2em] italic"
@@ -69,16 +82,6 @@ export function JardinFloral({ draft }: TemplateProps) {
         >
           {draft.title}
         </h1>
-
-        {draft.cover_url ? (
-          <img
-            src={draft.cover_url}
-            alt=""
-            data-export-skip=""
-            className="mt-[1.8em] rounded-[50%]"
-            style={{ width: '15em', border: `0.35em solid ${ROSE}22` }}
-          />
-        ) : null}
 
         <p className="mt-[1.8em] font-display text-[1.1em] italic" style={{ color: ROSE }}>
           {guestLabel(draft)}
@@ -118,6 +121,9 @@ export function JardinFloral({ draft }: TemplateProps) {
             ) : null}
           </div>
         ) : null}
+
+        <ProgramSection draft={draft} accent={ROSE} ink="#5C3A43" />
+        <DressCodeSection draft={draft} accent={ROSE} ink="#5C3A43" />
 
         <p className="mt-auto pt-[2em] text-[0.96em] italic opacity-78">
           Au plaisir de vous y retrouver

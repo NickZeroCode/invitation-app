@@ -4,7 +4,15 @@
  * composition, olive calligraphy names and a designed date block: quiet,
  * organic luxury.
  */
-import { DateBlock, InvitationPaper, guestLabel, isEmphasized } from './shared.tsx'
+import {
+  CoverHero,
+  DateBlock,
+  DressCodeSection,
+  InvitationPaper,
+  ProgramSection,
+  guestLabel,
+  isEmphasized,
+} from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
 import { ArchFrame, SAGE, WatercolorSpray } from './florals.tsx'
@@ -55,6 +63,17 @@ export function JardinOlive({ draft }: TemplateProps) {
         opacity={0.45}
       />
 
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(248,244,234,0.78)"
+        edgeColor="rgba(91,107,75,0.6)"
+        titleStyle={{
+          fontFamily: "'Great Vibes', cursive",
+          fontSize: titleEm ? '3em' : '2.4em',
+          color: SCRIPT_INK,
+        }}
+      />
+
       <div className="relative flex flex-1 flex-col items-center px-[6.5em] py-[6em] text-center">
         <p className="text-[1.02em] uppercase" style={{ color: OLIVE, letterSpacing: '0.52em' }}>
           Mariage
@@ -88,21 +107,6 @@ export function JardinOlive({ draft }: TemplateProps) {
           </p>
         ) : null}
 
-        {draft.cover_url ? (
-          <div data-export-skip="" className="relative mt-[2.2em] w-full max-w-[22em]">
-            <img
-              src={draft.cover_url}
-              alt=""
-              className="w-full rounded-t-[11em]"
-              style={{ border: '1px solid rgba(191,160,92,0.65)' }}
-            />
-            <WatercolorSpray
-              palette={SAGE}
-              className="absolute -left-[2.8em] bottom-[0.6em] w-[8.5em]"
-            />
-          </div>
-        ) : null}
-
         <div className="mt-[2.3em] w-full">
           <DateBlock draft={draft} accent={OLIVE} ink={SCRIPT_INK} emphasize={dateEm} />
         </div>
@@ -127,6 +131,9 @@ export function JardinOlive({ draft }: TemplateProps) {
             ) : null}
           </div>
         ) : null}
+
+        <ProgramSection draft={draft} accent={OLIVE} ink={INK} />
+        <DressCodeSection draft={draft} accent={OLIVE} ink={INK} />
 
         <div className="mt-auto pt-[2.4em]">
           <Sprig />

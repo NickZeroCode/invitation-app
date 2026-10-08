@@ -17,7 +17,13 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from django.db import transaction
 from rest_framework import serializers
 
-from events.models import FONT_SIZE_KEYS, MESSAGE_FONT_KEYS, EventModel
+from events.models import (
+    FONT_SIZE_KEYS,
+    MESSAGE_FONT_KEYS,
+    DressCodeImage,
+    EventModel,
+    ProgramItem,
+)
 from preferences.serializers import (
     MAX_QUESTIONS,
     PreferenceQuestionSerializer,
@@ -26,6 +32,41 @@ from templates_app.models import InvitationTemplate
 from templates_app.serializers import InvitationTemplateSerializer, clean_template_config
 
 VALID_DISPLAY_CONFIG_KEYS = {"emphasis"}
+
+# Programme rows per event: a ceremony programme is a page, not a database.
+MAX_PROGRAM_ITEMS = 20
+
+
+class ProgramItemSerializer(serializers.ModelSerializer):
+    # Writable so the coherent-set sync can upsert by id (same as questions).
+    id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = ProgramItem
+        fields = ("id", "start_time", "end_time", "description", "order")
+
+    def validate_description(self, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("La description de l'étape est obligatoire.")
+        return value
+
+    def validate(self, attrs: dict) -> dict:
+        start = attrs.get("start_time", getattr(self.instance, "start_time", None))
+        end = attrs.get("end_time", getattr(self.instance, "end_time", None))
+        if end and start and end <= start:
+            raise serializers.ValidationError(
+                {"end_time": "L'heure de fin doit être postérieure à l'heure de début."}
+            )
+        return attrs
+
+
+class DressCodeImageSerializer(serializers.ModelSerializer):
+    """Read shape for stored dress-code images (writes are multipart, see views)."""
+
+    class Meta:
+        model = DressCodeImage
+        fields = ("id", "image", "caption", "order")
 
 
 def _clear_question_prefetch(event: EventModel) -> None:
@@ -47,6 +88,8 @@ class EventModelSerializer(serializers.ModelSerializer):
     )
     template_detail = InvitationTemplateSerializer(source="template", read_only=True)
     preference_questions = PreferenceQuestionSerializer(many=True, required=False)
+    program_items = ProgramItemSerializer(many=True, required=False)
+    dress_code = serializers.SerializerMethodField()
     invitations_count = serializers.IntegerField(read_only=True)
     cover_url = serializers.SerializerMethodField()
 
@@ -69,12 +112,14 @@ class EventModelSerializer(serializers.ModelSerializer):
             "cover_url",
             "display_config",
             "preference_questions",
+            "program_items",
+            "dress_code",
             "invitations_count",
             "is_active",
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "cover_url", "created_at", "updated_at")
+        read_only_fields = ("id", "cover_url", "dress_code", "created_at", "updated_at")
 
     def get_cover_url(self, obj: EventModel) -> str | None:
         if not obj.cover_image:
@@ -82,6 +127,21 @@ class EventModelSerializer(serializers.ModelSerializer):
         url = obj.cover_image.url
         request = self.context.get("request")
         return request.build_absolute_uri(url) if request else url
+
+    def get_dress_code(self, obj: EventModel) -> list[dict]:
+        request = self.context.get("request")
+        images = []
+        for image in obj.dress_code_images.all():
+            url = image.image.url
+            images.append(
+                {
+                    "id": image.pk,
+                    "url": request.build_absolute_uri(url) if request else url,
+                    "caption": image.caption,
+                    "order": image.order,
+                }
+            )
+        return images
 
     # --- Validation ------------------------------------------------------
 
@@ -150,27 +210,37 @@ class EventModelSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"preference_questions": f"Un événement ne peut pas dépasser {MAX_QUESTIONS} questions."}
             )
+        program_items = attrs.get("program_items")
+        if program_items is not None and len(program_items) > MAX_PROGRAM_ITEMS:
+            raise serializers.ValidationError(
+                {"program_items": f"Le programme ne peut pas dépasser {MAX_PROGRAM_ITEMS} étapes."}
+            )
         return attrs
 
     # --- Nested preference questions ------------------------------------
 
     def create(self, validated_data: dict) -> EventModel:
         questions_data = validated_data.pop("preference_questions", [])
+        program_items_data = validated_data.pop("program_items", [])
         with transaction.atomic():
             event = EventModel.objects.create(**validated_data)
             self._sync_questions(event, questions_data)
+            self._sync_program_items(event, program_items_data)
         # Mirror the list annotation so create responses carry the count.
         event.invitations_count = 0
         return event
 
     def update(self, instance: EventModel, validated_data: dict) -> EventModel:
         questions_data = validated_data.pop("preference_questions", None)
+        program_items_data = validated_data.pop("program_items", None)
         with transaction.atomic():
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
             instance.save()
             if questions_data is not None:
                 self._sync_questions(instance, questions_data)
+            if program_items_data is not None:
+                self._sync_program_items(instance, program_items_data)
         return instance
 
     @staticmethod
@@ -214,3 +284,40 @@ class EventModelSerializer(serializers.ModelSerializer):
                 )
             question.delete()
         _clear_question_prefetch(event)
+
+    @staticmethod
+    def _sync_program_items(event: EventModel, items_data: list) -> None:
+        # Same coherent-set semantics as preference questions: provided rows
+        # with an `id` are updated, new ones created, omitted ones deleted.
+        # Programme rows carry no guest data, so deletions are always safe.
+        cache = getattr(event, "_prefetched_objects_cache", None)
+        if cache:
+            cache.pop("program_items", None)
+        existing = {item.pk: item for item in event.program_items.all()}
+        touched: set[int] = set()
+        for position, data in enumerate(items_data):
+            data = dict(data)
+            data.setdefault("order", position)
+            item_id = data.pop("id", None)
+            item = None
+            if item_id is not None:
+                if item_id in touched:
+                    raise serializers.ValidationError(
+                        {"program_items": "Étape citée plusieurs fois."}
+                    )
+                item = existing.get(item_id)
+                if item is None:
+                    raise serializers.ValidationError({"program_items": "Étape inconnue."})
+                touched.add(item_id)
+            serializer = ProgramItemSerializer(instance=item, data=data, partial=item is not None)
+            try:
+                serializer.is_valid(raise_exception=True)
+                serializer.save(event=event)
+            except serializers.ValidationError as exc:
+                raise serializers.ValidationError({"program_items": exc.detail})
+
+        for item_id, item in existing.items():
+            if item_id not in touched:
+                item.delete()
+        if cache:
+            cache.pop("program_items", None)

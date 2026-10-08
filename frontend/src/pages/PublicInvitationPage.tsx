@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import QRCode from 'qrcode'
@@ -16,6 +17,8 @@ import type {
 import { fontScaleStyle } from '../templates/fontSizes.ts'
 import { getTemplate } from '../templates/registry.tsx'
 import { formatEventDate, formatEventTime } from '../templates/shared.tsx'
+import { themeFor } from '../templates/themes.ts'
+import type { TemplateTheme } from '../templates/themes.ts'
 import type { InvitationDraft } from '../templates/types.ts'
 
 const STATUS_TONE: Record<string, string> = {
@@ -34,6 +37,46 @@ const STATUS_LABEL: Record<string, string> = {
   invalid: 'Invalide',
   active: 'Active',
   deleted: 'Supprimée',
+}
+
+/**
+ * One guest-side panel dressed in the selected template's palette: tinted
+ * paper surface, accent display title and a hairline rule — the sidebar
+ * follows the invitation's identity instead of generic chrome.
+ */
+function PanelCard({
+  theme,
+  title,
+  action,
+  children,
+}: {
+  theme: TemplateTheme
+  title: string
+  action?: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <section
+      className="rounded-[1.75rem] border p-5 shadow-[0_18px_40px_rgba(28,25,23,0.06)]"
+      style={{ backgroundColor: theme.surface, borderColor: theme.line }}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <p
+          className={`text-[0.72rem] font-semibold uppercase tracking-[0.25em] ${theme.titleClass}`}
+          style={{ color: theme.accent }}
+        >
+          {title}
+        </p>
+        {action}
+      </div>
+      <span
+        className="mt-3 block h-px w-full"
+        style={{ backgroundColor: theme.line }}
+        aria-hidden="true"
+      />
+      {children}
+    </section>
+  )
 }
 
 export function PublicInvitationPage() {
@@ -134,6 +177,11 @@ export function PublicInvitationPage() {
 
   const templateDef = getTemplate(data.event.template.key)
   const TemplateComponent = templateDef?.Component
+  const theme = themeFor(data.event.template.key)
+
+  // Content-gated sections: an unfilled section is hidden, never rendered empty.
+  const dressCode = data.dress_code?.images ?? []
+  const program = data.program?.items ?? []
 
   const draft: InvitationDraft = {
     title: data.event.title,
@@ -149,6 +197,12 @@ export function PublicInvitationPage() {
     cover_url: data.event.cover_url,
     emphasis: data.event.display_config.emphasis ?? data.event.template.config.emphasis_fields,
     guestName: data.invitation.display_name,
+    dressCode: dressCode.map((image) => ({ url: image.url, caption: image.caption })),
+    program: program.map((item) => ({
+      start_time: item.start_time,
+      end_time: item.end_time,
+      description: item.description,
+    })),
   }
 
   const statusKey = verification.result ?? (data.is_valid ? 'valid' : 'expired')
@@ -171,8 +225,8 @@ export function PublicInvitationPage() {
           </span>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[1.45fr_0.7fr]">
-          <div className="rounded-[1.4rem] border border-line bg-white/75 p-1.5 shadow-[0_18px_60px_rgba(25,32,28,0.08)] ring-1 ring-white/70 backdrop-blur-sm sm:rounded-[2rem] sm:p-3">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,0.7fr)]">
+          <div className="min-w-0 rounded-[1.4rem] border border-line bg-white/75 p-1.5 shadow-[0_18px_60px_rgba(25,32,28,0.08)] ring-1 ring-white/70 backdrop-blur-sm [overflow-wrap:anywhere] sm:rounded-[2rem] sm:p-3">
             <div className="overflow-hidden rounded-[1.1rem] border border-line bg-white sm:rounded-[1.5rem]">
               <div ref={cardRef} style={fontScaleStyle(data.event.font_size)}>
                 {TemplateComponent ? (
@@ -186,45 +240,56 @@ export function PublicInvitationPage() {
             </div>
           </div>
 
-          <aside className="space-y-5">
-            <div className="rounded-[1.75rem] border border-line bg-surface p-5 shadow-[0_18px_40px_rgba(28,25,23,0.06)]">
-              <p className="text-[0.7rem] font-medium uppercase tracking-[0.25em] text-ink-faint">
-                Détails de l’invitation
-              </p>
-              <div className="mt-4 space-y-2 text-sm text-ink-soft">
+          <aside className="min-w-0 space-y-5 [overflow-wrap:anywhere]">
+            <PanelCard theme={theme} title="Détails de l’invitation">
+              <div className="mt-4 space-y-2 text-sm" style={{ color: theme.inkSoft }}>
                 <p>
-                  <span className="font-semibold text-ink">Invité :</span> {data.invitation.display_name}
+                  <span className="font-semibold" style={{ color: theme.accent }}>Invité :</span>{' '}
+                  <span style={{ color: theme.ink }}>{data.invitation.display_name}</span>
                 </p>
                 <p>
-                  <span className="font-semibold text-ink">Événement :</span> {data.event.title}
+                  <span className="font-semibold" style={{ color: theme.accent }}>Événement :</span>{' '}
+                  <span style={{ color: theme.ink }}>{data.event.title}</span>
                 </p>
                 <p>
-                  <span className="font-semibold text-ink">Date :</span>{' '}
-                  {formatEventDate(data.event.event_date)}
+                  <span className="font-semibold" style={{ color: theme.accent }}>Date :</span>{' '}
+                  <span style={{ color: theme.ink }}>{formatEventDate(data.event.event_date)}</span>
                 </p>
-                <p>
-                  <span className="font-semibold text-ink">Heure :</span>{' '}
-                  {formatEventTime(data.event.event_time)}
-                </p>
-                <p>
-                  <span className="font-semibold text-ink">Lieu :</span> {data.event.venue_name}
-                </p>
+                {data.event.event_time ? (
+                  <p>
+                    <span className="font-semibold" style={{ color: theme.accent }}>Heure :</span>{' '}
+                    <span style={{ color: theme.ink }}>{formatEventTime(data.event.event_time)}</span>
+                  </p>
+                ) : null}
+                {data.event.venue_name ? (
+                  <p>
+                    <span className="font-semibold" style={{ color: theme.accent }}>Lieu :</span>{' '}
+                    <span style={{ color: theme.ink }}>{data.event.venue_name}</span>
+                  </p>
+                ) : null}
               </div>
-            </div>
+            </PanelCard>
 
-            <div className="rounded-[1.75rem] border border-line bg-surface p-5 shadow-[0_18px_40px_rgba(28,25,23,0.06)]">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[0.7rem] font-medium uppercase tracking-[0.25em] text-ink-faint">
-                  Vérification QR
-                </p>
+            <PanelCard
+              theme={theme}
+              title="Vérification QR"
+              action={
                 <span className={`rounded-full px-2 py-1 text-[0.65rem] font-semibold ${STATUS_TONE[statusKey] ?? 'bg-surface-muted text-ink-soft'}`}>
                   {STATUS_LABEL[statusKey] ?? 'Valide'}
                 </span>
-              </div>
-
-              <div className="mt-4 flex items-center justify-center rounded-[1.4rem] bg-surface-muted p-4">
+              }
+            >
+              <div
+                className="mt-4 flex items-center justify-center rounded-[1.4rem] p-4"
+                style={{ backgroundColor: theme.line, opacity: 0.9 }}
+              >
                 {qrDataUrl ? (
-                  <img src={qrDataUrl} alt="QR code de vérification" className="h-40 w-40 rounded-xl bg-white p-2 shadow-sm" />
+                  <img
+                    src={qrDataUrl}
+                    alt="QR code de vérification"
+                    className="h-40 w-40 rounded-xl bg-white p-2 shadow-sm"
+                    style={{ border: `1px solid ${theme.accent}55` }}
+                  />
                 ) : (
                   <div className="flex h-40 w-40 items-center justify-center rounded-xl bg-white text-xs text-ink-faint">
                     QR
@@ -232,17 +297,16 @@ export function PublicInvitationPage() {
                 )}
               </div>
 
-              <p className="mt-4 text-sm text-ink-soft">
-                <span className="font-semibold text-ink">Vérification :</span>{' '}
-                {verification.result === 'valid' ? 'Cette invitation est actuellement valide.' : verification.result === 'expired' ? 'Cette invitation a expiré.' : verification.result === 'revoked' ? 'Cette invitation a été révoquée.' : 'Ce lien est invalide.'}
+              <p className="mt-4 text-sm" style={{ color: theme.inkSoft }}>
+                <span className="font-semibold" style={{ color: theme.accent }}>Vérification :</span>{' '}
+                <span style={{ color: theme.ink }}>
+                  {verification.result === 'valid' ? 'Cette invitation est actuellement valide.' : verification.result === 'expired' ? 'Cette invitation a expiré.' : verification.result === 'revoked' ? 'Cette invitation a été révoquée.' : 'Ce lien est invalide.'}
+                </span>
               </p>
-            </div>
+            </PanelCard>
 
-            <div className="rounded-[1.75rem] border border-line bg-surface p-5 shadow-[0_18px_40px_rgba(28,25,23,0.06)]">
-              <p className="text-[0.7rem] font-medium uppercase tracking-[0.25em] text-ink-faint">
-                Préférences
-              </p>
-              {data.preferences.enabled ? (
+            {data.preferences.enabled ? (
+              <PanelCard theme={theme} title="Préférences">
                 <form
                   className="mt-4 space-y-4"
                   onSubmit={(event) => {
@@ -261,8 +325,12 @@ export function PublicInvitationPage() {
                     const isSingle = question.input_type === 'single'
 
                     return (
-                      <fieldset key={question.id} className="rounded-xl border border-line bg-surface-muted p-3">
-                        <legend className="text-sm font-medium text-ink">{question.label}</legend>
+                      <fieldset
+                        key={question.id}
+                        className="rounded-xl border p-3"
+                        style={{ borderColor: theme.line, backgroundColor: `${theme.line}55` }}
+                      >
+                        <legend className="text-sm font-medium" style={{ color: theme.ink }}>{question.label}</legend>
                         {question.help_text ? (
                           <p className="mt-1 text-[0.7rem] text-ink-soft">{question.help_text}</p>
                         ) : null}
@@ -303,7 +371,8 @@ export function PublicInvitationPage() {
                                       return next
                                     })
                                   }}
-                                  className="h-4 w-4 accent-brand"
+                                  className="h-4 w-4"
+                                  style={{ accentColor: theme.accent }}
                                 />
                                 <span>{option.label}</span>
                               </label>
@@ -331,21 +400,15 @@ export function PublicInvitationPage() {
                     type="submit"
                     loading={submitMutation.isPending}
                     disabled={submitMutation.isPending}
+                    style={{ backgroundColor: theme.accent, borderColor: theme.accent }}
                   >
                     Envoyer ma réponse
                   </Button>
                 </form>
-              ) : (
-                <p className="mt-4 text-sm text-ink-soft">
-                  Aucune préférence n’est activée pour cette invitation.
-                </p>
-              )}
-            </div>
+              </PanelCard>
+            ) : null}
 
-            <div className="rounded-[1.75rem] border border-line bg-surface p-5 shadow-[0_18px_40px_rgba(28,25,23,0.06)]">
-              <p className="text-[0.7rem] font-medium uppercase tracking-[0.25em] text-ink-faint">
-                Actions
-              </p>
+            <PanelCard theme={theme} title="Actions">
               <div className="mt-4 space-y-3">
                 <InvitationDownloadButton
                   targetRef={cardRef}
@@ -354,15 +417,25 @@ export function PublicInvitationPage() {
                   qrDataUrl={qrDataUrl}
                 />
                 <div className="flex flex-wrap gap-3">
-                  <Button variant="secondary" size="md" onClick={() => window.print()}>
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    onClick={() => window.print()}
+                    style={{ borderColor: theme.accent, color: theme.accent }}
+                  >
                     Imprimer
                   </Button>
-                  <Button variant="ghost" size="md" onClick={() => navigator.clipboard.writeText(window.location.href)}>
+                  <Button
+                    variant="ghost"
+                    size="md"
+                    onClick={() => navigator.clipboard.writeText(window.location.href)}
+                    style={{ color: theme.accent }}
+                  >
                     Copier le lien
                   </Button>
                 </div>
               </div>
-            </div>
+            </PanelCard>
           </aside>
         </div>
       </div>

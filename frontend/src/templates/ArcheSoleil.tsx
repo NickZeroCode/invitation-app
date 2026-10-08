@@ -4,7 +4,15 @@
  * small rising sun and terracotta-gold calligraphy names: warm, confident
  * and expensive-looking.
  */
-import { DateBlock, InvitationPaper, guestLabel, isEmphasized } from './shared.tsx'
+import {
+  CoverHero,
+  DateBlock,
+  DressCodeSection,
+  InvitationPaper,
+  ProgramSection,
+  guestLabel,
+  isEmphasized,
+} from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
 import { BLUSH, HexFrame, WatercolorSpray } from './florals.tsx'
@@ -82,6 +90,20 @@ export function ArcheSoleil({ draft }: TemplateProps) {
         className="pointer-events-none absolute bottom-[-0.8em] left-[-1em] w-[13em]"
       />
 
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(71,40,43,0.52)"
+        edgeColor="rgba(216,154,82,0.85)"
+        titleStyle={{
+          fontFamily: "'Great Vibes', cursive",
+          fontSize: titleEm ? '3em' : '2.4em',
+          backgroundImage: TITLE_WARM,
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          color: 'transparent',
+        }}
+      />
+
       <div className="relative flex flex-1 flex-col items-center px-[6em] pt-[4.6em] pb-[4.2em] text-center">
         <Sun />
         <p
@@ -118,19 +140,6 @@ export function ArcheSoleil({ draft }: TemplateProps) {
           </p>
         ) : null}
 
-        {draft.cover_url ? (
-          <div
-            data-export-skip=""
-            className="mt-[2.2em] w-full max-w-[21em] rounded-t-[10.5em] p-[0.45em]"
-            style={{
-              backgroundColor: 'rgba(229,178,160,0.22)',
-              border: '1px solid rgba(192,138,74,0.55)',
-            }}
-          >
-            <img src={draft.cover_url} alt="" className="w-full rounded-t-[9.7em]" />
-          </div>
-        ) : null}
-
         <div className="mt-[2.2em] w-full">
           <DateBlock draft={draft} accent={TERRA} ink={PLUM} emphasize={dateEm} />
         </div>
@@ -155,6 +164,9 @@ export function ArcheSoleil({ draft }: TemplateProps) {
             ) : null}
           </div>
         ) : null}
+
+        <ProgramSection draft={draft} accent={TERRA} ink={PLUM} />
+        <DressCodeSection draft={draft} accent={TERRA} ink={PLUM} />
 
         <div className="mt-auto w-full pt-[1.8em]">
           <DotBand />

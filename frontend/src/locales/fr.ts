@@ -173,6 +173,23 @@ export const fr = {
     coverRemove: "Retirer l'image",
     coverRejected: 'Format d\u2019image non supporté (JPEG, PNG ou WebP uniquement).',
     coverTooLarge: "L'image ne doit pas dépasser 4 Mo.",
+    dressCodeTitle: 'Code vestimentaire',
+    dressCodeHint:
+      'Ajoutez une ou plusieurs photos, avec une légende sous chacune. Laissé vide, cette section ne sera pas affichée.',
+    dressCodeUpload: 'Ajouter des photos',
+    dressCodeCaption: 'Légende',
+    dressCodeCaptionPlaceholder: 'Ex. : Tenue de cérémonie',
+    dressCodeRemove: "Retirer l'image",
+    programTitle: 'Programme',
+    programHint:
+      'Déroulé de l’événement : une heure (ou une plage horaire) et une description par étape. Laissé vide, cette section ne sera pas affichée.',
+    addProgramItem: 'Ajouter une étape',
+    removeProgramItem: "Retirer l'étape",
+    programStart: 'Heure',
+    programEnd: 'Fin (facultatif)',
+    programDescription: 'Déroulé',
+    programDescriptionPlaceholder: 'Ex. : Accueil des invités',
+    programIncomplete: 'Renseignez l’heure et le déroulé de chaque étape.',
     emphasisTitle: 'Mise en forme',
     emphasisHint: "Choisissez les éléments à mettre en valeur dans le modèle.",
     emphasisFields: {

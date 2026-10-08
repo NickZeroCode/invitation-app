@@ -4,7 +4,15 @@
  * moon over the title and glowing gold calligraphy names. Midnight romance,
  * quietly opulent.
  */
-import { DateBlock, InvitationPaper, guestLabel, isEmphasized } from './shared.tsx'
+import {
+  CoverHero,
+  DateBlock,
+  DressCodeSection,
+  InvitationPaper,
+  ProgramSection,
+  guestLabel,
+  isEmphasized,
+} from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
 import { GoldRoseCorner } from './florals.tsx'
@@ -141,22 +149,26 @@ export function NuitCeleste({ draft }: TemplateProps) {
         ))}
       </div>
 
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(11,18,40,0.6)"
+        edgeColor="rgba(226,194,124,0.85)"
+        titleStyle={{
+          fontFamily: "'Great Vibes', cursive",
+          fontSize: titleEm ? '3em' : '2.4em',
+          backgroundImage: TITLE_GOLD,
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          color: 'transparent',
+        }}
+      />
+
       <div className="relative flex flex-1 flex-col items-center px-[6em] py-[5.5em] text-center">
         <Moon />
 
         <p className="mt-[1.4em] text-[1.02em] uppercase" style={{ color: GOLD, letterSpacing: '0.52em' }}>
           Invitation
         </p>
-
-        {draft.cover_url ? (
-          <div
-            data-export-skip=""
-            className="mt-[2.2em] w-full max-w-[23em] rounded-t-[11em] p-[0.4em]"
-            style={{ border: '1px solid rgba(226,194,124,0.55)' }}
-          >
-            <img src={draft.cover_url} alt="" className="w-full rounded-t-[10.3em]" />
-          </div>
-        ) : null}
 
         <p className="mt-[2.3em] font-display text-[1.25em] italic opacity-92">{guestLabel(draft)}</p>
 
@@ -214,6 +226,9 @@ export function NuitCeleste({ draft }: TemplateProps) {
             ) : null}
           </div>
         ) : null}
+
+        <ProgramSection draft={draft} accent={GOLD} ink={STAR} />
+        <DressCodeSection draft={draft} accent={GOLD} ink={STAR} />
 
         <div className="mt-auto pt-[2.4em]">
           <p className="text-[1.02em] uppercase opacity-72" style={{ letterSpacing: '0.38em', color: GOLD }}>

@@ -75,3 +75,55 @@ class EventModel(models.Model):
             ZoneInfo(self.timezone)
         except (ZoneInfoNotFoundError, ValueError):
             raise ValidationError({"timezone": "Fuseau horaire invalide."})
+
+
+class DressCodeImage(models.Model):
+    """One dress-code photo with its caption (invitation section, product p.3).
+
+    Several images per event, each with its own short caption, presented in
+    the invitation as a small photo gallery. Ordering is explicit so the
+    organizer's layout survives re-edits.
+    """
+
+    event = models.ForeignKey(EventModel, on_delete=models.CASCADE, related_name="dress_code_images")
+    image = models.ImageField("image", upload_to="dress_code/%Y/%m/")
+    caption = models.CharField("légende", max_length=255, blank=True)
+    order = models.PositiveIntegerField("ordre", default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "image du code vestimentaire"
+        verbose_name_plural = "images du code vestimentaire"
+        ordering = ("order", "id")
+
+    def __str__(self) -> str:
+        return self.caption or f"Code vestimentaire — événement {self.event_id}"
+
+
+class ProgramItem(models.Model):
+    """One programme step: a time (or time range) and what happens then.
+
+    ``end_time`` is optional: empty shows a single time (« 19h30 »), set
+    shows a range (« 19h30 – 20h30 »). Rows are ordered explicitly.
+    """
+
+    event = models.ForeignKey(EventModel, on_delete=models.CASCADE, related_name="program_items")
+    start_time = models.TimeField("heure de début")
+    end_time = models.TimeField("heure de fin", blank=True, null=True)
+    description = models.CharField("description", max_length=255)
+    order = models.PositiveIntegerField("ordre", default=0)
+
+    class Meta:
+        verbose_name = "étape du programme"
+        verbose_name_plural = "étapes du programme"
+        ordering = ("order", "id")
+
+    def __str__(self) -> str:
+        return f"{self.start_time.strftime('%H:%M')} — {self.description}"
+
+    def clean(self):
+        super().clean()
+        if self.end_time and self.start_time and self.end_time <= self.start_time:
+            raise ValidationError(
+                {"end_time": "L'heure de fin doit être postérieure à l'heure de début."}
+            )

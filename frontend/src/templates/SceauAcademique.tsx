@@ -3,7 +3,10 @@
  * rules, solemn centered composition with a framed cover.
  */
 import {
+  CoverHero,
+  DressCodeSection,
   InvitationPaper,
+  ProgramSection,
   formatEventDate,
   formatEventTime,
   guestLabel,
@@ -37,6 +40,16 @@ export function SceauAcademique({ draft }: TemplateProps) {
         style={{ borderColor: '#C9A22766' }}
         aria-hidden="true"
       />
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(13,23,41,0.62)"
+        edgeColor="rgba(201,162,39,0.85)"
+        titleClassName="font-display"
+        titleStyle={{
+          fontSize: titleEm ? '2.9em' : '2.2em',
+          color: '#FFFFFF',
+        }}
+      />
       <div className="flex flex-1 flex-col items-center px-[6.5em] py-[4.5em] text-center">
         <Seal />
         <p
@@ -68,16 +81,6 @@ export function SceauAcademique({ draft }: TemplateProps) {
           </p>
         ) : null}
 
-        {draft.cover_url ? (
-          <img
-            src={draft.cover_url}
-            alt=""
-            data-export-skip=""
-            className="mt-[1.8em] w-full max-w-[22em]"
-            style={{ border: `0.2em solid ${GOLD}`, padding: '0.35em', backgroundColor: '#0D1729' }}
-          />
-        ) : null}
-
         <div className="mt-[2em]">
           <p
             className="font-display"
@@ -104,6 +107,9 @@ export function SceauAcademique({ draft }: TemplateProps) {
             ) : null}
           </div>
         ) : null}
+
+        <ProgramSection draft={draft} accent={GOLD} ink="#F4EFE4" />
+        <DressCodeSection draft={draft} accent={GOLD} ink="#F4EFE4" />
 
         <p className="mt-auto pt-[2em] text-[1.02em] uppercase" style={{ letterSpacing: '0.35em', opacity: 0.72 }}>
           Honneur à la réussite

@@ -21,7 +21,7 @@ from rest_framework.views import APIView
 
 from core.exceptions import EventHasInvitationsError, EventHasResponsesError
 from core.pagination import StandardPagination
-from events.models import EventModel
+from events.models import DressCodeImage, EventModel
 from events.serializers import EventModelSerializer
 from invitations.models import Invitation
 from templates_app.models import InvitationTemplate
@@ -40,6 +40,17 @@ class CoverUploadSerializer(serializers.Serializer):
     image = serializers.ImageField()
 
 
+class DressCodeUploadSerializer(serializers.Serializer):
+    image = serializers.ImageField()
+    caption = serializers.CharField(required=False, allow_blank=True, max_length=255, default="")
+    order = serializers.IntegerField(required=False, min_value=0)
+
+
+class DressCodePatchSerializer(serializers.Serializer):
+    caption = serializers.CharField(required=False, allow_blank=True, max_length=255)
+    order = serializers.IntegerField(required=False, min_value=0)
+
+
 class EventModelViewSet(viewsets.ModelViewSet):
     serializer_class = EventModelSerializer
     permission_classes = [IsAuthenticated]
@@ -49,7 +60,7 @@ class EventModelViewSet(viewsets.ModelViewSet):
         queryset = (
             EventModel.objects.filter(organizer=self.request.user)
             .select_related("template")
-            .prefetch_related("preference_questions__options")
+            .prefetch_related("preference_questions__options", "program_items", "dress_code_images")
             .annotate(
                 invitations_count=Count(
                     "invitations",
@@ -92,6 +103,7 @@ class EventModelViewSet(viewsets.ModelViewSet):
         if event.invitations.exclude(state=Invitation.State.DELETED).exists():
             raise EventHasInvitationsError()
         cover = event.cover_image
+        dress_code_files = [item.image for item in event.dress_code_images.all()]
         with transaction.atomic():
             try:
                 event.delete()
@@ -103,6 +115,8 @@ class EventModelViewSet(viewsets.ModelViewSet):
         # blocked deletion can never leave the event coverless in S3.
         if cover:
             cover.delete(save=False)
+        for image in dress_code_files:
+            image.delete(save=False)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -153,4 +167,98 @@ class EventModelCoverView(APIView):
                 event.cover_image.delete(save=False)
                 event.cover_image.name = ""
                 event.save(update_fields=["cover_image", "updated_at"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class EventDressCodeView(APIView):
+    """``POST /api/events/<pk>/dress-code/`` — add one dress-code image.
+
+    Same upload policy as the cover (whitelisted types, 4 MB cap) and the
+    same ownership scoping. Captions and ordering travel with the upload so
+    the editor can persist a row in one round trip.
+    """
+
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, pk):
+        event = EventModel.objects.filter(pk=pk, organizer=request.user).first()
+        if event is None:
+            raise NotFound("Ressource introuvable.")
+
+        serializer = DressCodeUploadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        uploaded = serializer.validated_data["image"]
+
+        content_type = getattr(uploaded, "content_type", "") or ""
+        extension = COVER_CONTENT_TYPES.get(content_type)
+        if extension is None:
+            raise serializers.ValidationError(
+                {"image": "Format d'image non supporté (JPEG, PNG ou WebP uniquement)."}
+            )
+        if uploaded.size > MAX_COVER_BYTES:
+            raise serializers.ValidationError(
+                {"image": "L'image ne doit pas dépasser 4 Mo."}
+            )
+
+        order = serializer.validated_data.get("order")
+        if order is None:
+            last = event.dress_code_images.order_by("-order", "-id").first()
+            order = (last.order + 1) if last else 0
+
+        with transaction.atomic():
+            name = default_storage.save(
+                f"dress-code/event-{event.pk}/{uuid.uuid4().hex}{extension}", uploaded
+            )
+            item = DressCodeImage.objects.create(
+                event=event,
+                image=name,
+                caption=serializer.validated_data.get("caption", "").strip(),
+                order=order,
+            )
+
+        url = request.build_absolute_uri(item.image.url)
+        return Response(
+            {"id": item.pk, "url": url, "caption": item.caption, "order": item.order},
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class EventDressCodeItemView(APIView):
+    """``PATCH/DELETE /api/events/<pk>/dress-code/<item_pk>/`` — caption/order or removal."""
+
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk, item_pk):
+        item = (
+            DressCodeImage.objects.filter(pk=item_pk, event__pk=pk, event__organizer=request.user)
+            .select_related("event")
+            .first()
+        )
+        if item is None:
+            raise NotFound("Ressource introuvable.")
+
+        serializer = DressCodePatchSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        with transaction.atomic():
+            if "caption" in serializer.validated_data:
+                item.caption = serializer.validated_data["caption"].strip()
+            if "order" in serializer.validated_data:
+                item.order = serializer.validated_data["order"]
+            item.save()
+
+        url = request.build_absolute_uri(item.image.url)
+        return Response({"id": item.pk, "url": url, "caption": item.caption, "order": item.order})
+
+    def delete(self, request, pk, item_pk):
+        item = (
+            DressCodeImage.objects.filter(pk=item_pk, event__pk=pk, event__organizer=request.user)
+            .select_related("event")
+            .first()
+        )
+        if item is None:
+            raise NotFound("Ressource introuvable.")
+        with transaction.atomic():
+            item.image.delete(save=False)
+            item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

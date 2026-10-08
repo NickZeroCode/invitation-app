@@ -113,6 +113,34 @@ export interface PreferenceQuestion extends Omit<PreferenceQuestionPayload, 'opt
   options: PreferenceOption[]
 }
 
+/** One stored dress-code photo with its caption. */
+export interface DressCodeImage {
+  id: number
+  url: string
+  caption: string
+  order: number
+}
+
+/** One programme step: a time (or time range) and what happens then. */
+export interface ProgramItem {
+  id: number
+  /** `HH:mm:ss`. */
+  start_time: string
+  /** `HH:mm:ss`, or null for a single time. */
+  end_time: string | null
+  description: string
+  order: number
+}
+
+/** Programme row write shape (ids omitted on creation). */
+export interface ProgramItemPayload {
+  id?: number
+  start_time: string
+  end_time?: string | null
+  description: string
+  order?: number
+}
+
 export interface EventModel {
   id: number
   template: string
@@ -130,6 +158,8 @@ export interface EventModel {
   cover_url: string | null
   display_config: { emphasis?: string[] }
   preference_questions: PreferenceQuestion[]
+  program_items: ProgramItem[]
+  dress_code: DressCodeImage[]
   invitations_count: number
   is_active: boolean
   created_at: string
@@ -164,6 +194,7 @@ export interface EventPayload {
   venue_details: string
   display_config: { emphasis: string[] }
   preference_questions: PreferenceQuestionPayload[]
+  program_items?: ProgramItemPayload[]
   is_active?: boolean
 }
 
@@ -321,6 +352,20 @@ export interface PublicInvitationPayload {
       required: boolean
       order: number
       options: Array<{ id: number; label: string; order: number }>
+    }>
+  }
+  /** Content-gated sections: empty means hidden on the public page. */
+  dress_code: {
+    enabled: boolean
+    images: Array<{ url: string; caption: string; order: number }>
+  }
+  program: {
+    enabled: boolean
+    items: Array<{
+      start_time: string
+      end_time: string | null
+      description: string
+      order: number
     }>
   }
   response: GuestResponsePayload | null

@@ -3,7 +3,15 @@
  * corners, an inset double gold frame, calligraphy names in gold leaf and a
  * designed date block: the heirloom card of the wedding set.
  */
-import { DateBlock, InvitationPaper, guestLabel, isEmphasized } from './shared.tsx'
+import {
+  CoverHero,
+  DateBlock,
+  DressCodeSection,
+  InvitationPaper,
+  ProgramSection,
+  guestLabel,
+  isEmphasized,
+} from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
 import { FlourishRule, GoldRoseCorner, PaperGrain } from './florals.tsx'
@@ -35,26 +43,25 @@ export function HeritageLuxe({ draft }: TemplateProps) {
         <div className="absolute inset-[0.55em] border" style={{ borderColor: 'rgba(166,124,61,0.24)' }} />
       </div>
 
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(43,38,32,0.55)"
+        edgeColor="rgba(166,124,61,0.8)"
+        titleStyle={{
+          fontFamily: "'Great Vibes', cursive",
+          fontSize: titleEm ? '3em' : '2.4em',
+          backgroundImage: TITLE_GOLD,
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          color: 'transparent',
+        }}
+      />
+
       <div className="relative flex flex-1 flex-col items-center px-[7em] py-[5em] text-center">
         <p className="mt-[4.8em] text-[1em] uppercase" style={{ color: GOLD, letterSpacing: '0.38em' }}>
           Vous êtes invités
         </p>
         <FlourishRule className="mt-[1.3em] h-[1.4em] w-[17em]" color={GOLD} />
-
-        {draft.cover_url ? (
-          <div
-            data-export-skip=""
-            className="mt-[2.4em] w-full max-w-[22em] rounded-t-[11em] rounded-b-[0.8em] p-[0.4em]"
-            style={{ border: '1px solid rgba(166,124,61,0.55)' }}
-          >
-            <img
-              src={draft.cover_url}
-              alt=""
-              className="w-full rounded-t-[10.3em] rounded-b-[0.45em]"
-              style={{ border: '1px solid rgba(166,124,61,0.3)' }}
-            />
-          </div>
-        ) : null}
 
         <p className="mt-[2.3em] font-display text-[1.15em] italic" style={{ color: GOLD }}>
           {guestLabel(draft)}
@@ -106,6 +113,9 @@ export function HeritageLuxe({ draft }: TemplateProps) {
             ) : null}
           </div>
         ) : null}
+
+        <ProgramSection draft={draft} accent={GOLD} ink={INK} />
+        <DressCodeSection draft={draft} accent={GOLD} ink={INK} />
 
         <div className="mt-auto w-full pt-[2.5em]">
           <FlourishRule className="mx-auto h-[1.4em] w-[17em]" color={GOLD} />

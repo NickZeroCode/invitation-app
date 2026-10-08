@@ -4,7 +4,15 @@
  * corners, champagne calligraphy names and a designed date block: the most
  * formal, "old-money" card of the wedding set.
  */
-import { DateBlock, InvitationPaper, guestLabel, isEmphasized } from './shared.tsx'
+import {
+  CoverHero,
+  DateBlock,
+  DressCodeSection,
+  InvitationPaper,
+  ProgramSection,
+  guestLabel,
+  isEmphasized,
+} from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
 
@@ -85,25 +93,24 @@ export function EterniteOr({ draft }: TemplateProps) {
         />
       </div>
 
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(15,11,7,0.6)"
+        edgeColor="rgba(216,179,106,0.85)"
+        titleStyle={{
+          fontFamily: "'Great Vibes', cursive",
+          fontSize: titleEm ? '3em' : '2.4em',
+          backgroundImage: TITLE_GOLD,
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          color: 'transparent',
+        }}
+      />
+
       <div className="relative flex flex-1 flex-col items-center px-[6em] py-[5.5em] text-center">
         <p className="text-[1.02em] uppercase" style={{ color: GOLD, letterSpacing: '0.42em' }}>
           Cérémonie de mariage
         </p>
-
-        {draft.cover_url ? (
-          <div
-            data-export-skip=""
-            className="mt-[2.2em] w-full max-w-[23em] rounded-t-[11.5em] p-[0.5em]"
-            style={{ border: '1px solid rgba(216,179,106,0.55)' }}
-          >
-            <img
-              src={draft.cover_url}
-              alt=""
-              className="w-full rounded-t-[10.6em]"
-              style={{ border: '1px solid rgba(216,179,106,0.32)' }}
-            />
-          </div>
-        ) : null}
 
         <p className="mt-[2.2em] font-display text-[1.25em] italic" style={{ color: GOLD_SOFT }}>
           {guestLabel(draft)}
@@ -162,6 +169,9 @@ export function EterniteOr({ draft }: TemplateProps) {
             ) : null}
           </div>
         ) : null}
+
+        <ProgramSection draft={draft} accent={GOLD} ink={GOLD_SOFT} />
+        <DressCodeSection draft={draft} accent={GOLD} ink={GOLD_SOFT} />
 
         <div className="mt-auto w-full pt-[2.6em]">
           <DecoRule tone={GOLD_SOFT} />

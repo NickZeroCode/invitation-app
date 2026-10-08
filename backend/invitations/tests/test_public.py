@@ -10,7 +10,7 @@ from datetime import timedelta
 
 from django.utils.timezone import now as timezone_now
 
-from events.models import EventModel
+from events.models import DressCodeImage, EventModel, ProgramItem
 from invitations.models import Invitation
 from preferences.models import GuestResponse, PreferenceOption, PreferenceQuestion
 from templates_app.models import InvitationTemplate
@@ -428,3 +428,47 @@ def test_empty_responses_report(auth_client, organizer):
     assert data["count"] == 0
     assert data["summary"]["responses"] == 0
     assert data["summary"]["invitations"] == 1
+
+
+# --- Dress code + programme sections (content-gated) ----------------------
+
+def test_public_detail_includes_dress_code_and_program(api_client, organizer):
+    event = make_event(organizer)
+    DressCodeImage.objects.create(
+        event=event, image="dress_code/x.jpg", caption="Tenue de cérémonie", order=0
+    )
+    ProgramItem.objects.create(
+        event=event, start_time=datetime.time(19, 30), description="Accueil des invités", order=0
+    )
+    ProgramItem.objects.create(
+        event=event,
+        start_time=datetime.time(20, 0),
+        end_time=datetime.time(21, 0),
+        description="Dîner et discours",
+        order=1,
+    )
+    invitation = make_invitation(event)
+
+    data = api_client.get(public_url(invitation)).json()
+
+    assert data["dress_code"]["enabled"] is True
+    assert data["dress_code"]["images"][0]["caption"] == "Tenue de cérémonie"
+    assert data["dress_code"]["images"][0]["url"].startswith("http://testserver/")
+    assert data["program"]["enabled"] is True
+    assert [item["description"] for item in data["program"]["items"]] == [
+        "Accueil des invités",
+        "Dîner et discours",
+    ]
+    assert data["program"]["items"][0]["start_time"] == "19:30:00"
+    assert data["program"]["items"][0]["end_time"] is None
+    assert data["program"]["items"][1]["end_time"] == "21:00:00"
+
+
+def test_public_detail_hides_empty_dress_code_and_program(api_client, organizer):
+    event = make_event(organizer)
+    invitation = make_invitation(event)
+
+    data = api_client.get(public_url(invitation)).json()
+
+    assert data["dress_code"] == {"enabled": False, "images": []}
+    assert data["program"] == {"enabled": False, "items": []}

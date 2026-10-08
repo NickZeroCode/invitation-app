@@ -9,6 +9,21 @@ import type { ReactElement } from 'react'
 
 import type { TemplateCategory } from '../lib/types.ts'
 
+/** One dress-code photo with its caption (invitation section). */
+export interface DressCodeEntry {
+  url: string
+  caption: string
+}
+
+/** One programme step: a time or time range + what happens then. */
+export interface ProgramEntry {
+  /** `HH:mm:ss` — templates render «19h30 » via `formatTime`. */
+  start_time: string
+  /** `HH:mm:ss`, or null for a single time. */
+  end_time: string | null
+  description: string
+}
+
 export interface InvitationDraft {
   title: string
   message: string
@@ -26,6 +41,10 @@ export interface InvitationDraft {
   fontSize?: string
   /** Placeholder for Phase 3 individual invitations. */
   guestName?: string
+  /** Dress-code gallery; empty = section hidden. */
+  dressCode: DressCodeEntry[]
+  /** Programme rows; empty = section hidden. */
+  program: ProgramEntry[]
 }
 
 export interface TemplateProps {

@@ -21,6 +21,7 @@ import { ApiError, eventsApi } from '../lib/api.ts'
 import type {
   EventPayload,
   PreferenceQuestionPayload,
+  ProgramItemPayload,
 } from '../lib/types.ts'
 import { fr } from '../locales/fr.ts'
 import { InvitationDownloadButton } from '../templates/InvitationDownloadButton.tsx'
@@ -53,6 +54,27 @@ function blankQuestion(): QuestionDraft {
   }
 }
 
+interface DressCodeRow {
+  /** Set for server-stored images; absent for pending uploads. */
+  id?: number
+  /** Server URL, or a local object URL while the upload is pending. */
+  url: string
+  caption: string
+  /** Pending file — uploaded when the event is saved. */
+  file?: File
+  /** Caption as stored server-side, to detect unsaved edits. */
+  savedCaption?: string
+}
+
+interface ProgramRowDraft {
+  id?: number
+  /** `HH:mm` from the time input. */
+  start_time: string
+  /** `HH:mm` — empty means a single time, not a range. */
+  end_time: string
+  description: string
+}
+
 function emphasisLabel(field: string): string {
   const labels = fr.editor.emphasisFields as Record<string, string>
   return labels[field] ?? field
@@ -81,6 +103,10 @@ export function EventEditorPage() {
   const [venueDetails, setVenueDetails] = useState('')
   const [emphasis, setEmphasis] = useState<string[]>([])
   const [questions, setQuestions] = useState<QuestionDraft[]>([])
+  const [dressRows, setDressRows] = useState<DressCodeRow[]>([])
+  const [removedDressIds, setRemovedDressIds] = useState<number[]>([])
+  const [dressError, setDressError] = useState<string | null>(null)
+  const [programRows, setProgramRows] = useState<ProgramRowDraft[]>([])
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [coverRemoved, setCoverRemoved] = useState(false)
@@ -128,6 +154,23 @@ export function EventEditorPage() {
         options: question.options.map((option) => ({ id: option.id, label: option.label })),
       })),
     )
+    setDressRows(
+      data.dress_code.map((image) => ({
+        id: image.id,
+        url: image.url,
+        caption: image.caption,
+        savedCaption: image.caption,
+      })),
+    )
+    setRemovedDressIds([])
+    setProgramRows(
+      data.program_items.map((item) => ({
+        id: item.id,
+        start_time: item.start_time.slice(0, 5),
+        end_time: item.end_time ? item.end_time.slice(0, 5) : '',
+        description: item.description,
+      })),
+    )
   }, [eventQuery.data])
 
   useEffect(() => {
@@ -163,6 +206,14 @@ export function EventEditorPage() {
         venue_details: venueDetails,
         cover_url: coverPreview ?? (coverRemoved ? null : (eventQuery.data?.cover_url ?? null)),
         emphasis,
+        dressCode: dressRows.map((row) => ({ url: row.url, caption: row.caption })),
+        program: programRows
+          .filter((row) => row.start_time && row.description.trim())
+          .map((row) => ({
+            start_time: `${row.start_time}:00`,
+            end_time: row.end_time ? `${row.end_time}:00` : null,
+            description: row.description,
+          })),
       }),
     [
       title,
@@ -179,6 +230,8 @@ export function EventEditorPage() {
       coverRemoved,
       eventQuery.data?.cover_url,
       emphasis,
+      dressRows,
+      programRows,
     ],
   )
 
@@ -211,6 +264,17 @@ export function EventEditorPage() {
               .map((option) => ({ id: option.id, label: option.label.trim() })),
           }),
         ),
+        program_items: programRows
+          .filter((row) => row.start_time || row.end_time || row.description.trim())
+          .map(
+            (row, index): ProgramItemPayload => ({
+              id: row.id,
+              start_time: `${row.start_time}:00`,
+              end_time: row.end_time ? `${row.end_time}:00` : null,
+              description: row.description.trim(),
+              order: index,
+            }),
+          ),
       }
       const saved = isEdit
         ? await eventsApi.update(eventId as number, payload)
@@ -219,6 +283,18 @@ export function EventEditorPage() {
         await eventsApi.uploadCover(saved.id, coverFile)
       } else if (coverRemoved && (eventQuery.data?.cover_url ?? null)) {
         await eventsApi.removeCover(saved.id)
+      }
+      // Dress-code gallery: deletions first so orders stay unique, then new
+      // uploads (each carries its caption), then caption edits on stored rows.
+      for (const removedId of removedDressIds) {
+        await eventsApi.removeDressCode(saved.id, removedId)
+      }
+      for (const [index, row] of dressRows.entries()) {
+        if (row.file) {
+          await eventsApi.uploadDressCode(saved.id, row.file, row.caption.trim(), index)
+        } else if (row.id !== undefined && row.caption !== row.savedCaption) {
+          await eventsApi.updateDressCode(saved.id, row.id, { caption: row.caption.trim() })
+        }
       }
       return saved
     },
@@ -262,6 +338,55 @@ export function EventEditorPage() {
     }
   }, [coverPreview])
 
+  function handleDressFiles(files: FileList | null) {
+    setDressError(null)
+    if (!files) return
+    const accepted: DressCodeRow[] = []
+    for (const file of Array.from(files)) {
+      if (!COVER_TYPES.includes(file.type)) {
+        setDressError(fr.editor.coverRejected)
+        continue
+      }
+      if (file.size > MAX_COVER_BYTES) {
+        setDressError(fr.editor.coverTooLarge)
+        continue
+      }
+      accepted.push({ url: URL.createObjectURL(file), caption: '', file })
+    }
+    if (accepted.length > 0) {
+      setDressRows((current) => [...current, ...accepted])
+    }
+  }
+
+  function removeDressRow(index: number) {
+    const row = dressRows[index]
+    if (!row) return
+    if (row.id !== undefined) {
+      setRemovedDressIds((ids) => [...ids, row.id as number])
+    }
+    if (row.file) URL.revokeObjectURL(row.url)
+    setDressRows((current) => current.filter((_, i) => i !== index))
+  }
+
+  function updateProgramRow(index: number, patch: Partial<ProgramRowDraft>) {
+    setProgramRows((current) =>
+      current.map((row, i) => (i === index ? { ...row, ...patch } : row)),
+    )
+  }
+
+  // Release pending dress-code previews when the editor unmounts.
+  const dressRowsRef = useRef(dressRows)
+  useEffect(() => {
+    dressRowsRef.current = dressRows
+  }, [dressRows])
+  useEffect(() => {
+    return () => {
+      for (const row of dressRowsRef.current) {
+        if (row.file) URL.revokeObjectURL(row.url)
+      }
+    }
+  }, [])
+
   function selectTemplate(key: string) {
     setTemplateKey(key)
     const next = getTemplate(key)
@@ -288,6 +413,14 @@ export function EventEditorPage() {
       if (!eventDate) errors.event_date = [fr.common.requiredField]
       if (!eventTime) errors.event_time = [fr.common.requiredField]
       setFieldErrors(errors)
+      return
+    }
+    // Programme rows: fully empty rows are dropped, half-filled rows block.
+    const filledProgram = programRows.filter(
+      (row) => row.start_time || row.end_time || row.description.trim(),
+    )
+    if (filledProgram.some((row) => !row.start_time || !row.description.trim())) {
+      setFieldErrors({ program_items: [fr.editor.programIncomplete] })
       return
     }
     mutation.mutate()
@@ -624,6 +757,152 @@ export function EventEditorPage() {
               </CardBody>
             </Card>
           ) : null}
+
+          <Card>
+            <CardHeader
+              title={fr.editor.dressCodeTitle}
+              description={fr.editor.dressCodeHint}
+              action={
+                <label className="inline-flex h-9 cursor-pointer items-center rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
+                  {fr.editor.dressCodeUpload}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    className="sr-only"
+                    onChange={(event) => {
+                      handleDressFiles(event.target.files)
+                      event.target.value = ''
+                    }}
+                  />
+                </label>
+              }
+            />
+            <CardBody className="space-y-3">
+              {dressRows.length === 0 ? (
+                <p className="text-sm text-ink-soft">{fr.editor.dressCodeHint}</p>
+              ) : (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {dressRows.map((row, index) => (
+                    <div
+                      key={row.id ?? `new-${index}`}
+                      className="space-y-2 rounded-md border border-line p-3"
+                    >
+                      <img
+                        src={row.url}
+                        alt=""
+                        className="h-32 w-full rounded-md border border-line object-cover"
+                      />
+                      <Field
+                        id={`dress-${index}-caption`}
+                        label={fr.editor.dressCodeCaption}
+                      >
+                        <Input
+                          id={`dress-${index}-caption`}
+                          value={row.caption}
+                          placeholder={fr.editor.dressCodeCaptionPlaceholder}
+                          onChange={(event) =>
+                            setDressRows((current) =>
+                              current.map((item, i) =>
+                                i === index ? { ...item, caption: event.target.value } : item,
+                              ),
+                            )
+                          }
+                        />
+                      </Field>
+                      <Button variant="ghost" size="sm" onClick={() => removeDressRow(index)}>
+                        {fr.editor.dressCodeRemove}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {dressError ? (
+                <p role="alert" className="text-xs text-danger">
+                  {dressError}
+                </p>
+              ) : null}
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader
+              title={fr.editor.programTitle}
+              description={fr.editor.programHint}
+              action={
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() =>
+                    setProgramRows((current) => [
+                      ...current,
+                      { start_time: '', end_time: '', description: '' },
+                    ])
+                  }
+                >
+                  {fr.editor.addProgramItem}
+                </Button>
+              }
+            />
+            <CardBody className="space-y-4">
+              {programRows.length === 0 ? (
+                <p className="text-sm text-ink-soft">{fr.editor.programHint}</p>
+              ) : null}
+              {programRows.map((row, index) => (
+                <div
+                  key={row.id ?? `new-${index}`}
+                  className="space-y-3 rounded-md border border-line p-4"
+                >
+                  <div className="flex flex-wrap items-end gap-4">
+                    <Field id={`program-${index}-start`} label={fr.editor.programStart} required>
+                      <Input
+                        id={`program-${index}-start`}
+                        type="time"
+                        value={row.start_time}
+                        onChange={(event) => updateProgramRow(index, { start_time: event.target.value })}
+                      />
+                    </Field>
+                    <Field id={`program-${index}-end`} label={fr.editor.programEnd}>
+                      <Input
+                        id={`program-${index}-end`}
+                        type="time"
+                        value={row.end_time}
+                        onChange={(event) => updateProgramRow(index, { end_time: event.target.value })}
+                      />
+                    </Field>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setProgramRows((current) => current.filter((_, i) => i !== index))
+                      }
+                    >
+                      {fr.editor.removeProgramItem}
+                    </Button>
+                  </div>
+                  <Field
+                    id={`program-${index}-description`}
+                    label={fr.editor.programDescription}
+                    required
+                  >
+                    <Input
+                      id={`program-${index}-description`}
+                      value={row.description}
+                      placeholder={fr.editor.programDescriptionPlaceholder}
+                      onChange={(event) =>
+                        updateProgramRow(index, { description: event.target.value })
+                      }
+                    />
+                  </Field>
+                </div>
+              ))}
+              {fieldErrors.program_items ? (
+                <p role="alert" className="text-xs text-danger">
+                  {fieldErrors.program_items.join(' ')}
+                </p>
+              ) : null}
+            </CardBody>
+          </Card>
 
           <Card>
             <CardHeader title={fr.editor.emphasisTitle} description={fr.editor.emphasisHint} />

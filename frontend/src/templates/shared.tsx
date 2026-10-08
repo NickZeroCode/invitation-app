@@ -33,6 +33,16 @@ export function InvitationPaper({
           // base size; every internal measure is `em`, so the whole
           // invitation scales together with the chosen text size.
           fontSize: `calc(var(--invitation-scale, 1) * ${PAPER_FONT_SIZE})`,
+          // Long unbreakable tokens (map links, phone numbers, WhatsApp
+          // handles) must wrap inside the paper instead of running past the
+          // right frame and being clipped. `anywhere` breaks them at the
+          // character level only when they cannot fit a line.
+          overflowWrap: 'anywhere',
+          // Mobile browsers may auto-size text without scaling the `em`
+          // decorations with it; pin the scale so the paper never drifts
+          // out of its frame on phones.
+          textSizeAdjust: '100%',
+          WebkitTextSizeAdjust: '100%',
           // Typographic craft: full OpenType shaping and crisp serif rendering.
           fontFeatureSettings: "'kern', 'liga', 'calt'",
           fontKerning: 'normal',
@@ -143,10 +153,156 @@ export function formatEventTime(time: string): string {
   return time ? time.slice(0, 5) : ''
 }
 
+/** Programme time in French style: « 19h30 » (minutes dropped when zero). */
+export function formatProgramTime(time: string): string {
+  const [hours = '', minutes = ''] = time.split(':')
+  return minutes === '00' ? `${hours}h` : `${hours}h${minutes}`
+}
+
+/** Programme slot: a single time (« 19h30 ») or a range (« 19h30 – 20h30 »). */
+export function formatProgramRange(start: string, end: string | null): string {
+  return end ? `${formatProgramTime(start)} – ${formatProgramTime(end)}` : formatProgramTime(start)
+}
+
 export function guestLabel(draft: InvitationDraft): string {
   return draft.guestName?.trim() || 'Invité(e)'
 }
 
 export function isEmphasized(draft: InvitationDraft, field: string): boolean {
   return draft.emphasis.includes(field)
+}
+
+/**
+ * Cover hero: the opening page of the invitation — full-bleed photo with the
+ * celebrated names in calligraphy over a translucent band (LAC MUNKAMBA
+ * reference, p.1). Only templates with `supportsCover` render it, and only
+ * when a cover photo exists. Excluded from image export like every cover
+ * placement (`data-export-skip`).
+ */
+export function CoverHero({
+  draft,
+  bandColor,
+  titleStyle,
+  titleClassName,
+  edgeColor,
+}: {
+  draft: InvitationDraft
+  /** Scrim colour with alpha, e.g. 'rgba(43,38,32,0.55)'. */
+  bandColor: string
+  /** Per-template calligraphy for the names. */
+  titleStyle?: CSSProperties
+  /** Per-template font classes (e.g. 'font-display italic'). */
+  titleClassName?: string
+  /** Hairline accent drawn above the band, e.g. 'rgba(166,124,61,0.8)'. */
+  edgeColor?: string
+}) {
+  if (!draft.cover_url) return null
+  return (
+    <div
+      data-export-skip=""
+      className="relative w-full shrink-0 overflow-hidden"
+      style={{ aspectRatio: '4 / 5' }}
+    >
+      <img src={draft.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      <div
+        className="absolute inset-x-0 bottom-0 flex flex-col items-center px-[1.6em] pb-[1.8em] pt-[5em]"
+        style={{ background: `linear-gradient(to bottom, transparent, ${bandColor})` }}
+      >
+        {edgeColor ? (
+          <span
+            className="mb-[1.1em] h-px w-[9em]"
+            style={{ backgroundColor: edgeColor }}
+            aria-hidden="true"
+          />
+        ) : null}
+        <h2
+          className={`w-full break-words text-center leading-[1.16] ${titleClassName ?? ''}`}
+          style={titleStyle}
+        >
+          {draft.title}
+        </h2>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Programme section — time (or range) and description per step (LAC MUNKAMBA
+ * reference, p.3). Renders nothing when no step is set.
+ */
+export function ProgramSection({
+  draft,
+  accent,
+  ink,
+}: {
+  draft: InvitationDraft
+  accent: string
+  ink: string
+}) {
+  if (!draft.program.length) return null
+  return (
+    <section className="mt-[2.6em] w-full">
+      <p className="text-[1em] uppercase" style={{ letterSpacing: '0.38em', color: accent }}>
+        Programme
+      </p>
+      <div className="mx-auto mt-[1.5em] grid w-full max-w-[32em] grid-cols-[auto_1fr] gap-x-[1.4em] gap-y-[0.9em] text-left">
+        {draft.program.map((item, index) => (
+          <div key={index} className="contents">
+            <span
+              className="whitespace-nowrap text-[1.02em] font-semibold uppercase"
+              style={{ color: accent, letterSpacing: '0.12em' }}
+            >
+              {formatProgramRange(item.start_time, item.end_time)}
+            </span>
+            <span className="text-[1.05em] leading-[1.5]" style={{ color: ink }}>
+              {item.description}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/**
+ * Dress-code section — photos with a caption under each (LAC MUNKAMBA
+ * reference, p.3). Renders nothing when no photo is set.
+ */
+export function DressCodeSection({
+  draft,
+  accent,
+  ink,
+}: {
+  draft: InvitationDraft
+  accent: string
+  ink: string
+}) {
+  if (!draft.dressCode.length) return null
+  return (
+    <section className="mt-[2.6em] w-full">
+      <p className="text-[1em] uppercase" style={{ letterSpacing: '0.38em', color: accent }}>
+        Code vestimentaire
+      </p>
+      <div className="mt-[1.5em] flex flex-wrap items-start justify-center gap-[1.4em]">
+        {draft.dressCode.map((image, index) => (
+          <figure key={index} className="w-[11.5em]">
+            <img
+              src={image.url}
+              alt=""
+              className="w-full rounded-[0.35em] object-cover"
+              style={{ border: `1px solid ${accent}66`, aspectRatio: '3 / 4' }}
+            />
+            {image.caption ? (
+              <figcaption
+                className="mt-[0.6em] text-[0.92em] italic leading-[1.45]"
+                style={{ color: ink, opacity: 0.85 }}
+              >
+                {image.caption}
+              </figcaption>
+            ) : null}
+          </figure>
+        ))}
+      </div>
+    </section>
+  )
 }

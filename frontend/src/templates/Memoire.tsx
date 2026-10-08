@@ -3,7 +3,9 @@
  * a single quiet ornament and generous whitespace. No cover image.
  */
 import {
+  DressCodeSection,
   InvitationPaper,
+  ProgramSection,
   formatEventDate,
   formatEventTime,
   guestLabel,
@@ -73,6 +75,9 @@ export function Memoire({ draft }: TemplateProps) {
             ) : null}
           </div>
         ) : null}
+
+        <ProgramSection draft={draft} accent={SAGE} ink={STONE} />
+        <DressCodeSection draft={draft} accent={SAGE} ink={STONE} />
 
         <p className="mt-auto pt-[2.4em] text-[1.08em] italic" style={{ color: SAGE }}>
           {guestLabel(draft)}

@@ -3,7 +3,10 @@
  * cover card, bold display typography.
  */
 import {
+  CoverHero,
+  DressCodeSection,
   InvitationPaper,
+  ProgramSection,
   formatEventDate,
   formatEventTime,
   guestLabel,
@@ -42,6 +45,16 @@ export function Confetti({ draft }: TemplateProps) {
   return (
     <InvitationPaper style={{ backgroundColor: '#FFF8E7', color: '#312E81' }}>
       <ConfettiDots />
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(49,46,129,0.58)"
+        edgeColor="#F59E0B"
+        titleClassName="font-extrabold"
+        titleStyle={{
+          fontSize: titleEm ? '2.9em' : '2.2em',
+          color: '#FFF8E7',
+        }}
+      />
       <div className="flex flex-1 flex-col items-center px-[5.5em] pb-[3.5em] pt-[9em] text-center">
         <p
           className="rounded-full px-[1.6em] py-[0.55em] text-[1.02em] font-bold uppercase"
@@ -56,16 +69,6 @@ export function Confetti({ draft }: TemplateProps) {
         >
           {draft.title}
         </h1>
-
-        {draft.cover_url ? (
-          <img
-            src={draft.cover_url}
-            alt=""
-            data-export-skip=""
-            className="mt-[1.8em] w-full max-w-[24em] rounded-[1.4em] shadow-[0.15em_0.25em_0_rgba(67,56,202,0.25)]"
-            style={{ transform: 'rotate(-2deg)', border: '0.35em solid #FFFFFF' }}
-          />
-        ) : null}
 
         <p
           className="mt-[1.8em] rounded-full px-[1.4em] py-[0.5em] text-[1.14em] font-semibold"
@@ -100,6 +103,9 @@ export function Confetti({ draft }: TemplateProps) {
             <p className="mt-[0.35em] text-[0.96em] italic opacity-88">{draft.venue_details}</p>
           ) : null}
         </div>
+
+        <ProgramSection draft={draft} accent={PINK} ink="#312E81" />
+        <DressCodeSection draft={draft} accent={PINK} ink="#312E81" />
 
         <p className="mt-auto pt-[1.8em] text-[1.08em] font-semibold" style={{ color: PINK }}>
           Venez nombreux, la fête est pour vous !
