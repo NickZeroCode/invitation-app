@@ -152,13 +152,19 @@ describe('PublicInvitationPage', () => {
     )
 
     // Both sections live in the shared panel only — the paper keeps the message.
-    expect(await screen.findAllByText('Code vestimentaire')).toHaveLength(1)
+    expect(await screen.findAllByText('Dress code')).toHaveLength(1)
     expect(screen.getAllByText('Programme')).toHaveLength(1)
+    // No umbrella heading: each block carries its own panel-style title.
+    expect(screen.queryByText('Tenue & programme')).not.toBeInTheDocument()
 
     // The dress code sits above the programme inside the panel.
-    const dressTitle = screen.getByText('Code vestimentaire')
+    const dressTitle = screen.getByText('Dress code')
     const programTitle = screen.getByText('Programme')
     expect(dressTitle.compareDocumentPosition(programTitle)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+
+    // Each block title is centered like the panel titles.
+    expect(dressTitle).toHaveClass('text-center')
+    expect(programTitle).toHaveClass('text-center')
 
     expect(screen.getByText('Tenue de cérémonie')).toBeInTheDocument()
     expect(screen.getByText('15h – 16h30')).toBeInTheDocument()

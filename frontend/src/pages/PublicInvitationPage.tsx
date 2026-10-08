@@ -56,12 +56,14 @@ function PanelCard({
 }: {
   skin: PanelSkin
   templateKey: string
-  title: string
+  /** Omit when the panel's blocks carry their own titles. */
+  title?: string
   action?: ReactNode
   /** Template motif under the title; light utility panels opt out. */
   ornament?: boolean
   children: ReactNode
 }) {
+  const hasHeader = Boolean(title) || Boolean(action)
   return (
     <section
       className={`relative overflow-hidden border p-5 shadow-[0_18px_40px_rgba(28,25,23,0.06)] ${templateKey === 'confetti' ? 'pt-9' : ''}`}
@@ -74,14 +76,17 @@ function PanelCard({
     >
       <PanelDecor templateKey={templateKey} />
       <div className="relative z-10">
+        {hasHeader ? (
         <div className="flex flex-col items-center text-center">
-          <p
-            className={`text-[0.78rem] font-medium uppercase ${skin.titleClass}`}
-            style={{ letterSpacing: '0.38em', color: skin.accent }}
-          >
-            {title}
-          </p>
-          {ornament !== false ? (
+          {title ? (
+            <p
+              className={`text-[0.78rem] font-medium uppercase ${skin.titleClass}`}
+              style={{ letterSpacing: '0.38em', color: skin.accent }}
+            >
+              {title}
+            </p>
+          ) : null}
+          {title && ornament !== false ? (
             <TemplateOrnament
               templateKey={templateKey}
               color={skin.accent}
@@ -90,6 +95,7 @@ function PanelCard({
           ) : null}
           {action ? <div className="mt-3 flex justify-center">{action}</div> : null}
         </div>
+        ) : null}
         {children}
       </div>
     </section>
@@ -288,15 +294,20 @@ export function PublicInvitationPage() {
             </PanelCard>
 
             {dressCode.length > 0 || program.length > 0 ? (
-              <PanelCard skin={skin} templateKey={data.event.template.key} title="Tenue & programme">
+              <PanelCard skin={skin} templateKey={data.event.template.key}>
                 {dressCode.length > 0 ? (
-                  <div className="mt-4">
+                  <div>
                     <p
-                      className="text-[0.68rem] font-medium uppercase"
+                      className={`text-center text-[0.78rem] font-medium uppercase ${skin.titleClass}`}
                       style={{ letterSpacing: '0.38em', color: skin.accent }}
                     >
-                      Code vestimentaire
+                      Dress code
                     </p>
+                    <TemplateOrnament
+                      templateKey={data.event.template.key}
+                      color={skin.accent}
+                      className="mx-auto mt-2.5 block h-auto w-32"
+                    />
                     <div className="mt-3 flex flex-wrap items-start justify-center gap-3">
                       {dressCode.map((image, index) => (
                         <figure key={`${image.url}-${index}`} className="w-[7.75rem]">
@@ -321,13 +332,18 @@ export function PublicInvitationPage() {
                 ) : null}
 
                 {program.length > 0 ? (
-                  <div className={dressCode.length > 0 ? 'mt-5' : 'mt-4'}>
+                  <div className={dressCode.length > 0 ? 'mt-6' : undefined}>
                     <p
-                      className="text-[0.68rem] font-medium uppercase"
+                      className={`text-center text-[0.78rem] font-medium uppercase ${skin.titleClass}`}
                       style={{ letterSpacing: '0.38em', color: skin.accent }}
                     >
                       Programme
                     </p>
+                    <TemplateOrnament
+                      templateKey={data.event.template.key}
+                      color={skin.accent}
+                      className="mx-auto mt-2.5 block h-auto w-32"
+                    />
                     <div className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-2.5 text-sm">
                       {program.map((item, index) => (
                         <div key={index} className="contents">
