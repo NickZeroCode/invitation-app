@@ -8,15 +8,19 @@ import { fr } from '../locales/fr.ts'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const CURRENT_YEAR = new Date().getFullYear()
+const MIN_PASSWORD_LENGTH = 8
 
-export function LoginPage() {
-  const { login, status } = useAuth()
+export function SignupPage() {
+  const { register, status } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from ?? '/accueil'
 
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -27,6 +31,12 @@ export function LoginPage() {
 
   function validate(): Record<string, string> {
     const errors: Record<string, string> = {}
+    if (!firstName.trim()) {
+      errors.first_name = fr.common.requiredField
+    }
+    if (!lastName.trim()) {
+      errors.last_name = fr.common.requiredField
+    }
     if (!email.trim()) {
       errors.email = fr.common.requiredField
     } else if (!EMAIL_PATTERN.test(email.trim())) {
@@ -34,6 +44,13 @@ export function LoginPage() {
     }
     if (!password) {
       errors.password = fr.common.requiredField
+    } else if (password.length < MIN_PASSWORD_LENGTH) {
+      errors.password = fr.signup.passwordTooShort
+    }
+    if (!confirmPassword) {
+      errors.confirm_password = fr.common.requiredField
+    } else if (confirmPassword !== password) {
+      errors.confirm_password = fr.signup.passwordMismatch
     }
     return errors
   }
@@ -48,7 +65,13 @@ export function LoginPage() {
 
     setSubmitting(true)
     try {
-      await login({ email: email.trim(), password })
+      await register({
+        email: email.trim(),
+        password,
+        confirm_password: confirmPassword,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+      })
       navigate(from, { replace: true })
     } catch (error) {
       if (error instanceof ApiError) {
@@ -104,59 +127,101 @@ export function LoginPage() {
           </div>
 
           <h2 className="mt-8 text-2xl font-semibold tracking-tight text-ink lg:mt-0">
-            {fr.login.title}
+            {fr.signup.title}
           </h2>
-          <p className="mt-1.5 text-sm text-ink-soft">{fr.login.subtitle}</p>
+          <p className="mt-1.5 text-sm text-ink-soft">{fr.signup.subtitle}</p>
 
           <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-5">
             {formError ? <Alert tone="danger">{formError}</Alert> : null}
 
-            <Field
-              id="login-email"
-              label={fr.login.email}
-              required
-              error={fieldErrors.email}
-            >
+            <div className="grid grid-cols-2 gap-4">
+              <Field
+                id="signup-first-name"
+                label={fr.signup.firstName}
+                required
+                error={fieldErrors.first_name}
+              >
+                <Input
+                  id="signup-first-name"
+                  autoComplete="given-name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  invalid={Boolean(fieldErrors.first_name)}
+                  aria-describedby={fieldErrors.first_name ? 'signup-first-name-error' : undefined}
+                />
+              </Field>
+
+              <Field
+                id="signup-last-name"
+                label={fr.signup.lastName}
+                required
+                error={fieldErrors.last_name}
+              >
+                <Input
+                  id="signup-last-name"
+                  autoComplete="family-name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  invalid={Boolean(fieldErrors.last_name)}
+                  aria-describedby={fieldErrors.last_name ? 'signup-last-name-error' : undefined}
+                />
+              </Field>
+            </div>
+
+            <Field id="signup-email" label={fr.signup.email} required error={fieldErrors.email}>
               <Input
-                id="login-email"
+                id="signup-email"
                 type="email"
                 autoComplete="email"
                 placeholder="nom@exemple.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 invalid={Boolean(fieldErrors.email)}
-                aria-describedby={fieldErrors.email ? 'login-email-error' : undefined}
+                aria-describedby={fieldErrors.email ? 'signup-email-error' : undefined}
+              />
+            </Field>
+
+            <Field id="signup-password" label={fr.signup.password} required error={fieldErrors.password}>
+              <PasswordInput
+                id="signup-password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                invalid={Boolean(fieldErrors.password)}
+                aria-describedby={fieldErrors.password ? 'signup-password-error' : undefined}
               />
             </Field>
 
             <Field
-              id="login-password"
-              label={fr.login.password}
+              id="signup-confirm-password"
+              label={fr.signup.confirmPassword}
               required
-              error={fieldErrors.password}
+              error={fieldErrors.confirm_password}
             >
               <PasswordInput
-                id="login-password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                invalid={Boolean(fieldErrors.password)}
-                aria-describedby={fieldErrors.password ? 'login-password-error' : undefined}
+                id="signup-confirm-password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                invalid={Boolean(fieldErrors.confirm_password)}
+                aria-describedby={
+                  fieldErrors.confirm_password ? 'signup-confirm-password-error' : undefined
+                }
               />
             </Field>
 
             <Button type="submit" className="w-full" loading={submitting}>
-              {submitting ? fr.login.submitting : fr.login.submit}
+              {submitting ? fr.signup.submitting : fr.signup.submit}
             </Button>
           </form>
 
           <p className="mt-6 text-sm text-ink-soft">
-            {fr.login.noAccount}{' '}
+            {fr.signup.haveAccount}{' '}
             <Link
-              to="/inscription"
+              to="/connexion"
               className="font-semibold text-ink underline decoration-line-strong underline-offset-4 transition-colors hover:text-brand"
             >
-              {fr.login.createAccount}
+              {fr.signup.signIn}
             </Link>
           </p>
         </div>

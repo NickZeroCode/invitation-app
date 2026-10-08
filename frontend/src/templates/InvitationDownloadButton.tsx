@@ -6,7 +6,7 @@
  * passes its verification QR code, which is composited onto the downloaded
  * picture.
  */
-import { useState, type RefObject } from 'react'
+import { useState, type CSSProperties, type RefObject } from 'react'
 
 import { Button } from '../design-system/Button.tsx'
 import { exportInvitationImage, invitationExportFileName } from '../lib/exportInvitation.ts'
@@ -18,6 +18,8 @@ interface InvitationDownloadButtonProps {
   guestName?: string
   /** Verification QR code (data URL) rendered onto the exported picture. */
   qrDataUrl?: string
+  /** Optional button tint (e.g. the template's accent on the public page). */
+  style?: CSSProperties
 }
 
 export function InvitationDownloadButton({
@@ -25,6 +27,7 @@ export function InvitationDownloadButton({
   title,
   guestName,
   qrDataUrl,
+  style,
 }: InvitationDownloadButtonProps) {
   const [busy, setBusy] = useState(false)
   const [exportError, setExportError] = useState('')
@@ -52,6 +55,7 @@ export function InvitationDownloadButton({
         onClick={() => void handleDownload()}
         loading={busy}
         disabled={busy}
+        style={style}
       >
         Télécharger l’invitation
       </Button>

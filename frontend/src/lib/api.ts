@@ -32,6 +32,7 @@ import type {
   ProfileUpdatePayload,
   PublicInvitationPayload,
   PublicInvitationVerification,
+  RegisterPayload,
 } from './types.ts'
 
 const NETWORK_MESSAGE = 'Impossible de joindre le serveur. Vérifiez votre connexion internet.'
@@ -171,6 +172,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 export const authApi = {
   me: () => request<Organizer>('GET', '/api/auth/me/'),
   login: (payload: LoginPayload) => request<Organizer>('POST', '/api/auth/login/', payload),
+  register: (payload: RegisterPayload) => request<Organizer>('POST', '/api/auth/register/', payload),
   logout: () => request<void>('POST', '/api/auth/logout/'),
   updateProfile: (payload: ProfileUpdatePayload) =>
     request<Organizer>('PATCH', '/api/auth/me/', payload),

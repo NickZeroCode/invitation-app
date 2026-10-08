@@ -111,7 +111,13 @@ export function LandingPage() {
               {fr.landing.nav.verification}
             </a>
           </nav>
-          <Link to="/connexion" className={HEADER_CTA}>
+          <Link to="/inscription" className={HEADER_CTA}>
+            {fr.landing.nav.signup}
+          </Link>
+          <Link
+            to="/connexion"
+            className="text-sm font-medium text-ink-soft transition-colors hover:text-ink"
+          >
             {fr.landing.nav.login}
           </Link>
         </div>
@@ -130,7 +136,10 @@ export function LandingPage() {
               {fr.landing.hero.text}
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Link to="/connexion" className={PRIMARY_CTA}>
+              <Link to="/inscription" className={PRIMARY_CTA}>
+                {fr.landing.hero.signupCta}
+              </Link>
+              <Link to="/connexion" className={SECONDARY_CTA}>
                 {fr.landing.hero.primaryCta}
               </Link>
               <a href="#modeles" className={SECONDARY_CTA}>

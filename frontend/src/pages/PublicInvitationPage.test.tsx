@@ -108,6 +108,65 @@ describe('PublicInvitationPage', () => {
     expect(screen.getByAltText('QR code de vérification')).toBeInTheDocument()
   })
 
+  it('shows the dress code and the programme in their own panel, dress code on top', async () => {
+    mockFetch([
+      {
+        url: '/api/public/invitations/tok-abc123/',
+        body: {
+          ...PUBLIC_PAYLOAD,
+          dress_code: {
+            enabled: true,
+            images: [
+              { url: 'https://cdn.example/tenue.jpg', caption: 'Tenue de cérémonie', order: 1 },
+            ],
+          },
+          program: {
+            enabled: true,
+            items: [
+              {
+                start_time: '15:00:00',
+                end_time: '16:30:00',
+                description: 'Cérémonie religieuse',
+                order: 1,
+              },
+              { start_time: '18:00:00', end_time: null, description: 'Cocktail', order: 2 },
+            ],
+          },
+        },
+      },
+      { url: '/api/public/invitations/tok-abc123/verify/', body: VERIFY },
+    ])
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={['/i/tok-abc123']}>
+          <Routes>
+            <Route path="/i/:token" element={<PublicInvitationPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    // Both sections live in the shared panel only — the paper keeps the message.
+    expect(await screen.findAllByText('Code vestimentaire')).toHaveLength(1)
+    expect(screen.getAllByText('Programme')).toHaveLength(1)
+
+    // The dress code sits above the programme inside the panel.
+    const dressTitle = screen.getByText('Code vestimentaire')
+    const programTitle = screen.getByText('Programme')
+    expect(dressTitle.compareDocumentPosition(programTitle)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+
+    expect(screen.getByText('Tenue de cérémonie')).toBeInTheDocument()
+    expect(screen.getByText('15h – 16h30')).toBeInTheDocument()
+    expect(screen.getByText('Cérémonie religieuse')).toBeInTheDocument()
+    expect(screen.getByText('18h')).toBeInTheDocument()
+    expect(screen.getByText('Cocktail')).toBeInTheDocument()
+  })
+
   it('lets a guest submit a preference response', async () => {
     const user = (await import('@testing-library/user-event')).default.setup()
     mockFetch([

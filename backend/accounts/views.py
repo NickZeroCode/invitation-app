@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.db import IntegrityError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
@@ -18,6 +19,7 @@ from .serializers import (
     LoginSerializer,
     OrganizerSerializer,
     ProfileUpdateSerializer,
+    RegisterSerializer,
 )
 
 GENERIC_LOGIN_ERROR = "Identifiants invalides."
@@ -58,6 +60,29 @@ class LoginView(APIView):
             raise AuthenticationFailed(GENERIC_LOGIN_ERROR)
         login(request, user)
         return Response(OrganizerSerializer(user).data)
+
+
+@method_decorator(ensure_csrf_cookie, name="dispatch")
+class RegisterView(APIView):
+    """Create a new organizer account and sign it in (public sign up)."""
+
+    # Same hardening as LoginView: session auth with CSRF enforced and a
+    # scoped throttle on a publicly reachable endpoint.
+    authentication_classes = [SessionCookieAuthentication]
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            user = serializer.save()
+        except IntegrityError:
+            # Concurrent double sign up slipped past the uniqueness check.
+            raise ValidationError({"email": ["Un compte existe déjà avec cette adresse e-mail."]})
+        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+        return Response(OrganizerSerializer(user).data, status=status.HTTP_201_CREATED)
 
 
 class LogoutView(APIView):

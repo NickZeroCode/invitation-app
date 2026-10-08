@@ -9,7 +9,7 @@ import {
 } from 'react'
 
 import { authApi } from '../lib/api.ts'
-import type { LoginPayload, Organizer } from '../lib/types.ts'
+import type { LoginPayload, Organizer, RegisterPayload } from '../lib/types.ts'
 
 export type AuthStatus = 'loading' | 'authenticated' | 'anonymous'
 
@@ -18,6 +18,7 @@ export interface AuthContextValue {
   status: AuthStatus
   login: (payload: LoginPayload) => Promise<void>
   logout: () => Promise<void>
+  register: (payload: RegisterPayload) => Promise<void>
   refreshUser: () => Promise<void>
   /** Marks the session as gone (e.g. after a 401) so protected routes can react. */
   markAnonymous: () => void
@@ -65,6 +66,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const register = useCallback(async (payload: RegisterPayload) => {
+    const created = await authApi.register(payload)
+    setUser(created)
+    setStatus('authenticated')
+  }, [])
+
   const refreshUser = useCallback(async () => {
     const organizer = await authApi.me()
     setUser(organizer)
@@ -77,8 +84,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ user, status, login, logout, refreshUser, markAnonymous }),
-    [user, status, login, logout, refreshUser, markAnonymous],
+    () => ({ user, status, login, logout, register, refreshUser, markAnonymous }),
+    [user, status, login, logout, register, refreshUser, markAnonymous],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

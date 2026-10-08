@@ -10,6 +10,7 @@ import { LoginPage } from './pages/LoginPage.tsx'
 import { NotFoundPage } from './pages/NotFoundPage.tsx'
 import { OverviewPage } from './pages/OverviewPage.tsx'
 import { SettingsPage } from './pages/SettingsPage.tsx'
+import { SignupPage } from './pages/SignupPage.tsx'
 import { TemplatesPage } from './pages/TemplatesPage.tsx'
 import { EventsPage } from './pages/EventsPage.tsx'
 import { EventEditorPage } from './pages/EventEditorPage.tsx'
@@ -46,6 +47,14 @@ export default function App() {
               element={
                 <GuestRoute>
                   <LoginPage />
+                </GuestRoute>
+              }
+            />
+            <Route
+              path="/inscription"
+              element={
+                <GuestRoute>
+                  <SignupPage />
                 </GuestRoute>
               }
             />

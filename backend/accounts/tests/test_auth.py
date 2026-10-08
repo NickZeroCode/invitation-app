@@ -6,6 +6,7 @@ from conftest import PASSWORD
 
 CSRF_URL = "/api/auth/csrf/"
 LOGIN_URL = "/api/auth/login/"
+REGISTER_URL = "/api/auth/register/"
 LOGOUT_URL = "/api/auth/logout/"
 ME_URL = "/api/auth/me/"
 PASSWORD_URL = "/api/auth/password/"
@@ -137,6 +138,92 @@ class TestPasswordChange:
         )
         assert response.status_code == 400
         assert "new_password" in response.json()["error"]["fields"]
+
+
+SIGNUP = {
+    "email": "nouvelle.organisatrice@example.com",
+    "first_name": "Nadine",
+    "last_name": "Kalala",
+    "password": "UnNouveau-MotDePasse-2026",
+    "confirm_password": "UnNouveau-MotDePasse-2026",
+}
+
+
+@pytest.mark.django_db
+class TestRegister:
+    def test_register_creates_account_and_signs_in(self, api_client, django_user_model):
+        response = api_client.post(REGISTER_URL, SIGNUP, format="json")
+        assert response.status_code == 201
+        body = response.json()
+        assert body["email"] == SIGNUP["email"]
+        assert body["full_name"] == "Nadine Kalala"
+        assert "password" not in body
+
+        # The password is hashed and the session is live straight away.
+        user = django_user_model.objects.get(email=SIGNUP["email"])
+        assert user.check_password(SIGNUP["password"])
+        me = api_client.get(ME_URL)
+        assert me.status_code == 200
+        assert me.json()["email"] == SIGNUP["email"]
+
+    def test_register_then_login_with_new_credentials(self, api_client):
+        assert api_client.post(REGISTER_URL, SIGNUP, format="json").status_code == 201
+        assert api_client.post(LOGOUT_URL).status_code == 204
+        response = api_client.post(
+            LOGIN_URL,
+            {"email": SIGNUP["email"], "password": SIGNUP["password"]},
+            format="json",
+        )
+        assert response.status_code == 200
+
+    def test_register_duplicate_email_is_rejected(self, api_client, organizer):
+        response = api_client.post(
+            REGISTER_URL, {**SIGNUP, "email": "organisateur@example.com"}, format="json"
+        )
+        assert response.status_code == 400
+        assert "email" in response.json()["error"]["fields"]
+
+    def test_register_duplicate_email_is_case_insensitive(self, api_client, organizer):
+        response = api_client.post(
+            REGISTER_URL, {**SIGNUP, "email": "ORGANISATEUR@example.com"}, format="json"
+        )
+        assert response.status_code == 400
+        assert "email" in response.json()["error"]["fields"]
+
+    def test_register_weak_password_is_rejected(self, api_client):
+        response = api_client.post(
+            REGISTER_URL, {**SIGNUP, "password": "123", "confirm_password": "123"}, format="json"
+        )
+        assert response.status_code == 400
+        assert "password" in response.json()["error"]["fields"]
+
+    def test_register_mismatched_confirmation_is_rejected(self, api_client):
+        response = api_client.post(
+            REGISTER_URL, {**SIGNUP, "confirm_password": "Autre-MotDePasse-2026"}, format="json"
+        )
+        assert response.status_code == 400
+        assert "confirm_password" in response.json()["error"]["fields"]
+
+    def test_register_missing_fields_are_rejected(self, api_client):
+        response = api_client.post(REGISTER_URL, {"email": "incomplet@example.com"}, format="json")
+        assert response.status_code == 400
+        fields = response.json()["error"]["fields"]
+        assert "first_name" in fields
+        assert "password" in fields
+
+    def test_register_requires_csrf_when_enforced(self):
+        client = APIClient(enforce_csrf_checks=True)
+        blocked = client.post(REGISTER_URL, SIGNUP, format="json")
+        assert blocked.status_code == 403
+
+    def test_register_is_rate_limited(self, api_client):
+        # Invalid payloads count toward the throttle but create no accounts.
+        bad = {**SIGNUP, "confirm_password": "different"}
+        for _ in range(20):
+            assert api_client.post(REGISTER_URL, bad, format="json").status_code == 400
+        response = api_client.post(REGISTER_URL, bad, format="json")
+        assert response.status_code == 429
+        assert response.json()["error"]["code"] == "throttled"
 
     def test_successful_change_keeps_session_and_rotates_credentials(self, api_client, organizer):
         assert api_client.post(LOGIN_URL, CREDS, format="json").status_code == 200

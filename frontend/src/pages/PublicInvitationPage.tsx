@@ -16,10 +16,11 @@ import type {
 } from '../lib/types.ts'
 import { fontScaleStyle } from '../templates/fontSizes.ts'
 import { TemplateOrnament } from '../templates/ornaments.tsx'
+import { DARK_PANEL_KEYS, PanelDecor, panelSkinFor } from '../templates/panelSkin.tsx'
+import type { PanelSkin } from '../templates/panelSkin.tsx'
 import { getTemplate } from '../templates/registry.tsx'
-import { formatEventDate, formatEventTime } from '../templates/shared.tsx'
-import { panelRadiusFor, themeFor } from '../templates/themes.ts'
-import type { TemplateTheme } from '../templates/themes.ts'
+import { formatEventDate, formatEventTime, formatProgramRange } from '../templates/shared.tsx'
+import { panelRadiusFor } from '../templates/themes.ts'
 import type { InvitationDraft } from '../templates/types.ts'
 
 const STATUS_TONE: Record<string, string> = {
@@ -46,14 +47,14 @@ const STATUS_LABEL: Record<string, string> = {
  * follows the invitation's identity instead of generic chrome.
  */
 function PanelCard({
-  theme,
+  skin,
   templateKey,
   title,
   action,
   ornament,
   children,
 }: {
-  theme: TemplateTheme
+  skin: PanelSkin
   templateKey: string
   title: string
   action?: ReactNode
@@ -63,30 +64,34 @@ function PanelCard({
 }) {
   return (
     <section
-      className="border p-5 shadow-[0_18px_40px_rgba(28,25,23,0.06)]"
+      className={`relative overflow-hidden border p-5 shadow-[0_18px_40px_rgba(28,25,23,0.06)] ${templateKey === 'confetti' ? 'pt-9' : ''}`}
       style={{
-        backgroundColor: theme.surface,
-        borderColor: theme.line,
+        background: skin.paper,
+        borderColor: skin.line,
         borderRadius: panelRadiusFor(templateKey),
+        color: skin.ink,
       }}
     >
-      <div className="flex items-center justify-between gap-3">
-        <p
-          className={`text-[0.72rem] font-semibold uppercase tracking-[0.25em] ${theme.titleClass}`}
-          style={{ color: theme.accent }}
-        >
-          {title}
-        </p>
-        {action}
+      <PanelDecor templateKey={templateKey} />
+      <div className="relative z-10">
+        <div className="flex flex-col items-center text-center">
+          <p
+            className={`text-[0.78rem] font-medium uppercase ${skin.titleClass}`}
+            style={{ letterSpacing: '0.38em', color: skin.accent }}
+          >
+            {title}
+          </p>
+          {ornament !== false ? (
+            <TemplateOrnament
+              templateKey={templateKey}
+              color={skin.accent}
+              className="mx-auto mt-2.5 block h-auto w-32"
+            />
+          ) : null}
+          {action ? <div className="mt-3 flex justify-center">{action}</div> : null}
+        </div>
+        {children}
       </div>
-      {ornament !== false ? (
-        <TemplateOrnament
-          templateKey={templateKey}
-          color={theme.accent}
-          className="mx-auto mt-3 block h-auto w-36"
-        />
-      ) : null}
-      {children}
     </section>
   )
 }
@@ -189,7 +194,8 @@ export function PublicInvitationPage() {
 
   const templateDef = getTemplate(data.event.template.key)
   const TemplateComponent = templateDef?.Component
-  const theme = themeFor(data.event.template.key)
+  const skin = panelSkinFor(data.event.template.key)
+  const onDarkPaper = DARK_PANEL_KEYS.has(data.event.template.key)
 
   // Content-gated sections: an unfilled section is hidden, never rendered empty.
   const dressCode = data.dress_code?.images ?? []
@@ -210,12 +216,10 @@ export function PublicInvitationPage() {
     coverTitle: data.event.cover_title,
     emphasis: data.event.display_config.emphasis ?? data.event.template.config.emphasis_fields,
     guestName: data.invitation.display_name,
-    dressCode: dressCode.map((image) => ({ url: image.url, caption: image.caption })),
-    program: program.map((item) => ({
-      start_time: item.start_time,
-      end_time: item.end_time,
-      description: item.description,
-    })),
+    // Dress code and programme are presented in their own sidebar panel, so
+    // the paper stays focused on the invitation message (empty hides them).
+    dressCode: [],
+    program: [],
   }
 
   const statusKey = verification.result ?? (data.is_valid ? 'valid' : 'expired')
@@ -254,56 +258,118 @@ export function PublicInvitationPage() {
           </div>
 
           <aside className="min-w-0 space-y-5 [overflow-wrap:anywhere]">
-            <PanelCard theme={theme} templateKey={data.event.template.key} title="Détails de l’invitation">
-              <div className="mt-4 space-y-2 text-sm" style={{ color: theme.inkSoft }}>
+            <PanelCard skin={skin} templateKey={data.event.template.key} title="Détails de l’invitation">
+              <div className="mt-4 space-y-2 text-sm" style={{ color: skin.inkSoft }}>
                 <p>
-                  <span className="font-semibold" style={{ color: theme.accent }}>Invité :</span>{' '}
-                  <span style={{ color: theme.ink }}>{data.invitation.display_name}</span>
+                  <span className="font-semibold" style={{ color: skin.accent }}>Invité :</span>{' '}
+                  <span style={{ color: skin.ink }}>{data.invitation.display_name}</span>
                 </p>
                 <p>
-                  <span className="font-semibold" style={{ color: theme.accent }}>Événement :</span>{' '}
-                  <span style={{ color: theme.ink }}>{data.event.title}</span>
+                  <span className="font-semibold" style={{ color: skin.accent }}>Événement :</span>{' '}
+                  <span style={{ color: skin.ink }}>{data.event.title}</span>
                 </p>
                 <p>
-                  <span className="font-semibold" style={{ color: theme.accent }}>Date :</span>{' '}
-                  <span style={{ color: theme.ink }}>{formatEventDate(data.event.event_date)}</span>
+                  <span className="font-semibold" style={{ color: skin.accent }}>Date :</span>{' '}
+                  <span style={{ color: skin.ink }}>{formatEventDate(data.event.event_date)}</span>
                 </p>
                 {data.event.event_time ? (
                   <p>
-                    <span className="font-semibold" style={{ color: theme.accent }}>Heure :</span>{' '}
-                    <span style={{ color: theme.ink }}>{formatEventTime(data.event.event_time)}</span>
+                    <span className="font-semibold" style={{ color: skin.accent }}>Heure :</span>{' '}
+                    <span style={{ color: skin.ink }}>{formatEventTime(data.event.event_time)}</span>
                   </p>
                 ) : null}
                 {data.event.venue_name ? (
                   <p>
-                    <span className="font-semibold" style={{ color: theme.accent }}>Lieu :</span>{' '}
-                    <span style={{ color: theme.ink }}>{data.event.venue_name}</span>
+                    <span className="font-semibold" style={{ color: skin.accent }}>Lieu :</span>{' '}
+                    <span style={{ color: skin.ink }}>{data.event.venue_name}</span>
                   </p>
                 ) : null}
               </div>
             </PanelCard>
 
+            {dressCode.length > 0 || program.length > 0 ? (
+              <PanelCard skin={skin} templateKey={data.event.template.key} title="Tenue & programme">
+                {dressCode.length > 0 ? (
+                  <div className="mt-4">
+                    <p
+                      className="text-[0.68rem] font-medium uppercase"
+                      style={{ letterSpacing: '0.38em', color: skin.accent }}
+                    >
+                      Code vestimentaire
+                    </p>
+                    <div className="mt-3 flex flex-wrap items-start justify-center gap-3">
+                      {dressCode.map((image, index) => (
+                        <figure key={`${image.url}-${index}`} className="w-[7.75rem]">
+                          <img
+                            src={image.url}
+                            alt={image.caption || 'Tenue proposée'}
+                            className="h-28 w-full rounded-xl object-cover"
+                            style={{ border: `1px solid ${skin.line}` }}
+                          />
+                          {image.caption ? (
+                            <figcaption
+                              className="mt-1.5 text-center text-xs"
+                              style={{ color: skin.inkSoft }}
+                            >
+                              {image.caption}
+                            </figcaption>
+                          ) : null}
+                        </figure>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {program.length > 0 ? (
+                  <div className={dressCode.length > 0 ? 'mt-5' : 'mt-4'}>
+                    <p
+                      className="text-[0.68rem] font-medium uppercase"
+                      style={{ letterSpacing: '0.38em', color: skin.accent }}
+                    >
+                      Programme
+                    </p>
+                    <div className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-2.5 text-sm">
+                      {program.map((item, index) => (
+                        <div key={index} className="contents">
+                          <span
+                            className="whitespace-nowrap font-semibold uppercase"
+                            style={{ color: skin.accent, letterSpacing: '0.12em' }}
+                          >
+                            {formatProgramRange(item.start_time, item.end_time)}
+                          </span>
+                          <span style={{ color: skin.ink }}>{item.description}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </PanelCard>
+            ) : null}
+
             <PanelCard
-              theme={theme}
+              skin={skin}
               templateKey={data.event.template.key}
               title="Vérification QR"
               ornament={false}
               action={
-                <span className={`rounded-full px-2 py-1 text-[0.65rem] font-semibold ${STATUS_TONE[statusKey] ?? 'bg-surface-muted text-ink-soft'}`}>
+                <span
+                  className="inline-flex items-center rounded-full border px-2.5 py-1 text-[0.65rem] font-semibold"
+                  style={{ backgroundColor: skin.chipBg, borderColor: skin.line, color: skin.ink }}
+                >
                   {STATUS_LABEL[statusKey] ?? 'Valide'}
                 </span>
               }
             >
               <div
                 className="mt-4 flex items-center justify-center rounded-[1.4rem] p-4"
-                style={{ backgroundColor: theme.line, opacity: 0.9 }}
+                style={{ backgroundColor: skin.line }}
               >
                 {qrDataUrl ? (
                   <img
                     src={qrDataUrl}
                     alt="QR code de vérification"
                     className="h-40 w-40 rounded-xl bg-white p-2 shadow-sm"
-                    style={{ border: `1px solid ${theme.accent}55` }}
+                    style={{ border: `1px solid ${skin.accent}55` }}
                   />
                 ) : (
                   <div className="flex h-40 w-40 items-center justify-center rounded-xl bg-white text-xs text-ink-faint">
@@ -312,16 +378,16 @@ export function PublicInvitationPage() {
                 )}
               </div>
 
-              <p className="mt-4 text-sm" style={{ color: theme.inkSoft }}>
-                <span className="font-semibold" style={{ color: theme.accent }}>Vérification :</span>{' '}
-                <span style={{ color: theme.ink }}>
+              <p className="mt-4 text-sm" style={{ color: skin.inkSoft }}>
+                <span className="font-semibold" style={{ color: skin.accent }}>Vérification :</span>{' '}
+                <span style={{ color: skin.ink }}>
                   {verification.result === 'valid' ? 'Cette invitation est actuellement valide.' : verification.result === 'expired' ? 'Cette invitation a expiré.' : verification.result === 'revoked' ? 'Cette invitation a été révoquée.' : 'Ce lien est invalide.'}
                 </span>
               </p>
             </PanelCard>
 
             {data.preferences.enabled ? (
-              <PanelCard theme={theme} templateKey={data.event.template.key} title="Préférences" ornament={false}>
+              <PanelCard skin={skin} templateKey={data.event.template.key} title="Préférences" ornament={false}>
                 <form
                   className="mt-4 space-y-4"
                   onSubmit={(event) => {
@@ -343,11 +409,11 @@ export function PublicInvitationPage() {
                       <fieldset
                         key={question.id}
                         className="rounded-xl border p-3"
-                        style={{ borderColor: theme.line, backgroundColor: `${theme.line}55` }}
+                        style={{ borderColor: skin.line, backgroundColor: skin.softBg }}
                       >
-                        <legend className="text-sm font-medium" style={{ color: theme.ink }}>{question.label}</legend>
+                        <legend className="text-sm font-medium" style={{ color: skin.ink }}>{question.label}</legend>
                         {question.help_text ? (
-                          <p className="mt-1 text-[0.7rem] text-ink-soft">{question.help_text}</p>
+                          <p className="mt-1 text-[0.7rem]" style={{ color: skin.inkSoft }}>{question.help_text}</p>
                         ) : null}
 
                         <div className="mt-3 space-y-2">
@@ -359,7 +425,8 @@ export function PublicInvitationPage() {
                               <label
                                 key={option.id}
                                 htmlFor={optionId}
-                                className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-ink-soft transition hover:bg-white/60"
+                                className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition ${onDarkPaper ? 'hover:bg-white/10' : 'hover:bg-white/60'}`}
+                                style={{ color: skin.inkSoft }}
                               >
                                 <input
                                   id={optionId}
@@ -387,7 +454,7 @@ export function PublicInvitationPage() {
                                     })
                                   }}
                                   className="h-4 w-4"
-                                  style={{ accentColor: theme.accent }}
+                                  style={{ accentColor: skin.accent }}
                                 />
                                 <span>{option.label}</span>
                               </label>
@@ -399,12 +466,20 @@ export function PublicInvitationPage() {
                   })}
 
                   {submitMessage ? (
-                    <p role="status" className="text-sm font-medium text-success">
+                    <p
+                      role="status"
+                      className="text-sm font-medium text-success"
+                      style={onDarkPaper ? { color: '#9EE6BC' } : undefined}
+                    >
                       {submitMessage}
                     </p>
                   ) : null}
                   {submitError ? (
-                    <p role="alert" className="text-sm font-medium text-danger">
+                    <p
+                      role="alert"
+                      className="text-sm font-medium text-danger"
+                      style={onDarkPaper ? { color: '#FFB4A8' } : undefined}
+                    >
                       {submitError}
                     </p>
                   ) : null}
@@ -415,7 +490,7 @@ export function PublicInvitationPage() {
                     type="submit"
                     loading={submitMutation.isPending}
                     disabled={submitMutation.isPending}
-                    style={{ backgroundColor: theme.accent, borderColor: theme.accent }}
+                    style={{ backgroundColor: skin.accent, borderColor: skin.accent, color: skin.onAccent }}
                   >
                     Envoyer ma réponse
                   </Button>
@@ -423,32 +498,15 @@ export function PublicInvitationPage() {
               </PanelCard>
             ) : null}
 
-            <PanelCard theme={theme} templateKey={data.event.template.key} title="Actions">
-              <div className="mt-4 space-y-3">
+            <PanelCard skin={skin} templateKey={data.event.template.key} title="Actions">
+              <div className="mt-4">
                 <InvitationDownloadButton
                   targetRef={cardRef}
                   title={data.event.title}
                   guestName={data.invitation.display_name}
                   qrDataUrl={qrDataUrl}
+                  style={{ backgroundColor: skin.accent, borderColor: skin.accent, color: skin.onAccent }}
                 />
-                <div className="flex flex-wrap gap-3">
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    onClick={() => window.print()}
-                    style={{ borderColor: theme.accent, color: theme.accent }}
-                  >
-                    Imprimer
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="md"
-                    onClick={() => navigator.clipboard.writeText(window.location.href)}
-                    style={{ color: theme.accent }}
-                  >
-                    Copier le lien
-                  </Button>
-                </div>
               </div>
             </PanelCard>
           </aside>

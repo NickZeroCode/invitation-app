@@ -34,6 +34,29 @@ describe('api client', () => {
     await expect(authApi.logout()).resolves.toBeUndefined()
   })
 
+  it('registers a new organizer and posts the signup payload', async () => {
+    document.cookie = 'csrftoken=token-abc'
+    const mock = mockFetch([
+      { method: 'POST', url: '/api/auth/register/', status: 201, body: ORGANIZER },
+    ])
+
+    const user = await authApi.register({
+      email: 'organisateur@nickevents.cd',
+      password: 'mot-de-passe-secret',
+      confirm_password: 'mot-de-passe-secret',
+      first_name: 'Néhémie',
+      last_name: 'Kabongo',
+    })
+    expect(user.email).toBe('organisateur@nickevents.cd')
+    expect(mock.callsTo('/api/auth/register/', 'POST')[0].body).toEqual({
+      email: 'organisateur@nickevents.cd',
+      password: 'mot-de-passe-secret',
+      confirm_password: 'mot-de-passe-secret',
+      first_name: 'Néhémie',
+      last_name: 'Kabongo',
+    })
+  })
+
   it('surfaces the backend error envelope as ApiError', async () => {
     document.cookie = 'csrftoken=token-abc'
     mockFetch([
