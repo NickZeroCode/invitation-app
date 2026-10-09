@@ -740,7 +740,11 @@ describe('Parcours complet (E2E)', () => {
 
       await user.click(screen.getAllByRole('button', { name: "Créer l'événement" })[0])
       await waitFor(() => expect(router.state.location.pathname).toBe('/evenements'))
-      expect(await screen.findByText('Mariage de Grâce et Éric')).toBeInTheDocument()
+      // Scoped to the events-list row heading (h2): the live editor preview also
+      // renders the title (as an h1) and can still be mounted while the router
+      // commit is pending, which made findByText latch onto a node that was then
+      // unmounted before the assertion ran.
+      expect(await screen.findByText('Mariage de Grâce et Éric', { selector: 'h2' })).toBeInTheDocument()
 
       const createdEvent = backend.calls.find(
         (call) => call.method === 'POST' && call.url === '/api/events/',
@@ -779,7 +783,8 @@ describe('Parcours complet (E2E)', () => {
 
       // 8. QR verification: the panel checks the invitation on the server.
       expect((await screen.findAllByText('Valide')).length).toBeGreaterThan(0)
-      expect(screen.getByAltText('QR code de vérification')).toBeInTheDocument()
+      // findBy: the QR image only mounts after QRCode.toDataURL resolves.
+      expect(await screen.findByAltText('QR code de vérification')).toBeInTheDocument()
       expect(await screen.findByText('Cette invitation est actuellement valide.')).toBeInTheDocument()
       expect(backend.calls.some((call) => call.url.includes('/verify/'))).toBe(true)
 

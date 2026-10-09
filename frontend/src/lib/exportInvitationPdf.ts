@@ -26,7 +26,7 @@ import type { ReactElement } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import QRCode from 'qrcode'
-import { toJpeg } from 'html-to-image'
+import { toJpeg, toPng } from 'html-to-image'
 
 import { ExportDetailsPage } from '../templates/ExportDetailsPage.tsx'
 import { ExportQrPage } from '../templates/ExportQrPage.tsx'
@@ -161,7 +161,13 @@ async function inlineImages(node: HTMLElement): Promise<void> {
       const src = image.getAttribute('src') ?? ''
       if (!src || src.startsWith('data:')) return
       const dataUrl = await fetchAsDataUrl(src)
-      if (dataUrl) image.setAttribute('src', dataUrl)
+      if (!dataUrl) return
+      image.removeAttribute('srcset')
+      image.loading = 'eager'
+      image.setAttribute('src', dataUrl)
+      // Mobile browsers decode lazily: wait until the pixels are ready so the
+      // capture never snapshots an empty image box.
+      await image.decode?.().catch(() => undefined)
     }),
   )
 }
@@ -172,6 +178,29 @@ function measure(node: HTMLElement): { widthPx: number; heightPx: number } {
   const heightPx =
     node.offsetHeight || rect.height || (widthPx * A4_HEIGHT_MM) / A4_WIDTH_MM
   return { widthPx, heightPx }
+}
+
+/**
+ * Largest canvas area every mobile browser can allocate (iOS Safari caps a
+ * canvas at 16 777 216 px; beyond it the canvas silently comes back blank).
+ * A safety margin keeps long cards well inside it.
+ */
+const MAX_CANVAS_AREA = 16_000_000
+
+/** Print-grade pixel ratio that never exceeds the mobile canvas budget. */
+function safePixelRatio(widthPx: number, heightPx: number): number {
+  const target = Math.min(4, Math.max(2, TARGET_RASTER_PX / widthPx))
+  const budget = Math.sqrt(MAX_CANVAS_AREA / Math.max(1, widthPx * heightPx))
+  return Math.max(1, Math.min(target, budget))
+}
+
+/** True on WebKit engines: desktop Safari and every browser on iOS/iPadOS. */
+function isWebKit(): boolean {
+  if (typeof navigator === 'undefined') return false
+  const ua = navigator.userAgent
+  const iOS = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)
+  const safari = /AppleWebKit/.test(ua) && !/Chrome|Chromium|Edg|OPR|Android/.test(ua)
+  return iOS || safari
 }
 
 /** Verified 1×1 transparent PNG — stands in for images that cannot be inlined. */
@@ -195,6 +224,294 @@ function styleProperties(): string[] {
   return captureStyleProperties
 }
 
+/** Photo fit modes that need explicit crop maths when compositing. */
+type ObjectFit = 'fill' | 'contain' | 'cover' | 'none' | 'scale-down'
+
+/** A photo redrawn over the blank capture at its exact box. */
+interface PhotoLayer {
+  kind: 'photo'
+  element: HTMLImageElement
+  x: number
+  y: number
+  width: number
+  height: number
+  fit: ObjectFit
+  radii: [number, number, number, number]
+}
+
+/** An element painted over a photo (cover scrim band, names, ornament). */
+interface OverlayLayer {
+  kind: 'overlay'
+  element: HTMLElement
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+type CompositeLayer = PhotoLayer | OverlayLayer
+
+/**
+ * Can the WebKit compositing pass run here? Real browsers expose a 2D
+ * canvas; jsdom and happy-dom do not — and their UA strings impersonate
+ * Safari, so without this guard the tests would take the compositing path
+ * blind and see different capture behaviour.
+ */
+function canCompositeRaster(): boolean {
+  if (typeof navigator === 'undefined') return false
+  if (/jsdom|happy-dom/i.test(navigator.userAgent)) return false
+  try {
+    return document.createElement('canvas').getContext('2d') != null
+  } catch {
+    return false
+  }
+}
+
+function parseRadius(value: string, box: number): number {
+  const trimmed = value.trim()
+  const parsed = Number.parseFloat(trimmed)
+  if (!Number.isFinite(parsed)) return 0
+  return trimmed.endsWith('%') ? (box * parsed) / 100 : parsed
+}
+
+function effectiveZIndex(element: Element): number {
+  const value = Number.parseInt(window.getComputedStyle(element).zIndex, 10)
+  return Number.isFinite(value) ? value : 0
+}
+
+/**
+ * The photos to redraw and the elements painted over them (the cover scrim
+ * band and its names, decorative frames). The result keeps paint order —
+ * document order within a z-index level, which is exactly how the invitation
+ * templates stack their positioned layers.
+ */
+function collectCompositeLayers(node: HTMLElement): CompositeLayer[] {
+  const nodeRect = node.getBoundingClientRect()
+  const all = Array.from(node.querySelectorAll('*'))
+  const boxOf = (element: Element) => {
+    const rect = element.getBoundingClientRect()
+    return {
+      x: rect.left - nodeRect.left,
+      y: rect.top - nodeRect.top,
+      width: rect.width,
+      height: rect.height,
+    }
+  }
+  const overlaps = (
+    a: { x: number; y: number; width: number; height: number },
+    b: { x: number; y: number; width: number; height: number },
+  ) =>
+    Math.min(a.x + a.width, b.x + b.width) > Math.max(a.x, b.x) &&
+    Math.min(a.y + a.height, b.y + b.height) > Math.max(a.y, b.y)
+
+  const photos: PhotoLayer[] = []
+  for (const image of Array.from(node.querySelectorAll('img'))) {
+    const box = boxOf(image)
+    if (box.width <= 0 || box.height <= 0) continue
+    if (image.complete && image.naturalWidth === 0) continue
+    const computed = window.getComputedStyle(image)
+    const fit = computed.objectFit as ObjectFit
+    photos.push({
+      kind: 'photo',
+      element: image,
+      ...box,
+      fit:
+        fit === 'contain' || fit === 'cover' || fit === 'none' || fit === 'scale-down'
+          ? fit
+          : 'fill',
+      radii: [
+        parseRadius(computed.borderTopLeftRadius, Math.min(box.width, box.height)),
+        parseRadius(computed.borderTopRightRadius, Math.min(box.width, box.height)),
+        parseRadius(computed.borderBottomRightRadius, Math.min(box.width, box.height)),
+        parseRadius(computed.borderBottomLeftRadius, Math.min(box.width, box.height)),
+      ],
+    })
+  }
+
+  const photoElements = new Set<Element>(photos.map((photo) => photo.element))
+  const overlays: OverlayLayer[] = []
+  for (const photo of photos) {
+    const photoZ = effectiveZIndex(photo.element)
+    for (const candidate of all) {
+      if (candidate === photo.element) continue
+      // Ancestors would repaint the photo's own area, descendants belong to
+      // the photo's box, and other photos have their own layer.
+      if (candidate.contains(photo.element) || photo.element.contains(candidate)) continue
+      if (photoElements.has(candidate)) continue
+      // Only positioned elements paint over an earlier positioned photo;
+      // in-flow siblings paint below it.
+      if (window.getComputedStyle(candidate).position === 'static') continue
+      const z = effectiveZIndex(candidate)
+      if (z < photoZ) continue
+      if (
+        z === photoZ &&
+        (candidate.compareDocumentPosition(photo.element) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
+      ) {
+        continue
+      }
+      if (!overlaps(boxOf(candidate), photo)) continue
+      if (overlays.some((overlay) => overlay.element === candidate)) continue
+      overlays.push({ kind: 'overlay', element: candidate as HTMLElement, ...boxOf(candidate) })
+    }
+  }
+  // When one overlay contains another, capturing the outer slice already
+  // paints the inner one — keep the outermost only.
+  const topOverlays = overlays.filter(
+    (overlay) =>
+      !overlays.some((other) => other !== overlay && other.element.contains(overlay.element)),
+  )
+
+  const order = new Map<Element, number>()
+  all.forEach((element, position) => order.set(element, position))
+  const layers: CompositeLayer[] = [...photos, ...topOverlays]
+  layers.sort((a, b) => {
+    const za = effectiveZIndex(a.element)
+    const zb = effectiveZIndex(b.element)
+    return za !== zb ? za - zb : (order.get(a.element) ?? 0) - (order.get(b.element) ?? 0)
+  })
+  return layers
+}
+
+function loadImageElement(source: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(new Error('image failed to load'))
+    image.src = source
+  })
+}
+
+function roundedRectPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radii: readonly [number, number, number, number],
+): void {
+  const max = Math.min(width, height) / 2
+  const tl = Math.max(0, Math.min(radii[0], max))
+  const tr = Math.max(0, Math.min(radii[1], max))
+  const br = Math.max(0, Math.min(radii[2], max))
+  const bl = Math.max(0, Math.min(radii[3], max))
+  ctx.beginPath()
+  ctx.moveTo(x + tl, y)
+  ctx.arcTo(x + width, y, x + width, y + height, tr)
+  ctx.arcTo(x + width, y + height, x, y + height, br)
+  ctx.arcTo(x, y + height, x, y, bl)
+  ctx.arcTo(x, y, x + width, y, tl)
+  ctx.closePath()
+}
+
+function drawPhotoLayer(
+  ctx: CanvasRenderingContext2D,
+  layer: PhotoLayer,
+  photo: HTMLImageElement,
+  scale: number,
+): void {
+  const x = layer.x * scale
+  const y = layer.y * scale
+  const width = layer.width * scale
+  const height = layer.height * scale
+  const naturalWidth = photo.naturalWidth || photo.width
+  const naturalHeight = photo.naturalHeight || photo.height
+  if (!naturalWidth || !naturalHeight) return
+  const radii = layer.radii.map((radius) => radius * scale) as [number, number, number, number]
+  ctx.save()
+  roundedRectPath(ctx, x, y, width, height, radii)
+  ctx.clip()
+  let sx = 0
+  let sy = 0
+  let sw = naturalWidth
+  let sh = naturalHeight
+  let dx = x
+  let dy = y
+  let dw = width
+  let dh = height
+  if (layer.fit === 'cover') {
+    const ratio = Math.max(width / naturalWidth, height / naturalHeight)
+    sw = width / ratio
+    sh = height / ratio
+    sx = (naturalWidth - sw) / 2
+    sy = (naturalHeight - sh) / 2
+  } else if (layer.fit === 'contain' || layer.fit === 'scale-down') {
+    const ratio =
+      layer.fit === 'scale-down'
+        ? Math.min(1, width / naturalWidth, height / naturalHeight)
+        : Math.min(width / naturalWidth, height / naturalHeight)
+    dw = naturalWidth * ratio
+    dh = naturalHeight * ratio
+    dx = x + (width - dw) / 2
+    dy = y + (height - dh) / 2
+  } else if (layer.fit === 'none') {
+    dx = x + (width - naturalWidth) / 2
+    dy = y + (height - naturalHeight) / 2
+    dw = naturalWidth
+    dh = naturalHeight
+  }
+  ctx.drawImage(photo, sx, sy, sw, sh, dx, dy, dw, dh)
+  ctx.restore()
+}
+
+/**
+ * Paint the blank capture, then every photo and every element that paints
+ * over one, in paint order. The photos arrive at print scale and never go
+ * through the engine's SVG decode race.
+ */
+async function compositeLayers(
+  base: string,
+  layers: CompositeLayer[],
+  pixelRatio: number,
+  widthPx: number,
+  heightPx: number,
+): Promise<string> {
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(widthPx * pixelRatio))
+  canvas.height = Math.max(1, Math.round(heightPx * pixelRatio))
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('2d canvas unavailable')
+  ctx.drawImage(await loadImageElement(base), 0, 0, canvas.width, canvas.height)
+  for (const layer of layers) {
+    if (layer.kind === 'photo') {
+      const source = layer.element.currentSrc || layer.element.src
+      if (!source) continue
+      try {
+        drawPhotoLayer(ctx, layer, await loadImageElement(source), pixelRatio)
+      } catch {
+        // One undrawable photo never takes the whole page down.
+      }
+      continue
+    }
+    // Overlays are captured as transparent PNG slices and redrawn at their
+    // exact box so scrims, names and ornaments keep painting over the photo.
+    const slice = await toPng(layer.element, {
+      pixelRatio: safePixelRatio(layer.width, layer.height),
+      backgroundColor: '',
+      imagePlaceholder: IMAGE_PLACEHOLDER,
+      onImageErrorHandler: () => undefined,
+      includeStyleProperties: styleProperties(),
+      style: {
+        position: 'absolute' as const,
+        left: '0px',
+        top: '0px',
+        right: 'auto',
+        bottom: 'auto',
+        margin: '0px',
+        width: `${layer.width}px`,
+        height: `${layer.height}px`,
+      },
+    })
+    ctx.drawImage(
+      await loadImageElement(slice),
+      layer.x * pixelRatio,
+      layer.y * pixelRatio,
+      layer.width * pixelRatio,
+      layer.height * pixelRatio,
+    )
+  }
+  return canvas.toDataURL('image/jpeg', 0.95)
+}
+
 /**
  * Rasterize a node at print resolution (JPEG for compact pages).
  *
@@ -208,10 +525,18 @@ function styleProperties(): string[] {
  * - the clone is forced back on-canvas — the off-screen host's `position:
  *   fixed` is copied onto the clone and would paint 20 000 px outside the
  *   capture viewport (blank page).
+ *
+ * On WebKit (Safari and every iOS browser) the engine snapshots the SVG
+ * clone before its embedded photos finish decoding, which produced blank
+ * photo boxes; the warm-up passes that papered over it doubled every
+ * capture. Instead the node is captured without its photos and the photos —
+ * plus the elements painted over them, like the cover names band — are
+ * composited back at their exact boxes with object-fit and border-radius
+ * honoured. Other engines capture in one pass exactly as before.
  */
 async function captureRaster(node: HTMLElement): Promise<PageRaster> {
   const { widthPx, heightPx } = measure(node)
-  const pixelRatio = Math.min(4, Math.max(2, TARGET_RASTER_PX / widthPx))
+  const pixelRatio = safePixelRatio(widthPx, heightPx)
   const neutralized: Array<{ image: HTMLImageElement; source: string }> = []
   for (const image of Array.from(node.querySelectorAll('img'))) {
     const source = image.getAttribute('src') ?? ''
@@ -221,16 +546,46 @@ async function captureRaster(node: HTMLElement): Promise<PageRaster> {
     }
   }
   try {
-    const dataUrl = await toJpeg(node, {
+    const options = {
       pixelRatio,
       quality: 0.95,
       backgroundColor: '#ffffff',
       imagePlaceholder: IMAGE_PLACEHOLDER,
       onImageErrorHandler: () => undefined,
       includeStyleProperties: styleProperties(),
-      style: { position: 'static', left: '0px', top: '0px' },
-    })
-    return { dataUrl, widthPx, heightPx }
+      style: { position: 'static' as const, left: '0px', top: '0px' },
+    }
+    const layers = isWebKit() && canCompositeRaster() ? collectCompositeLayers(node) : []
+    if (layers.length === 0) {
+      const dataUrl = await toJpeg(node, options)
+      return { dataUrl, widthPx, heightPx }
+    }
+    const hidden: Array<{ element: HTMLElement; visibility: string }> = []
+    for (const layer of layers) {
+      hidden.push({ element: layer.element, visibility: layer.element.style.visibility })
+      layer.element.style.visibility = 'hidden'
+    }
+    let base: string
+    try {
+      base = await toJpeg(node, options)
+    } finally {
+      for (const entry of hidden) {
+        entry.element.style.visibility = entry.visibility
+      }
+    }
+    try {
+      return {
+        dataUrl: await compositeLayers(base, layers, pixelRatio, widthPx, heightPx),
+        widthPx,
+        heightPx,
+      }
+    } catch (error) {
+      // Compositing is an optimisation: if it cannot run (tainted canvas,
+      // allocation failure) the plain capture with visible photos wins.
+      console.warn('[exportInvitationPdf] photo compositing skipped', error)
+      const dataUrl = await toJpeg(node, options)
+      return { dataUrl, widthPx, heightPx }
+    }
   } finally {
     for (const entry of neutralized) {
       entry.image.setAttribute('src', entry.source)
