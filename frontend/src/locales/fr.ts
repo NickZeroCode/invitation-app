@@ -481,7 +481,7 @@ export const fr = {
     },
     showcase: {
       title: 'Une collection signée par le design',
-      subtitle: 'Sept modèles originaux, dessinés comme des pièces de papeterie : hiérarchie typographique, ornements et couleurs harmonieuses.',
+      subtitle: 'Des modèles originaux, dessinés comme des pièces de papeterie : hiérarchie typographique, ornements et couleurs harmonieuses.',
       cta: 'Se connecter pour choisir votre modèle',
     },
     finalCta: {

@@ -56,8 +56,10 @@ export function AppShell() {
   return (
     <div className="min-h-svh bg-paper">
       <MobileTopBar />
+      {/* Workspace pages paint their own full-height backgrounds (down under the
+          fixed tab bar) so no paper band can show below their content. */}
       {workspace ? (
-        <main className="min-w-0 pb-[4.75rem]">
+        <main className="min-w-0">
           <Outlet />
         </main>
       ) : (

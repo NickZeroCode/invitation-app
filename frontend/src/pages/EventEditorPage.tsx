@@ -508,15 +508,15 @@ export function EventEditorPage() {
         </nav>
       ) : null}
 
-      <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[21rem_1fr_21rem] xl:grid-cols-[23rem_1fr_24rem]">
+      <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[19rem_1fr_20rem] xl:grid-cols-[21rem_1fr_22rem]">
         {/* LEFT — what the invitation says. */}
         <section
           aria-label={fr.editor.tabContent}
-          className={`min-h-0 border-line bg-surface lg:overflow-y-auto lg:border-r ${
+          className={`min-h-0 flex-1 border-line bg-surface max-lg:pb-[4.75rem] lg:overflow-y-auto lg:border-r ${
             isDesktop || mobileTab === 'contenu' ? '' : 'hidden'
           }`}
         >
-          <div className="space-y-8 px-4 py-6 lg:px-5">
+          <div className="space-y-7 px-4 py-5 lg:px-4">
             <section className="space-y-4">
               <SectionTitle>{fr.editor.contentTitle}</SectionTitle>
               <Field
@@ -549,7 +549,7 @@ export function EventEditorPage() {
 
             <section className="space-y-4">
               <SectionTitle>{fr.editor.scheduleTitle}</SectionTitle>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-2 gap-3">
                 <Field
                   id="event-date"
                   label={fr.editor.dateLabel}
@@ -578,6 +578,8 @@ export function EventEditorPage() {
                     onChange={(event) => setEventTime(event.target.value)}
                   />
                 </Field>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
                 <Field
                   id="event-timezone"
                   label={fr.editor.timezoneLabel}
@@ -630,7 +632,7 @@ export function EventEditorPage() {
             <section className="space-y-4">
               <SectionTitle
                 action={
-                  <label className="inline-flex h-9 cursor-pointer items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
+                  <label className="relative inline-flex h-9 cursor-pointer items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
                     {fr.editor.dressCodeUpload}
                     <input
                       type="file"
@@ -649,7 +651,7 @@ export function EventEditorPage() {
               </SectionTitle>
               <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.dressCodeHint}</p>
               {dressRows.length === 0 ? null : (
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3">
                   {dressRows.map((row, index) => (
                     <div
                       key={row.id ?? `new-${index}`}
@@ -658,7 +660,7 @@ export function EventEditorPage() {
                       <img
                         src={row.url}
                         alt=""
-                        className="h-32 w-full rounded-md border border-line object-cover"
+                        className="h-24 w-full rounded-md border border-line object-cover"
                       />
                       <Field
                         id={`dress-${index}-caption`}
@@ -964,7 +966,7 @@ export function EventEditorPage() {
             </section>
           </div>
           {/* Submit at the end of the form — same action as the header button. */}
-          <div className="sticky bottom-0 flex items-center justify-end gap-2 border-t border-line bg-surface px-4 py-3 lg:px-5">
+          <div className="sticky bottom-[4.75rem] flex items-center justify-end gap-2 border-t border-line bg-surface px-4 py-3 lg:bottom-0 lg:px-4">
             <Link
               to="/evenements"
               className="inline-flex h-10 items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
@@ -977,10 +979,10 @@ export function EventEditorPage() {
           </div>
         </section>
 
-        {/* CENTER — the invitation itself. */}
+        {/* CENTER — the invitation itself, staged like a piece on a drafting canvas. */}
         <section
           aria-label={fr.editor.tabPreview}
-          className={`flex min-h-0 flex-col bg-surface-muted/50 lg:overflow-y-auto ${
+          className={`canvas-grid flex min-h-0 flex-1 flex-col max-lg:pb-[4.75rem] lg:overflow-y-auto ${
             isDesktop || mobileTab === 'apercu' ? '' : 'hidden'
           }`}
         >
@@ -999,8 +1001,8 @@ export function EventEditorPage() {
               qrText={`${window.location.origin}/`}
             />
           </div>
-          <div className="flex flex-1 justify-center px-4 py-6 lg:px-8 lg:py-8">
-            <div className="w-full max-w-[24rem] overflow-hidden rounded-lg bg-surface shadow-canvas ring-1 ring-line">
+          <div className="flex flex-1 justify-center px-4 py-6 lg:px-10 lg:py-10">
+            <div className="w-full max-w-[26rem] overflow-hidden rounded-lg bg-surface shadow-canvas ring-1 ring-line-strong xl:max-w-[30rem] 2xl:max-w-[34rem]">
               <div
                 ref={previewCardRef}
                 className="flex w-full flex-col"
@@ -1018,11 +1020,11 @@ export function EventEditorPage() {
         {/* RIGHT — how the invitation looks. */}
         <section
           aria-label={fr.editor.tabDesign}
-          className={`min-h-0 border-line bg-surface lg:overflow-y-auto lg:border-l ${
+          className={`min-h-0 flex-1 border-line bg-surface max-lg:pb-[4.75rem] lg:overflow-y-auto lg:border-l ${
             isDesktop || mobileTab === 'design' ? '' : 'hidden'
           }`}
         >
-          <div className="space-y-8 px-4 py-6 lg:px-5">
+          <div className="space-y-7 px-4 py-5 lg:px-4">
             <section className="space-y-3">
               <SectionTitle>{fr.editor.templateLabel}</SectionTitle>
               <Select
@@ -1063,7 +1065,7 @@ export function EventEditorPage() {
                         role="radio"
                         aria-checked={selected}
                         onClick={() => setMessageFont(font.key)}
-                        className={`flex items-center gap-2 whitespace-nowrap rounded-pill border px-3.5 py-2 text-sm transition-colors duration-150 ${
+                        className={`flex items-center gap-2 whitespace-nowrap rounded-pill border px-3 py-1.5 text-sm transition-colors duration-150 ${
                           selected
                             ? 'border-ink bg-ink text-paper'
                             : 'border-line-strong text-ink-soft hover:border-ink/40 hover:text-ink'
@@ -1101,7 +1103,7 @@ export function EventEditorPage() {
                         role="radio"
                         aria-checked={selected}
                         onClick={() => setFontSize(size.key)}
-                        className={`flex items-center gap-2 whitespace-nowrap rounded-pill border px-3.5 py-2 text-sm transition-colors duration-150 ${
+                        className={`flex items-center gap-2 whitespace-nowrap rounded-pill border px-3 py-1.5 text-sm transition-colors duration-150 ${
                           selected
                             ? 'border-ink bg-ink text-paper'
                             : 'border-line-strong text-ink-soft hover:border-ink/40 hover:text-ink'
@@ -1167,7 +1169,7 @@ export function EventEditorPage() {
                     </Button>
                   </div>
                 ) : (
-                  <label className="inline-flex h-10 cursor-pointer items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
+                  <label className="relative inline-flex h-10 cursor-pointer items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
                     {fr.editor.coverUpload}
                     <input
                       type="file"

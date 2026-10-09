@@ -12,6 +12,7 @@ import QRCode from 'qrcode'
 import {
   Badge,
   BrandLockup,
+  buttonClasses,
   IconCheck,
   IconEvents,
   IconInbox,
@@ -24,11 +25,13 @@ import { getTemplate, sampleDraft, TEMPLATES } from '../templates/registry.tsx'
 
 const CURRENT_YEAR = new Date().getFullYear()
 
-const CTA_BASE =
-  'inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40'
-const PRIMARY_CTA = `${CTA_BASE} h-10 px-5 text-sm bg-brand text-white hover:bg-brand-strong`
-const SECONDARY_CTA = `${CTA_BASE} h-10 px-5 text-sm border border-line-strong bg-surface text-ink hover:bg-surface-muted`
-const HEADER_CTA = `${CTA_BASE} h-8 px-3 text-xs bg-brand text-white hover:bg-brand-strong`
+/** Shared page rhythm — one measure, one padding scale, everywhere. */
+const SECTION = 'mx-auto max-w-6xl px-4 sm:px-6 lg:px-8'
+const SECTION_Y = 'py-20 lg:py-28'
+
+/** Small-caps eyebrow framed by hairline rules — the page's editorial signature. */
+const EYEBROW =
+  'inline-flex items-center justify-center gap-3 text-[0.6875rem] font-semibold uppercase tracking-[0.24em] text-brand'
 
 const HERO_TEMPLATE_KEYS = ['heritage-luxe', 'confetti', 'soiree-formelle']
 
@@ -44,7 +47,7 @@ function TemplatePreview({
   const definition = getTemplate(templateKey)
   return (
     <div
-      className={`aspect-[3/4] w-full overflow-hidden rounded-md border border-line bg-surface-muted ${className}`}
+      className={`aspect-[3/4] w-full overflow-hidden rounded-lg border border-line bg-surface-muted ${className}`}
       role="img"
       aria-label={
         definition
@@ -84,102 +87,118 @@ export function LandingPage() {
     <div className="min-h-svh bg-paper">
       <a
         href="#contenu"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-30 focus:rounded-md focus:bg-brand focus:px-4 focus:py-2 focus:text-sm focus:text-white"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-30 focus:rounded-md focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-white"
       >
         {fr.landing.nav.skipToContent}
       </a>
 
-      <header className="sticky top-0 z-20 border-b border-line bg-paper">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-20 border-b border-line/70 bg-paper/85 backdrop-blur-md">
+        <div className={`flex h-16 items-center justify-between gap-4 ${SECTION}`}>
           <Link to="/">
             <BrandLockup />
           </Link>
           <nav
             aria-label={fr.landing.nav.ariaLabel}
-            className="hidden items-center gap-7 text-sm text-ink-soft sm:flex"
+            className="hidden items-center gap-8 text-[0.9375rem] text-ink-soft lg:flex"
           >
-            <a className="transition-colors hover:text-ink" href="#modeles">
-              {fr.landing.nav.templates}
-            </a>
-            <a className="transition-colors hover:text-ink" href="#avantages">
-              {fr.landing.nav.benefits}
-            </a>
-            <a className="transition-colors hover:text-ink" href="#fonctionnement">
-              {fr.landing.nav.howItWorks}
-            </a>
-            <a className="transition-colors hover:text-ink" href="#verification">
-              {fr.landing.nav.verification}
-            </a>
+            {[
+              ['modeles', fr.landing.nav.templates],
+              ['avantages', fr.landing.nav.benefits],
+              ['fonctionnement', fr.landing.nav.howItWorks],
+              ['verification', fr.landing.nav.verification],
+            ].map(([href, label]) => (
+              <a
+                key={href}
+                className="underline-offset-4 transition-colors hover:text-ink hover:underline"
+                href={`#${href}`}
+              >
+                {label}
+              </a>
+            ))}
           </nav>
-          <Link to="/inscription" className={HEADER_CTA}>
-            {fr.landing.nav.signup}
-          </Link>
-          <Link
-            to="/connexion"
-            className="text-sm font-medium text-ink-soft transition-colors hover:text-ink"
-          >
-            {fr.landing.nav.login}
-          </Link>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="hidden sm:block">
+              <Link to="/connexion" className={buttonClasses('ghost', 'sm', 'text-ink-soft')}>
+                {fr.landing.nav.login}
+              </Link>
+            </span>
+            <Link to="/inscription" className={buttonClasses('primary', 'sm')}>
+              {fr.landing.nav.signup}
+            </Link>
+          </div>
         </div>
       </header>
 
       <main id="contenu">
-        <section className="mx-auto max-w-6xl px-4 pb-16 pt-14 sm:px-6 sm:pt-20 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-brand">
-              {fr.landing.hero.eyebrow}
-            </p>
-            <h1 className="mt-5 font-display text-4xl leading-[1.08] text-ink sm:text-5xl lg:text-6xl">
-              {fr.landing.hero.title}
-            </h1>
-            <p className="mt-6 text-base leading-relaxed text-ink-soft sm:text-lg">
-              {fr.landing.hero.text}
-            </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Link to="/inscription" className={PRIMARY_CTA}>
-                {fr.landing.hero.signupCta}
-              </Link>
-              <Link to="/connexion" className={SECONDARY_CTA}>
-                {fr.landing.hero.primaryCta}
-              </Link>
-              <a href="#modeles" className={SECONDARY_CTA}>
-                {fr.landing.hero.secondaryCta}
-              </a>
+        <section className="relative">
+          <div className={`pb-16 pt-16 text-center sm:pt-20 lg:pb-20 lg:pt-24 ${SECTION}`}>
+            <div className="mx-auto max-w-3xl">
+              <p className={EYEBROW}>
+                <span aria-hidden="true" className="hidden h-px w-8 bg-gold sm:block" />
+                {fr.landing.hero.eyebrow}
+                <span aria-hidden="true" className="hidden h-px w-8 bg-gold sm:block" />
+              </p>
+              <h1 className="mt-6 font-display text-[2.75rem] leading-[1.05] tracking-[-0.015em] text-ink sm:text-6xl lg:text-7xl">
+                {fr.landing.hero.title}
+              </h1>
+              <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-ink-soft sm:text-lg">
+                {fr.landing.hero.text}
+              </p>
+              <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+                <Link to="/inscription" className={buttonClasses('primary', 'lg')}>
+                  {fr.landing.hero.signupCta}
+                </Link>
+                <Link to="/connexion" className={buttonClasses('secondary', 'lg')}>
+                  {fr.landing.hero.primaryCta}
+                </Link>
+                <a href="#modeles" className={buttonClasses('ghost', 'lg')}>
+                  {fr.landing.hero.secondaryCta}
+                </a>
+              </div>
+              <ul className="mx-auto mt-8 flex max-w-2xl flex-wrap items-center justify-center gap-x-7 gap-y-2 text-[0.8125rem] text-ink-soft">
+                {(
+                  [
+                    fr.landing.hero.point1,
+                    fr.landing.hero.point2,
+                    fr.landing.hero.point3,
+                  ] as const
+                ).map((point) => (
+                  <li key={point} className="flex items-center gap-2">
+                    <IconCheck className="h-4 w-4 text-brand" />
+                    {point}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink-soft">
-              {(
-                [
-                  fr.landing.hero.point1,
-                  fr.landing.hero.point2,
-                  fr.landing.hero.point3,
-                ] as const
-              ).map((point) => (
-                <li key={point} className="flex items-center gap-2">
-                  <IconCheck className="h-4 w-4 text-brand" />
-                  {point}
-                </li>
-              ))}
-            </ul>
           </div>
 
-          <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6">
-            {HERO_TEMPLATE_KEYS.map((templateKey, index) => (
-              <div
-                key={templateKey}
-                className={
-                  index === 0
-                    ? 'mx-auto w-full max-w-[260px] sm:max-w-none'
-                    : 'hidden sm:block'
-                }
-              >
-                <TemplatePreview
-                  templateKey={templateKey}
-                  className={
-                    index === 1 ? 'sm:mt-10' : index === 2 ? 'sm:mt-5' : ''
-                  }
-                />
+          {/* The collection itself, staged on the drafting canvas. */}
+          <div className="canvas-grid border-y border-line">
+            <div className={`pb-16 pt-14 lg:pb-20 lg:pt-16 ${SECTION}`}>
+              <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-8">
+                {HERO_TEMPLATE_KEYS.map((templateKey, index) => (
+                  <div
+                    key={templateKey}
+                    className={
+                      index === 0
+                        ? 'mx-auto w-full max-w-[280px] sm:max-w-none'
+                        : 'hidden sm:block'
+                    }
+                  >
+                    <TemplatePreview
+                      templateKey={templateKey}
+                      className={
+                        index === 0
+                          ? 'shadow-canvas'
+                          : index === 1
+                            ? 'shadow-raised sm:mt-12'
+                            : 'shadow-raised sm:mt-6'
+                      }
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         </section>
 
@@ -188,25 +207,25 @@ export function LandingPage() {
           aria-labelledby="avantages-titre"
           className="scroll-mt-20 border-t border-line bg-surface"
         >
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+          <div className={`${SECTION} ${SECTION_Y}`}>
             <div className="max-w-2xl">
               <h2
                 id="avantages-titre"
-                className="font-display text-3xl leading-tight text-ink sm:text-4xl"
+                className="font-display text-3xl leading-tight tracking-[-0.01em] text-ink sm:text-4xl lg:text-[2.75rem]"
               >
                 {fr.landing.benefits.title}
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-ink-soft">
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-soft">
                 {fr.landing.benefits.subtitle}
               </p>
             </div>
-            <ul className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
               {fr.landing.benefits.items.map((item, index) => {
                 const Icon = BENEFIT_ICONS[index % BENEFIT_ICONS.length]
                 return (
-                  <li key={item.title}>
+                  <li key={item.title} className="border-t border-line-strong pt-6">
                     <Icon className="h-6 w-6 text-brand" />
-                    <h3 className="mt-4 text-base font-semibold text-ink">
+                    <h3 className="mt-5 text-base font-semibold tracking-[-0.005em] text-ink">
                       {item.title}
                     </h3>
                     <p className="mt-2 text-sm leading-relaxed text-ink-soft">
@@ -224,25 +243,25 @@ export function LandingPage() {
           aria-labelledby="fonctionnement-titre"
           className="scroll-mt-20 border-t border-line"
         >
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+          <div className={`${SECTION} ${SECTION_Y}`}>
             <div className="max-w-2xl">
               <h2
                 id="fonctionnement-titre"
-                className="font-display text-3xl leading-tight text-ink sm:text-4xl"
+                className="font-display text-3xl leading-tight tracking-[-0.01em] text-ink sm:text-4xl lg:text-[2.75rem]"
               >
                 {fr.landing.howItWorks.title}
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-ink-soft">
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-soft">
                 {fr.landing.howItWorks.subtitle}
               </p>
             </div>
-            <ol className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <ol className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
               {fr.landing.howItWorks.steps.map((step, index) => (
-                <li key={step.title} className="border-t border-line pt-5">
-                  <p className="font-display text-2xl text-brand">
+                <li key={step.title} className="border-t border-line-strong pt-6">
+                  <p className="font-display text-3xl leading-none text-gold">
                     {String(index + 1).padStart(2, '0')}
                   </p>
-                  <h3 className="mt-3 text-base font-semibold text-ink">
+                  <h3 className="mt-4 text-base font-semibold tracking-[-0.005em] text-ink">
                     {step.title}
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-ink-soft">
@@ -259,23 +278,25 @@ export function LandingPage() {
           aria-labelledby="occasions-titre"
           className="scroll-mt-20 border-t border-line"
         >
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+          <div className={`${SECTION} ${SECTION_Y}`}>
             <div className="max-w-2xl">
               <h2
                 id="occasions-titre"
-                className="font-display text-3xl leading-tight text-ink sm:text-4xl"
+                className="font-display text-3xl leading-tight tracking-[-0.01em] text-ink sm:text-4xl lg:text-[2.75rem]"
               >
                 {fr.landing.categories.title}
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-ink-soft">
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-soft">
                 {fr.landing.categories.subtitle}
               </p>
             </div>
-            <ul className="mt-10 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-12 grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
               {fr.landing.categories.items.map((category) => (
                 <li key={category.name} className="border-t border-line pt-4">
-                  <h3 className="text-sm font-semibold text-ink">{category.name}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
+                  <h3 className="text-[0.8125rem] font-semibold uppercase tracking-[0.12em] text-ink">
+                    {category.name}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-soft">
                     {category.text}
                   </p>
                 </li>
@@ -287,20 +308,22 @@ export function LandingPage() {
         <section
           id="verification"
           aria-labelledby="verification-titre"
-          className="scroll-mt-20 border-t border-line bg-surface"
+          className="canvas-grid scroll-mt-20 border-t border-line"
         >
-          <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-20">
+          <div
+            className={`grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16 ${SECTION} ${SECTION_Y}`}
+          >
             <div>
               <h2
                 id="verification-titre"
-                className="font-display text-3xl leading-tight text-ink sm:text-4xl"
+                className="font-display text-3xl leading-tight tracking-[-0.01em] text-ink sm:text-4xl lg:text-[2.75rem]"
               >
                 {fr.landing.verification.title}
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-ink-soft">
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-soft">
                 {fr.landing.verification.text}
               </p>
-              <ul className="mt-6 space-y-3">
+              <ul className="mt-8 space-y-3.5">
                 {fr.landing.verification.points.map((point) => (
                   <li
                     key={point}
@@ -313,18 +336,18 @@ export function LandingPage() {
               </ul>
             </div>
             <div className="flex justify-center">
-              <div className="w-full max-w-sm rounded-md border border-line bg-surface-muted p-8">
+              <div className="w-full max-w-sm rounded-xl border border-line bg-surface p-8 shadow-canvas">
                 <div className="flex flex-col items-center text-center">
                   <Badge tone="brand">{fr.appName}</Badge>
                   {qrDataUrl ? (
                     <img
                       src={qrDataUrl}
                       alt={fr.landing.verification.qrAlt}
-                      className="mt-5 h-40 w-40 rounded-xl bg-white p-2 shadow-sm"
+                      className="mt-6 h-40 w-40 rounded-xl bg-white p-2 shadow-sm ring-1 ring-line"
                     />
                   ) : (
                     <div
-                      className="mt-5 h-40 w-40 rounded-xl bg-white"
+                      className="mt-6 h-40 w-40 rounded-xl bg-white ring-1 ring-line"
                       aria-hidden="true"
                     />
                   )}
@@ -340,26 +363,26 @@ export function LandingPage() {
         <section
           id="modeles"
           aria-labelledby="modeles-titre"
-          className="scroll-mt-20 border-t border-line"
+          className="scroll-mt-20 border-t border-line bg-surface"
         >
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+          <div className={`${SECTION} ${SECTION_Y}`}>
             <div className="max-w-2xl">
               <h2
                 id="modeles-titre"
-                className="font-display text-3xl leading-tight text-ink sm:text-4xl"
+                className="font-display text-3xl leading-tight tracking-[-0.01em] text-ink sm:text-4xl lg:text-[2.75rem]"
               >
                 {fr.landing.showcase.title}
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-ink-soft">
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-soft">
                 {fr.landing.showcase.subtitle}
               </p>
             </div>
-            <ul className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
               {TEMPLATES.map((template) => (
                 <li key={template.key}>
-                  <TemplatePreview templateKey={template.key} />
-                  <div className="mt-4 flex items-center justify-between gap-3">
-                    <h3 className="text-base font-semibold text-ink">
+                  <TemplatePreview templateKey={template.key} className="shadow-card" />
+                  <div className="mt-5 flex items-center justify-between gap-3">
+                    <h3 className="text-base font-semibold tracking-[-0.005em] text-ink">
                       {template.name}
                     </h3>
                     <Badge tone="neutral">{template.categoryLabel}</Badge>
@@ -370,8 +393,8 @@ export function LandingPage() {
                 </li>
               ))}
             </ul>
-            <div className="mt-12 flex justify-center">
-              <Link to="/connexion" className={PRIMARY_CTA}>
+            <div className="mt-14 flex justify-center">
+              <Link to="/connexion" className={buttonClasses('primary', 'lg')}>
                 {fr.landing.showcase.cta}
               </Link>
             </div>
@@ -379,20 +402,17 @@ export function LandingPage() {
         </section>
 
         <section className="border-t border-line bg-ink">
-          <div className="mx-auto flex max-w-3xl flex-col items-center px-4 py-16 text-center sm:px-6 lg:px-8 lg:py-20">
+          <div className={`flex flex-col items-center text-center ${SECTION} ${SECTION_Y}`}>
             {/* The full logo lockup, plateless on the dark band. */}
             <LogoArtwork className="w-[min(64vw,24rem)]" />
-            <h2 className="mt-10 font-display text-3xl leading-tight text-white sm:text-4xl">
+            <h2 className="mt-10 font-display text-3xl leading-tight tracking-[-0.01em] text-white sm:text-4xl lg:text-[2.75rem]">
               {fr.landing.finalCta.title}
             </h2>
-            <p className="mt-4 text-base leading-relaxed text-white/75">
+            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-white/75">
               {fr.landing.finalCta.text}
             </p>
-            <div className="mt-8 flex justify-center">
-              <Link
-                to="/connexion"
-                className={`${CTA_BASE} h-10 px-5 text-sm bg-white text-brand-strong hover:bg-brand-soft`}
-              >
+            <div className="mt-9 flex justify-center">
+              <Link to="/connexion" className={buttonClasses('secondary', 'lg')}>
                 {fr.landing.finalCta.button}
               </Link>
             </div>
