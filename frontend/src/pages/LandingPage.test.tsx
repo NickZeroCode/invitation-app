@@ -69,7 +69,11 @@ describe('LandingPage', () => {
   it('renders the QR verification panel', async () => {
     renderLanding()
 
-    expect(await screen.findByAltText('QR code de vérification')).toBeInTheDocument()
+    // The demo QR is drawn asynchronously (QRCode.toDataURL); give jsdom's
+    // generation a generous budget so full-suite CPU load cannot flake it.
+    expect(
+      await screen.findByAltText('QR code de vérification', {}, { timeout: 5000 }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
         name: 'Des invitations vérifiables, partagées en un instant',

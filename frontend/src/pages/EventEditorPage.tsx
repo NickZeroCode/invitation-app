@@ -508,7 +508,7 @@ export function EventEditorPage() {
         </nav>
       ) : null}
 
-      <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[19rem_1fr_20rem] xl:grid-cols-[21rem_1fr_22rem]">
+      <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[17.5rem_1fr_19rem] xl:grid-cols-[18rem_1fr_19.5rem]">
         {/* LEFT — what the invitation says. */}
         <section
           aria-label={fr.editor.tabContent}
@@ -1001,8 +1001,8 @@ export function EventEditorPage() {
               qrText={`${window.location.origin}/`}
             />
           </div>
-          <div className="flex flex-1 justify-center px-4 py-6 lg:px-10 lg:py-10">
-            <div className="w-full max-w-[26rem] overflow-hidden rounded-lg bg-surface shadow-canvas ring-1 ring-line-strong xl:max-w-[30rem] 2xl:max-w-[34rem]">
+          <div className="flex flex-1 justify-center px-4 py-6 lg:px-8 lg:py-10">
+            <div className="w-full max-w-[28rem] overflow-hidden rounded-lg bg-surface shadow-canvas ring-1 ring-line-strong xl:max-w-[32rem] 2xl:max-w-[36rem]">
               <div
                 ref={previewCardRef}
                 className="flex w-full flex-col"

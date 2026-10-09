@@ -102,6 +102,41 @@ function PanelCard({
   )
 }
 
+/**
+ * A revoked or expired link never opens the invitation again: the guest only
+ * sees the state of the link — the server remains the authority — so no
+ * invitation content, response form or actions leak through.
+ */
+function LifecycleStateScreen({ lifecycle }: { lifecycle: 'expired' | 'revoked' }) {
+  const expired = lifecycle === 'expired'
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(212,162,75,0.18),_transparent_38%),linear-gradient(135deg,#f7f4ee_0%,#f1efe8_32%,#f7f5f1_100%)] px-4 py-10">
+      <div className="w-full max-w-md rounded-[1.6rem] border border-line bg-white/85 p-8 text-center shadow-[0_24px_70px_rgba(25,32,28,0.12)] ring-1 ring-white/70 backdrop-blur-sm">
+        <p className="flex items-center justify-center gap-2.5 text-xs font-medium uppercase tracking-[0.35em] text-ink-faint">
+          <LogoMark className="h-7 w-7 rounded-md" />
+          NickEvents
+        </p>
+        <span
+          className={`mt-6 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${expired ? 'bg-warning-soft text-warning' : 'bg-danger-soft text-danger'}`}
+        >
+          {expired ? 'Expirée' : 'Révoquée'}
+        </span>
+        <h1 className="mt-4 text-2xl font-semibold text-ink">
+          {expired ? 'Invitation expirée' : 'Invitation révoquée'}
+        </h1>
+        <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+          {expired ? 'Cette invitation a expiré.' : 'Cette invitation a été révoquée.'}
+        </p>
+        <p className="mt-2 text-sm leading-relaxed text-ink-faint">
+          {expired
+            ? 'Ce lien ne donne plus accès à l’invitation. Contactez l’organisateur pour recevoir une nouvelle invitation.'
+            : 'Ce lien ne donne plus accès à l’invitation. Contactez l’organisateur pour toute question.'}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export function PublicInvitationPage() {
   const { token } = useParams<{ token: string }>()
   const publicToken = token ?? ''
@@ -229,6 +264,19 @@ export function PublicInvitationPage() {
   }
 
   const statusKey = verification.result ?? (data.is_valid ? 'valid' : 'expired')
+
+  // Revoked or expired links never open the invitation: the guest lands on a
+  // designed state screen instead (mirrors the server's public verdict).
+  const lifecycle: 'valid' | 'expired' | 'revoked' =
+    data.status === 'revoked' || statusKey === 'revoked'
+      ? 'revoked'
+      : data.status === 'expired' || statusKey === 'expired' || !data.is_valid
+        ? 'expired'
+        : 'valid'
+
+  if (lifecycle !== 'valid') {
+    return <LifecycleStateScreen lifecycle={lifecycle} />
+  }
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(212,162,75,0.18),_transparent_38%),linear-gradient(135deg,#f7f4ee_0%,#f1efe8_32%,#f7f5f1_100%)] px-2 py-6 text-ink sm:px-4 sm:py-10">
@@ -362,45 +410,25 @@ export function PublicInvitationPage() {
               </PanelCard>
             ) : null}
 
-            <PanelCard
-              skin={skin}
-              templateKey={data.event.template.key}
-              title="Vérification QR"
-              ornament={false}
-              action={
-                <span
-                  className="inline-flex items-center rounded-full border px-2.5 py-1 text-[0.65rem] font-semibold"
-                  style={{ backgroundColor: skin.chipBg, borderColor: skin.line, color: skin.ink }}
-                >
-                  {STATUS_LABEL[statusKey] ?? 'Valide'}
-                </span>
-              }
-            >
-              <div
-                className="mt-4 flex items-center justify-center rounded-[1.4rem] p-4"
-                style={{ backgroundColor: skin.line }}
-              >
-                {qrDataUrl ? (
-                  <img
-                    src={qrDataUrl}
-                    alt="QR code de vérification"
-                    className="h-40 w-40 rounded-xl bg-white p-2 shadow-sm"
-                    style={{ border: `1px solid ${skin.accent}55` }}
-                  />
-                ) : (
-                  <div className="flex h-40 w-40 items-center justify-center rounded-xl bg-white text-xs text-ink-faint">
-                    QR
-                  </div>
-                )}
-              </div>
-
-              <p className="mt-4 text-sm" style={{ color: skin.inkSoft }}>
-                <span className="font-semibold" style={{ color: skin.accent }}>Vérification :</span>{' '}
+            <div className="flex flex-col items-center text-center">
+              {qrDataUrl ? (
+                <img
+                  src={qrDataUrl}
+                  alt="QR code de vérification"
+                  className="h-40 w-40 rounded-xl bg-white p-2 shadow-sm"
+                  style={{ border: `1px solid ${skin.accent}55` }}
+                />
+              ) : (
+                <div className="flex h-40 w-40 items-center justify-center rounded-xl bg-white text-xs text-ink-faint">
+                  QR
+                </div>
+              )}
+              <p className="mt-3 text-sm" style={{ color: skin.inkSoft }}>
                 <span style={{ color: skin.ink }}>
                   {verification.result === 'valid' ? 'Cette invitation est actuellement valide.' : verification.result === 'expired' ? 'Cette invitation a expiré.' : verification.result === 'revoked' ? 'Cette invitation a été révoquée.' : 'Ce lien est invalide.'}
                 </span>
               </p>
-            </PanelCard>
+            </div>
 
             {data.preferences.enabled ? (
               <PanelCard skin={skin} templateKey={data.event.template.key} title="Préférences" ornament={false}>
@@ -500,22 +528,24 @@ export function PublicInvitationPage() {
                     </p>
                   ) : null}
 
-                  <Button
-                    variant="primary"
-                    size="md"
-                    type="submit"
-                    loading={submitMutation.isPending}
-                    disabled={submitMutation.isPending}
-                    style={{ backgroundColor: skin.accent, borderColor: skin.accent, color: skin.onAccent }}
-                  >
-                    Envoyer ma réponse
-                  </Button>
+                  <div className="flex justify-center">
+                    <Button
+                      variant="primary"
+                      size="md"
+                      type="submit"
+                      loading={submitMutation.isPending}
+                      disabled={submitMutation.isPending}
+                      style={{ backgroundColor: skin.accent, borderColor: skin.accent, color: skin.onAccent }}
+                    >
+                      Envoyer ma réponse
+                    </Button>
+                  </div>
                 </form>
               </PanelCard>
             ) : null}
 
             <PanelCard skin={skin} templateKey={data.event.template.key} title="Actions">
-              <div className="mt-4">
+              <div className="mt-4 flex justify-center">
                 <InvitationDownloadButton
                   targetRef={cardRef}
                   title={data.event.title}

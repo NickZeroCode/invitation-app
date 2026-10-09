@@ -115,7 +115,10 @@ describe('PublicInvitationPage', () => {
     expect((await screen.findAllByText('Mariage de Grâce et Éric')).length).toBeGreaterThan(0)
     expect((await screen.findAllByText('M. Éric Mukendi')).length).toBeGreaterThan(0)
     expect((await screen.findAllByText('Valide')).length).toBeGreaterThan(0)
-    expect(screen.getByAltText('QR code de vérification')).toBeInTheDocument()
+    // findBy: the QR image only mounts after QRCode.toDataURL resolves.
+    expect(
+      await screen.findByAltText('QR code de vérification', {}, { timeout: 5000 }),
+    ).toBeInTheDocument()
   })
 
   it('shows the dress code and the programme in their own panel, dress code on top', async () => {

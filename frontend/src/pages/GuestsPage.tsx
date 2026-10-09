@@ -86,8 +86,34 @@ function expiryPayload(value: string): string | null {
   return value ? new Date(`${value}T23:59:59`).toISOString() : null
 }
 
+/** Native date inputs validate against the local calendar day. */
+function todayInputValue(): string {
+  const now = new Date()
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+}
+
+/**
+ * Picker guard against past days — while an already past stored value stays
+ * saveable: an untouched date must never block an unrelated edit. The server
+ * still re-validates any changed value and answers with a field error.
+ */
+function minInputValue(iso: string | null): string {
+  const current = expiryInputValue(iso)
+  const today = todayInputValue()
+  return current && current < today ? current : today
+}
+
 function errorMessage(err: unknown): string {
-  return err instanceof ApiError ? err.message : fr.common.unexpectedError
+  if (err instanceof ApiError) {
+    // Field-level detail first (e.g. the expiry-date rejection reason) — the
+    // generic envelope message alone hides which field was rejected.
+    const fieldDetail = Object.values(err.fields ?? {})
+      .flat()
+      .find((message) => message.length > 0)
+    return fieldDetail ?? err.message
+  }
+  return fr.common.unexpectedError
 }
 
 function guestInitials(name: string): string {
@@ -169,6 +195,7 @@ function AddGuestForm({ eventId, onSuccess }: { eventId: number; onSuccess?: () 
           <Input
             id="guest-expiry"
             type="date"
+            min={todayInputValue()}
             value={expiry}
             onChange={(event) => setExpiry(event.target.value)}
           />
@@ -439,11 +466,14 @@ function GuestRow({
       setError(fr.common.requiredField)
       return
     }
-    updateMutation.mutate({
-      guest_name: trimmed,
-      civility,
-      expires_at: expiryPayload(expiry),
-    })
+    // PATCH partial: only send the date when it was edited — re-sending an
+    // untouched (possibly already past) value would be re-validated and
+    // rejected by the server even for an unrelated guest-name fix.
+    const payload: Partial<InvitationPayload> = { guest_name: trimmed, civility }
+    if (expiry !== expiryInputValue(invitation.expires_at)) {
+      payload.expires_at = expiryPayload(expiry)
+    }
+    updateMutation.mutate(payload)
   }
 
   return (
@@ -516,7 +546,9 @@ function GuestRow({
         </div>
       </div>
 
-      {notice || error ? (
+      {/* While the edit dialog is open its own alert carries the message —
+          keeping this one hidden avoids duplicate role="alert" announcements. */}
+      {!editing && (notice || error) ? (
         <div className="px-4 pb-3 sm:pl-[4.25rem] sm:pr-5">
           {notice ? (
             <p role="status" className="text-xs text-ink-soft">
@@ -568,6 +600,7 @@ function GuestRow({
             <Input
               id={`guest-${invitation.id}-expiry`}
               type="date"
+              min={minInputValue(invitation.expires_at)}
               value={expiry}
               onChange={(event) => setExpiry(event.target.value)}
             />
@@ -581,6 +614,11 @@ function GuestRow({
             </Button>
           </div>
         </form>
+        {error ? (
+          <p role="alert" className="mt-3 text-sm text-danger">
+            {error}
+          </p>
+        ) : null}
       </Modal>
 
       <ConfirmDialog
