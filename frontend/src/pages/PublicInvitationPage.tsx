@@ -410,25 +410,44 @@ export function PublicInvitationPage() {
               </PanelCard>
             ) : null}
 
-            <div className="flex flex-col items-center text-center">
-              {qrDataUrl ? (
-                <img
-                  src={qrDataUrl}
-                  alt="QR code de vérification"
-                  className="h-40 w-40 rounded-xl bg-white p-2 shadow-sm"
-                  style={{ border: `1px solid ${skin.accent}55` }}
-                />
-              ) : (
-                <div className="flex h-40 w-40 items-center justify-center rounded-xl bg-white text-xs text-ink-faint">
-                  QR
-                </div>
-              )}
-              <p className="mt-3 text-sm" style={{ color: skin.inkSoft }}>
-                <span style={{ color: skin.ink }}>
-                  {verification.result === 'valid' ? 'Cette invitation est actuellement valide.' : verification.result === 'expired' ? 'Cette invitation a expiré.' : verification.result === 'revoked' ? 'Cette invitation a été révoquée.' : 'Ce lien est invalide.'}
+            {/* Decorative section for the QR code: the panel is dressed in the
+                template palette, and the QR keeps only its own white box on
+                that paper — no intermediate pad stacking behind it. */}
+            <PanelCard
+              skin={skin}
+              templateKey={data.event.template.key}
+              title="Vérification QR"
+              ornament={false}
+              action={
+                <span
+                  className="inline-flex items-center rounded-full border px-2.5 py-1 text-[0.65rem] font-semibold"
+                  style={{ backgroundColor: skin.chipBg, borderColor: skin.line, color: skin.ink }}
+                >
+                  {STATUS_LABEL[statusKey] ?? 'Valide'}
                 </span>
-              </p>
-            </div>
+              }
+            >
+              <div className="mt-4 flex flex-col items-center text-center">
+                {qrDataUrl ? (
+                  <img
+                    src={qrDataUrl}
+                    alt="QR code de vérification"
+                    className="h-40 w-40 rounded-xl bg-white p-2 shadow-sm"
+                    style={{ border: `1px solid ${skin.accent}55` }}
+                  />
+                ) : (
+                  <div className="flex h-40 w-40 items-center justify-center rounded-xl bg-white text-xs text-ink-faint">
+                    QR
+                  </div>
+                )}
+                <p className="mt-4 text-sm" style={{ color: skin.inkSoft }}>
+                  <span className="font-semibold" style={{ color: skin.accent }}>Vérification :</span>{' '}
+                  <span style={{ color: skin.ink }}>
+                    {verification.result === 'valid' ? 'Cette invitation est actuellement valide.' : verification.result === 'expired' ? 'Cette invitation a expiré.' : verification.result === 'revoked' ? 'Cette invitation a été révoquée.' : 'Ce lien est invalide.'}
+                  </span>
+                </p>
+              </div>
+            </PanelCard>
 
             {data.preferences.enabled ? (
               <PanelCard skin={skin} templateKey={data.event.template.key} title="Préférences" ornament={false}>
