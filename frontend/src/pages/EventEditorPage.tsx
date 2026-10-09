@@ -10,10 +10,10 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { Alert } from '../design-system/Alert.tsx'
-import { Button } from '../design-system/Button.tsx'
+import { Button, IconButton } from '../design-system/Button.tsx'
 import { Field } from '../design-system/Field.tsx'
 import { Input, Select } from '../design-system/Input.tsx'
-import { IconChevronLeft } from '../design-system/icons.tsx'
+import { IconChevronLeft, IconClose, IconTrash } from '../design-system/icons.tsx'
 import { SectionTitle } from '../design-system/layout.tsx'
 import { ErrorState, LoadingState } from '../design-system/states.tsx'
 import { ApiError, eventsApi } from '../lib/api.ts'
@@ -516,8 +516,8 @@ export function EventEditorPage() {
             isDesktop || mobileTab === 'contenu' ? '' : 'hidden'
           }`}
         >
-          <div className="space-y-7 px-4 py-5 lg:px-4">
-            <section className="space-y-4">
+          <div className="space-y-5 px-4 py-4 lg:px-4">
+            <section className="space-y-3">
               <SectionTitle>{fr.editor.contentTitle}</SectionTitle>
               <Field
                 id="event-title"
@@ -527,6 +527,7 @@ export function EventEditorPage() {
               >
                 <Input
                   id="event-title"
+                  controlSize="sm"
                   value={title}
                   invalid={Boolean(fieldErrors.title)}
                   onChange={(event) => setTitle(event.target.value)}
@@ -541,15 +542,15 @@ export function EventEditorPage() {
                   id="event-message"
                   rows={4}
                   value={message}
-                  className="w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                  className="w-full rounded-md border border-line-strong bg-surface px-2.5 py-2 text-[0.8125rem] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
                   onChange={(event) => setMessage(event.target.value)}
                 />
               </Field>
             </section>
 
-            <section className="space-y-4">
+            <section className="space-y-3">
               <SectionTitle>{fr.editor.scheduleTitle}</SectionTitle>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5">
                 <Field
                   id="event-date"
                   label={fr.editor.dateLabel}
@@ -559,6 +560,7 @@ export function EventEditorPage() {
                   <Input
                     id="event-date"
                     type="date"
+                    controlSize="sm"
                     value={eventDate}
                     invalid={Boolean(fieldErrors.event_date)}
                     onChange={(event) => setEventDate(event.target.value)}
@@ -573,13 +575,14 @@ export function EventEditorPage() {
                   <Input
                     id="event-time"
                     type="time"
+                    controlSize="sm"
                     value={eventTime}
                     invalid={Boolean(fieldErrors.event_time)}
                     onChange={(event) => setEventTime(event.target.value)}
                   />
                 </Field>
               </div>
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 gap-2.5">
                 <Field
                   id="event-timezone"
                   label={fr.editor.timezoneLabel}
@@ -588,6 +591,7 @@ export function EventEditorPage() {
                 >
                   <Input
                     id="event-timezone"
+                    controlSize="sm"
                     value={timezone}
                     invalid={Boolean(fieldErrors.timezone)}
                     onChange={(event) => setTimezone(event.target.value)}
@@ -600,6 +604,7 @@ export function EventEditorPage() {
                 >
                   <Input
                     id="event-venue-name"
+                    controlSize="sm"
                     value={venueName}
                     onChange={(event) => setVenueName(event.target.value)}
                   />
@@ -611,6 +616,7 @@ export function EventEditorPage() {
                 >
                   <Input
                     id="event-venue-address"
+                    controlSize="sm"
                     value={venueAddress}
                     onChange={(event) => setVenueAddress(event.target.value)}
                   />
@@ -622,6 +628,7 @@ export function EventEditorPage() {
                 >
                   <Input
                     id="event-venue-details"
+                    controlSize="sm"
                     value={venueDetails}
                     onChange={(event) => setVenueDetails(event.target.value)}
                   />
@@ -629,63 +636,67 @@ export function EventEditorPage() {
               </div>
             </section>
 
-            <section className="space-y-4">
-              <SectionTitle
-                action={
-                  <label className="relative inline-flex h-9 cursor-pointer items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
-                    {fr.editor.dressCodeUpload}
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      multiple
-                      className="sr-only"
-                      onChange={(event) => {
-                        handleDressFiles(event.target.files)
-                        event.target.value = ''
-                      }}
-                    />
-                  </label>
-                }
-              >
-                {fr.editor.dressCodeTitle}
-              </SectionTitle>
+            <section className="space-y-3">
+              <SectionTitle>{fr.editor.dressCodeTitle}</SectionTitle>
               <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.dressCodeHint}</p>
               {dressRows.length === 0 ? null : (
-                <div className="grid grid-cols-1 gap-3">
+                <div className="grid grid-cols-1 gap-2.5">
                   {dressRows.map((row, index) => (
                     <div
                       key={row.id ?? `new-${index}`}
-                      className="space-y-2 rounded-lg border border-line bg-surface-muted/40 p-3"
+                      className="space-y-2.5 rounded-lg border border-line bg-surface-muted/40 p-3"
                     >
                       <img
                         src={row.url}
                         alt=""
-                        className="h-24 w-full rounded-md border border-line object-cover"
+                        className="h-20 w-full rounded-md border border-line object-cover"
                       />
-                      <Field
-                        id={`dress-${index}-caption`}
-                        label={fr.editor.dressCodeCaption}
-                      >
-                        <Input
+                      <div className="flex items-end gap-2">
+                        <Field
                           id={`dress-${index}-caption`}
-                          value={row.caption}
-                          placeholder={fr.editor.dressCodeCaptionPlaceholder}
-                          onChange={(event) =>
-                            setDressRows((current) =>
-                              current.map((item, i) =>
-                                i === index ? { ...item, caption: event.target.value } : item,
-                              ),
-                            )
-                          }
-                        />
-                      </Field>
-                      <Button variant="ghost" size="sm" onClick={() => removeDressRow(index)}>
-                        {fr.editor.dressCodeRemove}
-                      </Button>
+                          label={fr.editor.dressCodeCaption}
+                          className="min-w-0 flex-1"
+                        >
+                          <Input
+                            id={`dress-${index}-caption`}
+                            controlSize="sm"
+                            value={row.caption}
+                            placeholder={fr.editor.dressCodeCaptionPlaceholder}
+                            onChange={(event) =>
+                              setDressRows((current) =>
+                                current.map((item, i) =>
+                                  i === index ? { ...item, caption: event.target.value } : item,
+                                ),
+                              )
+                            }
+                          />
+                        </Field>
+                        <IconButton
+                          label={fr.editor.dressCodeRemove}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeDressRow(index)}
+                        >
+                          <IconTrash className="h-4 w-4" />
+                        </IconButton>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
+              <label className="relative inline-flex h-8 w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-3 text-[0.8125rem] font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
+                {fr.editor.dressCodeUpload}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="sr-only"
+                  onChange={(event) => {
+                    handleDressFiles(event.target.files)
+                    event.target.value = ''
+                  }}
+                />
+              </label>
               {dressError ? (
                 <p role="alert" className="text-xs text-danger">
                   {dressError}
@@ -693,74 +704,73 @@ export function EventEditorPage() {
               ) : null}
             </section>
 
-            <section className="space-y-4">
-              <SectionTitle
-                action={
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() =>
-                      setProgramRows((current) => [
-                        ...current,
-                        { start_time: '', end_time: '', description: '' },
-                      ])
-                    }
-                  >
-                    {fr.editor.addProgramItem}
-                  </Button>
-                }
-              >
-                {fr.editor.programTitle}
-              </SectionTitle>
+            <section className="space-y-3">
+              <SectionTitle>{fr.editor.programTitle}</SectionTitle>
               {programRows.length === 0 ? (
                 <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.programHint}</p>
               ) : null}
               {programRows.map((row, index) => (
                 <div
                   key={row.id ?? `new-${index}`}
-                  className="space-y-3 rounded-lg border border-line bg-surface-muted/40 p-4"
+                  className="space-y-2.5 rounded-lg border border-line bg-surface-muted/40 p-3"
                 >
-                  <div className="flex flex-wrap items-end gap-4">
-                    <Field id={`program-${index}-start`} label={fr.editor.programStart} required>
+                  <div className="flex items-end gap-2.5">
+                    <Field
+                      id={`program-${index}-start`}
+                      label={fr.editor.programStart}
+                      required
+                      className="min-w-0 flex-1"
+                    >
                       <Input
                         id={`program-${index}-start`}
                         type="time"
+                        controlSize="sm"
                         value={row.start_time}
                         onChange={(event) => updateProgramRow(index, { start_time: event.target.value })}
                       />
                     </Field>
-                    <Field id={`program-${index}-end`} label={fr.editor.programEnd}>
+                    <Field
+                      id={`program-${index}-end`}
+                      label={fr.editor.programEnd}
+                      className="min-w-0 flex-1"
+                    >
                       <Input
                         id={`program-${index}-end`}
                         type="time"
+                        controlSize="sm"
                         value={row.end_time}
                         onChange={(event) => updateProgramRow(index, { end_time: event.target.value })}
                       />
                     </Field>
-                    <Button
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <Field
+                      id={`program-${index}-description`}
+                      label={fr.editor.programDescription}
+                      required
+                      className="min-w-0 flex-1"
+                    >
+                      <Input
+                        id={`program-${index}-description`}
+                        controlSize="sm"
+                        value={row.description}
+                        placeholder={fr.editor.programDescriptionPlaceholder}
+                        onChange={(event) =>
+                          updateProgramRow(index, { description: event.target.value })
+                        }
+                      />
+                    </Field>
+                    <IconButton
+                      label={fr.editor.removeProgramItem}
                       variant="ghost"
                       size="sm"
                       onClick={() =>
                         setProgramRows((current) => current.filter((_, i) => i !== index))
                       }
                     >
-                      {fr.editor.removeProgramItem}
-                    </Button>
+                      <IconTrash className="h-4 w-4" />
+                    </IconButton>
                   </div>
-                  <Field
-                    id={`program-${index}-description`}
-                    label={fr.editor.programDescription}
-                    required
-                  >
-                    <Input
-                      id={`program-${index}-description`}
-                      value={row.description}
-                      placeholder={fr.editor.programDescriptionPlaceholder}
-                      onChange={(event) =>
-                        updateProgramRow(index, { description: event.target.value })
-                      }
-                    />
-                  </Field>
                 </div>
               ))}
               {fieldErrors.program_items ? (
@@ -768,39 +778,42 @@ export function EventEditorPage() {
                   {fieldErrors.program_items.join(' ')}
                 </p>
               ) : null}
-            </section>
-
-            <section className="space-y-4">
-              <SectionTitle
-                action={
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => setQuestions((current) => [...current, blankQuestion()])}
-                  >
-                    {fr.editor.addQuestion}
-                  </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="w-full"
+                onClick={() =>
+                  setProgramRows((current) => [
+                    ...current,
+                    { start_time: '', end_time: '', description: '' },
+                  ])
                 }
               >
-                {fr.editor.questionsTitle}
-              </SectionTitle>
+                {fr.editor.addProgramItem}
+              </Button>
+            </section>
+
+            <section className="space-y-3">
+              <SectionTitle>{fr.editor.questionsTitle}</SectionTitle>
               {questions.length === 0 ? (
                 <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.questionsHint}</p>
               ) : null}
               {questions.map((question, index) => (
                 <div
                   key={question.id ?? `new-${index}`}
-                  className="space-y-3 rounded-lg border border-line bg-surface-muted/40 p-4"
+                  className="space-y-2.5 rounded-lg border border-line bg-surface-muted/40 p-3"
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2">
                     <Field
                       id={`question-${index}-label`}
                       label={fr.editor.questionLabel}
                       required
                       error={fieldErrors[`preference_questions.${index}.label`]?.[0]}
+                      className="min-w-0 flex-1"
                     >
                       <Input
                         id={`question-${index}-label`}
+                        controlSize="sm"
                         value={question.label}
                         onChange={(event) =>
                           setQuestions((current) =>
@@ -811,15 +824,16 @@ export function EventEditorPage() {
                         }
                       />
                     </Field>
-                    <Button
+                    <IconButton
+                      label={fr.editor.removeQuestion}
                       variant="ghost"
                       size="sm"
                       onClick={() =>
                         setQuestions((current) => current.filter((_, i) => i !== index))
                       }
                     >
-                      {fr.editor.removeQuestion}
-                    </Button>
+                      <IconTrash className="h-4 w-4" />
+                    </IconButton>
                   </div>
                   <Field
                     id={`question-${index}-help`}
@@ -828,6 +842,7 @@ export function EventEditorPage() {
                   >
                     <Input
                       id={`question-${index}-help`}
+                      controlSize="sm"
                       value={question.help_text}
                       onChange={(event) =>
                         setQuestions((current) =>
@@ -838,10 +853,11 @@ export function EventEditorPage() {
                       }
                     />
                   </Field>
-                  <div className="flex flex-wrap items-end gap-4">
+                  <div className="flex flex-col gap-2">
                     <Field id={`question-${index}-type`} label={fr.editor.questionType}>
                       <Select
                         id={`question-${index}-type`}
+                        controlSize="sm"
                         value={question.input_type}
                         onChange={(event) =>
                           setQuestions((current) =>
@@ -860,44 +876,47 @@ export function EventEditorPage() {
                         <option value="multiple">{fr.editor.questionMultiple}</option>
                       </Select>
                     </Field>
-                    <label className="flex h-10 items-center gap-2 text-sm text-ink">
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-line-strong accent-ink"
-                        checked={question.required}
-                        onChange={(event) =>
-                          setQuestions((current) =>
-                            current.map((item, i) =>
-                              i === index ? { ...item, required: event.target.checked } : item,
-                            ),
-                          )
-                        }
-                      />
-                      {fr.editor.questionRequired}
-                    </label>
-                    <label className="flex h-10 items-center gap-2 text-sm text-ink">
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-line-strong accent-ink"
-                        checked={question.is_active}
-                        onChange={(event) =>
-                          setQuestions((current) =>
-                            current.map((item, i) =>
-                              i === index ? { ...item, is_active: event.target.checked } : item,
-                            ),
-                          )
-                        }
-                      />
-                      {fr.editor.questionActive}
-                    </label>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                      <label className="flex items-center gap-1.5 text-[0.8125rem] text-ink">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-line-strong accent-ink"
+                          checked={question.required}
+                          onChange={(event) =>
+                            setQuestions((current) =>
+                              current.map((item, i) =>
+                                i === index ? { ...item, required: event.target.checked } : item,
+                              ),
+                            )
+                          }
+                        />
+                        {fr.editor.questionRequired}
+                      </label>
+                      <label className="flex items-center gap-1.5 text-[0.8125rem] text-ink">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-line-strong accent-ink"
+                          checked={question.is_active}
+                          onChange={(event) =>
+                            setQuestions((current) =>
+                              current.map((item, i) =>
+                                i === index ? { ...item, is_active: event.target.checked } : item,
+                              ),
+                            )
+                          }
+                        />
+                        {fr.editor.questionActive}
+                      </label>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-ink">{fr.editor.optionsLabel}</p>
+                    <p className="text-[0.8125rem] font-medium text-ink">{fr.editor.optionsLabel}</p>
                     {question.options.map((option, optionIndex) => (
                       <div key={option.id ?? `new-${optionIndex}`} className="flex items-center gap-2">
                         <Input
                           aria-label={fr.editor.optionLabel}
+                          controlSize="sm"
                           value={option.label}
                           invalid={Boolean(
                             fieldErrors[`preference_questions.${index}.options`],
@@ -919,7 +938,8 @@ export function EventEditorPage() {
                             )
                           }
                         />
-                        <Button
+                        <IconButton
+                          label={fr.editor.removeOption}
                           variant="ghost"
                           size="sm"
                           disabled={question.options.length <= 1}
@@ -936,13 +956,14 @@ export function EventEditorPage() {
                             )
                           }
                         >
-                          {fr.editor.removeOption}
-                        </Button>
+                          <IconClose className="h-4 w-4" />
+                        </IconButton>
                       </div>
                     ))}
                     <Button
                       variant="secondary"
                       size="sm"
+                      className="w-full"
                       onClick={() =>
                         setQuestions((current) =>
                           current.map((item, i) =>
@@ -963,17 +984,25 @@ export function EventEditorPage() {
                   </div>
                 </div>
               ))}
+              <Button
+                size="sm"
+                variant="secondary"
+                className="w-full"
+                onClick={() => setQuestions((current) => [...current, blankQuestion()])}
+              >
+                {fr.editor.addQuestion}
+              </Button>
             </section>
           </div>
           {/* Submit at the end of the form — same action as the header button. */}
-          <div className="sticky bottom-[4.75rem] flex items-center justify-end gap-2 border-t border-line bg-surface px-4 py-3 lg:bottom-0 lg:px-4">
+          <div className="sticky bottom-[4.75rem] flex items-center justify-end gap-2 border-t border-line bg-surface px-4 py-2.5 lg:bottom-0 lg:px-4">
             <Link
               to="/evenements"
-              className="inline-flex h-10 items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
+              className="inline-flex h-8 items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-3 text-[0.8125rem] font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
             >
               {fr.common.cancel}
             </Link>
-            <Button loading={mutation.isPending} onClick={handleSubmit}>
+            <Button size="sm" loading={mutation.isPending} onClick={handleSubmit}>
               {mutation.isPending ? fr.editor.saving : isEdit ? fr.editor.save : fr.editor.create}
             </Button>
           </div>
@@ -1024,11 +1053,12 @@ export function EventEditorPage() {
             isDesktop || mobileTab === 'design' ? '' : 'hidden'
           }`}
         >
-          <div className="space-y-7 px-4 py-5 lg:px-4">
+          <div className="space-y-5 px-4 py-4 lg:px-4">
             <section className="space-y-3">
               <SectionTitle>{fr.editor.templateLabel}</SectionTitle>
               <Select
                 aria-label={fr.editor.templateLabel}
+                controlSize="sm"
                 value={templateKey}
                 onChange={(event) => selectTemplate(event.target.value)}
               >
@@ -1039,12 +1069,9 @@ export function EventEditorPage() {
                 ))}
               </Select>
               <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.templateHint}</p>
-              <p className="text-xs text-ink-soft">
-                {template.name} — {template.categoryLabel}
-              </p>
             </section>
 
-            <section className="space-y-4">
+            <section className="space-y-3">
               <SectionTitle>{fr.editor.typographyTitle}</SectionTitle>
               <Field
                 id="event-message-font"
@@ -1054,7 +1081,7 @@ export function EventEditorPage() {
                 <div
                   role="radiogroup"
                   aria-label={fr.editor.messageFontLabel}
-                  className="flex flex-wrap gap-2"
+                  className="flex flex-wrap gap-1.5"
                 >
                   {MESSAGE_FONTS.map((font) => {
                     const selected = font.key === messageFont
@@ -1065,14 +1092,14 @@ export function EventEditorPage() {
                         role="radio"
                         aria-checked={selected}
                         onClick={() => setMessageFont(font.key)}
-                        className={`flex items-center gap-2 whitespace-nowrap rounded-pill border px-3 py-1.5 text-sm transition-colors duration-150 ${
+                        className={`flex items-center gap-1.5 whitespace-nowrap rounded-pill border px-2.5 py-1 text-xs transition-colors duration-150 ${
                           selected
                             ? 'border-ink bg-ink text-paper'
                             : 'border-line-strong text-ink-soft hover:border-ink/40 hover:text-ink'
                         }`}
                       >
                         <span
-                          className="text-lg leading-none"
+                          className="text-base leading-none"
                           style={{ fontFamily: font.css }}
                           aria-hidden="true"
                         >
@@ -1092,7 +1119,7 @@ export function EventEditorPage() {
                 <div
                   role="radiogroup"
                   aria-label={fr.editor.fontSizeLabel}
-                  className="flex flex-wrap gap-2"
+                  className="flex flex-wrap gap-1.5"
                 >
                   {FONT_SIZES.map((size) => {
                     const selected = size.key === fontSize
@@ -1103,7 +1130,7 @@ export function EventEditorPage() {
                         role="radio"
                         aria-checked={selected}
                         onClick={() => setFontSize(size.key)}
-                        className={`flex items-center gap-2 whitespace-nowrap rounded-pill border px-3 py-1.5 text-sm transition-colors duration-150 ${
+                        className={`flex items-center gap-1.5 whitespace-nowrap rounded-pill border px-2.5 py-1 text-xs transition-colors duration-150 ${
                           selected
                             ? 'border-ink bg-ink text-paper'
                             : 'border-line-strong text-ink-soft hover:border-ink/40 hover:text-ink'
@@ -1111,7 +1138,7 @@ export function EventEditorPage() {
                       >
                         <span
                           className="leading-none"
-                          style={{ fontSize: `${size.scale * 1.1}rem` }}
+                          style={{ fontSize: `${size.scale * 0.95}rem` }}
                           aria-hidden="true"
                         >
                           Aa
@@ -1127,9 +1154,9 @@ export function EventEditorPage() {
             <section className="space-y-3">
               <SectionTitle>{fr.editor.emphasisTitle}</SectionTitle>
               <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.emphasisHint}</p>
-              <div className="flex flex-col gap-2.5">
+              <div className="flex flex-col gap-2">
                 {template.emphasisFields.map((field) => (
-                  <label key={field} className="flex items-center gap-2.5 text-sm text-ink">
+                  <label key={field} className="flex items-center gap-2 text-[0.8125rem] text-ink">
                     <input
                       type="checkbox"
                       className="h-4 w-4 rounded border-line-strong accent-ink"
@@ -1147,14 +1174,15 @@ export function EventEditorPage() {
                 <SectionTitle>{fr.editor.coverTitle}</SectionTitle>
                 <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.coverHint}</p>
                 {previewDraft.cover_url ? (
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <img
                       src={previewDraft.cover_url}
                       alt=""
-                      className="h-24 w-36 rounded-md border border-line object-cover"
+                      className="h-20 w-32 rounded-md border border-line object-cover"
                     />
-                    <Button
-                      variant="secondary"
+                    <IconButton
+                      label={fr.editor.coverRemove}
+                      variant="ghost"
                       size="sm"
                       onClick={() => {
                         setCoverFile(null)
@@ -1165,11 +1193,11 @@ export function EventEditorPage() {
                         })
                       }}
                     >
-                      {fr.editor.coverRemove}
-                    </Button>
+                      <IconTrash className="h-4 w-4" />
+                    </IconButton>
                   </div>
                 ) : (
-                  <label className="relative inline-flex h-10 cursor-pointer items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
+                  <label className="relative inline-flex h-8 cursor-pointer items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-3 text-[0.8125rem] font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
                     {fr.editor.coverUpload}
                     <input
                       type="file"
@@ -1192,6 +1220,7 @@ export function EventEditorPage() {
                 >
                   <Input
                     id="event-cover-text"
+                    controlSize="sm"
                     value={coverText}
                     placeholder={fr.editor.coverTextPlaceholder}
                     onChange={(event) => setCoverText(event.target.value)}
