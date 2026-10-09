@@ -11,12 +11,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { Alert } from '../design-system/Alert.tsx'
 import { Button } from '../design-system/Button.tsx'
-import { Card, CardBody, CardHeader } from '../design-system/Card.tsx'
 import { Field } from '../design-system/Field.tsx'
 import { Input, Select } from '../design-system/Input.tsx'
 import { IconChevronLeft } from '../design-system/icons.tsx'
+import { SectionTitle } from '../design-system/layout.tsx'
 import { ErrorState, LoadingState } from '../design-system/states.tsx'
 import { ApiError, eventsApi } from '../lib/api.ts'
+import { DESKTOP_QUERY, useMediaQuery } from '../lib/useMediaQuery.ts'
 import type {
   EventPayload,
   PreferenceQuestionPayload,
@@ -79,6 +80,14 @@ function emphasisLabel(field: string): string {
   return labels[field] ?? field
 }
 
+type MobileTab = 'contenu' | 'design' | 'apercu'
+
+const MOBILE_TABS: ReadonlyArray<{ key: MobileTab; label: string }> = [
+  { key: 'contenu', label: fr.editor.tabContent },
+  { key: 'design', label: fr.editor.tabDesign },
+  { key: 'apercu', label: fr.editor.tabPreview },
+]
+
 export function EventEditorPage() {
   const { id } = useParams()
   const eventId = id ? Number(id) : null
@@ -113,7 +122,7 @@ export function EventEditorPage() {
   const [coverText, setCoverText] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
-  const [previewDockOpen, setPreviewDockOpen] = useState(true)
+  const [mobileTab, setMobileTab] = useState<MobileTab>('contenu')
 
   const eventQuery = useQuery({
     queryKey: ['event', eventId],
@@ -124,6 +133,7 @@ export function EventEditorPage() {
   const previewCardRef = useRef<HTMLDivElement>(null)
 
   const template = getTemplate(templateKey) ?? TEMPLATES[0]
+  const isDesktop = useMediaQuery(DESKTOP_QUERY, true)
 
   useEffect(() => {
     const data = eventQuery.data
@@ -422,96 +432,93 @@ export function EventEditorPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-ink">
-            {isEdit ? fr.editor.editTitle : fr.editor.createTitle}
-          </h1>
-          <p className="mt-1 text-sm text-ink-soft">{fr.editor.sharedNote}</p>
+    <div className="flex min-h-svh flex-col bg-paper lg:h-svh lg:overflow-hidden">
+      {/* Command bar — title + global actions, always within reach. */}
+      <header className="shrink-0 border-b border-line bg-surface">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 lg:px-6">
+          <div className="flex min-w-0 items-center gap-3">
+            <Link
+              to="/evenements"
+              aria-label={fr.editor.back}
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line text-ink-soft transition-colors duration-150 hover:bg-surface-muted hover:text-ink"
+            >
+              <IconChevronLeft className="h-4 w-4" />
+            </Link>
+            <div className="min-w-0">
+              <h1 className="truncate text-[0.9375rem] font-semibold tracking-tight text-ink">
+                {isEdit ? fr.editor.editTitle : fr.editor.createTitle}
+              </h1>
+              <p className="truncate text-xs text-ink-faint">{fr.editor.sharedNote}</p>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              to="/evenements"
+              className="inline-flex h-10 items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
+            >
+              {fr.common.cancel}
+            </Link>
+            <Button loading={mutation.isPending} onClick={handleSubmit}>
+              {mutation.isPending ? fr.editor.saving : isEdit ? fr.editor.save : fr.editor.create}
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            to="/evenements"
-            className="inline-flex h-10 items-center rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
-          >
-            {fr.common.cancel}
-          </Link>
-          <Button loading={mutation.isPending} onClick={handleSubmit}>
-            {mutation.isPending ? fr.editor.saving : isEdit ? fr.editor.save : fr.editor.create}
-          </Button>
-        </div>
+        {formError ? (
+          <div className="border-t border-line px-4 py-3 lg:px-6">
+            <Alert tone="danger">
+              <p>{formError}</p>
+              {Object.keys(fieldErrors).length > 0 ? (
+                <ul className="mt-1 list-inside list-disc">
+                  {Object.entries(fieldErrors).map(([key, messages]) => (
+                    <li key={key}>
+                      {key}: {messages.join(' ')}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </Alert>
+          </div>
+        ) : null}
       </header>
 
-      {formError ? (
-        <Alert tone="danger">
-          <p>{formError}</p>
-          {Object.keys(fieldErrors).length > 0 ? (
-            <ul className="mt-1 list-inside list-disc">
-              {Object.entries(fieldErrors).map(([key, messages]) => (
-                <li key={key}>
-                  {key}: {messages.join(' ')}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </Alert>
+      {/* Phone & tablet: jump between the three work areas. Desktop shows them
+          side by side, so the switcher only exists at small widths. */}
+      {!isDesktop ? (
+        <nav aria-label={fr.editor.tabsLabel} className="shrink-0 border-b border-line bg-surface px-3 py-2">
+          <div className="flex gap-1">
+            {MOBILE_TABS.map((tab) => {
+              const active = mobileTab === tab.key
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setMobileTab(tab.key)}
+                  className={`flex-1 whitespace-nowrap rounded-pill px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+                    active
+                      ? 'bg-ink text-paper shadow-xs'
+                      : 'text-ink-soft hover:bg-surface-muted hover:text-ink'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              )
+            })}
+          </div>
+        </nav>
       ) : null}
 
-      {/* Mobile live preview — stays in view while the form is filled. */}
-      <div className="lg:hidden">
-        <div className="sticky top-16 z-10 border-b border-line bg-paper/95 backdrop-blur">
-          <button
-            type="button"
-            onClick={() => setPreviewDockOpen((open) => !open)}
-            aria-expanded={previewDockOpen}
-            className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
-          >
-            <span className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-pill bg-brand" aria-hidden="true" />
-              {fr.editor.previewLive}
-            </span>
-            <IconChevronLeft
-              className={`h-4 w-4 text-ink-soft transition-transform duration-200 ${previewDockOpen ? '-rotate-90' : 'rotate-90'}`}
-            />
-          </button>
-          {previewDockOpen ? (
-            <div className="flex justify-center px-4 pb-4">
-              <div className="max-h-[60vh] w-[min(52vw,200px)] overflow-y-auto rounded-md border border-line bg-surface-muted">
-                <div className="flex w-full flex-col" style={fontScaleStyle(fontSize)}>
-                  <template.Component draft={previewDraft} />
-                </div>
-              </div>
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
-        <div className="space-y-6">
-          <Card>
-            <CardHeader
-              title={fr.editor.templateLabel}
-              description={fr.editor.templateHint}
-            />
-            <CardBody>
-              <Select
-                aria-label={fr.editor.templateLabel}
-                value={templateKey}
-                onChange={(event) => selectTemplate(event.target.value)}
-              >
-                {TEMPLATES.map((item) => (
-                  <option key={item.key} value={item.key}>
-                    {item.name} — {item.categoryLabel}
-                  </option>
-                ))}
-              </Select>
-            </CardBody>
-          </Card>
-
-          <Card>
-            <CardHeader title={fr.editor.contentTitle} />
-            <CardBody className="space-y-4">
+      <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[21rem_1fr_21rem] xl:grid-cols-[23rem_1fr_24rem]">
+        {/* LEFT — what the invitation says. */}
+        <section
+          aria-label={fr.editor.tabContent}
+          className={`min-h-0 border-line bg-surface lg:overflow-y-auto lg:border-r ${
+            isDesktop || mobileTab === 'contenu' ? '' : 'hidden'
+          }`}
+        >
+          <div className="space-y-8 px-4 py-6 lg:px-5">
+            <section className="space-y-4">
+              <SectionTitle>{fr.editor.contentTitle}</SectionTitle>
               <Field
                 id="event-title"
                 label={fr.editor.titleLabel}
@@ -538,253 +545,115 @@ export function EventEditorPage() {
                   onChange={(event) => setMessage(event.target.value)}
                 />
               </Field>
-              <Field
-                id="event-message-font"
-                label={fr.editor.messageFontLabel}
-                hint={fr.editor.messageFontHint}
-              >
-                <div
-                  role="radiogroup"
-                  aria-label={fr.editor.messageFontLabel}
-                  className="flex flex-wrap gap-2"
-                >
-                  {MESSAGE_FONTS.map((font) => {
-                    const selected = font.key === messageFont
-                    return (
-                      <button
-                        key={font.key}
-                        type="button"
-                        role="radio"
-                        aria-checked={selected}
-                        onClick={() => setMessageFont(font.key)}
-                        className={`flex items-center gap-2 rounded-pill border px-3.5 py-2 text-sm transition-colors duration-150 ${
-                          selected
-                            ? 'border-brand bg-brand text-paper'
-                            : 'border-line-strong text-ink-soft hover:border-brand/60 hover:text-ink'
-                        }`}
-                      >
-                        <span
-                          className="text-lg leading-none"
-                          style={{ fontFamily: font.css }}
-                          aria-hidden="true"
-                        >
-                          Aa
-                        </span>
-                        <span>{font.label}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </Field>
-              <Field
-                id="event-font-size"
-                label={fr.editor.fontSizeLabel}
-                hint={fr.editor.fontSizeHint}
-              >
-                <div
-                  role="radiogroup"
-                  aria-label={fr.editor.fontSizeLabel}
-                  className="flex flex-wrap gap-2"
-                >
-                  {FONT_SIZES.map((size) => {
-                    const selected = size.key === fontSize
-                    return (
-                      <button
-                        key={size.key}
-                        type="button"
-                        role="radio"
-                        aria-checked={selected}
-                        onClick={() => setFontSize(size.key)}
-                        className={`flex items-center gap-2 rounded-pill border px-3.5 py-2 text-sm transition-colors duration-150 ${
-                          selected
-                            ? 'border-brand bg-brand text-paper'
-                            : 'border-line-strong text-ink-soft hover:border-brand/60 hover:text-ink'
-                        }`}
-                      >
-                        <span
-                          className="leading-none"
-                          style={{ fontSize: `${size.scale * 1.1}rem` }}
-                          aria-hidden="true"
-                        >
-                          Aa
-                        </span>
-                        <span>{size.label}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </Field>
-            </CardBody>
-          </Card>
+            </section>
 
-          <Card>
-            <CardHeader title={fr.editor.scheduleTitle} />
-            <CardBody className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field
-                id="event-date"
-                label={fr.editor.dateLabel}
-                required
-                error={fieldErrors.event_date?.[0]}
-              >
-                <Input
+            <section className="space-y-4">
+              <SectionTitle>{fr.editor.scheduleTitle}</SectionTitle>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field
                   id="event-date"
-                  type="date"
-                  value={eventDate}
-                  invalid={Boolean(fieldErrors.event_date)}
-                  onChange={(event) => setEventDate(event.target.value)}
-                />
-              </Field>
-              <Field
-                id="event-time"
-                label={fr.editor.timeLabel}
-                required
-                error={fieldErrors.event_time?.[0]}
-              >
-                <Input
+                  label={fr.editor.dateLabel}
+                  required
+                  error={fieldErrors.event_date?.[0]}
+                >
+                  <Input
+                    id="event-date"
+                    type="date"
+                    value={eventDate}
+                    invalid={Boolean(fieldErrors.event_date)}
+                    onChange={(event) => setEventDate(event.target.value)}
+                  />
+                </Field>
+                <Field
                   id="event-time"
-                  type="time"
-                  value={eventTime}
-                  invalid={Boolean(fieldErrors.event_time)}
-                  onChange={(event) => setEventTime(event.target.value)}
-                />
-              </Field>
-              <Field
-                id="event-timezone"
-                label={fr.editor.timezoneLabel}
-                hint={fr.editor.timezoneHint}
-                error={fieldErrors.timezone?.[0]}
-              >
-                <Input
+                  label={fr.editor.timeLabel}
+                  required
+                  error={fieldErrors.event_time?.[0]}
+                >
+                  <Input
+                    id="event-time"
+                    type="time"
+                    value={eventTime}
+                    invalid={Boolean(fieldErrors.event_time)}
+                    onChange={(event) => setEventTime(event.target.value)}
+                  />
+                </Field>
+                <Field
                   id="event-timezone"
-                  value={timezone}
-                  invalid={Boolean(fieldErrors.timezone)}
-                  onChange={(event) => setTimezone(event.target.value)}
-                />
-              </Field>
-              <Field
-                id="event-venue-name"
-                label={fr.editor.venueNameLabel}
-                error={fieldErrors.venue_name?.[0]}
-              >
-                <Input
+                  label={fr.editor.timezoneLabel}
+                  hint={fr.editor.timezoneHint}
+                  error={fieldErrors.timezone?.[0]}
+                >
+                  <Input
+                    id="event-timezone"
+                    value={timezone}
+                    invalid={Boolean(fieldErrors.timezone)}
+                    onChange={(event) => setTimezone(event.target.value)}
+                  />
+                </Field>
+                <Field
                   id="event-venue-name"
-                  value={venueName}
-                  onChange={(event) => setVenueName(event.target.value)}
-                />
-              </Field>
-              <Field
-                id="event-venue-address"
-                label={fr.editor.venueAddressLabel}
-                error={fieldErrors.venue_address?.[0]}
-              >
-                <Input
+                  label={fr.editor.venueNameLabel}
+                  error={fieldErrors.venue_name?.[0]}
+                >
+                  <Input
+                    id="event-venue-name"
+                    value={venueName}
+                    onChange={(event) => setVenueName(event.target.value)}
+                  />
+                </Field>
+                <Field
                   id="event-venue-address"
-                  value={venueAddress}
-                  onChange={(event) => setVenueAddress(event.target.value)}
-                />
-              </Field>
-              <Field
-                id="event-venue-details"
-                label={fr.editor.venueDetailsLabel}
-                error={fieldErrors.venue_details?.[0]}
-              >
-                <Input
+                  label={fr.editor.venueAddressLabel}
+                  error={fieldErrors.venue_address?.[0]}
+                >
+                  <Input
+                    id="event-venue-address"
+                    value={venueAddress}
+                    onChange={(event) => setVenueAddress(event.target.value)}
+                  />
+                </Field>
+                <Field
                   id="event-venue-details"
-                  value={venueDetails}
-                  onChange={(event) => setVenueDetails(event.target.value)}
-                />
-              </Field>
-            </CardBody>
-          </Card>
+                  label={fr.editor.venueDetailsLabel}
+                  error={fieldErrors.venue_details?.[0]}
+                >
+                  <Input
+                    id="event-venue-details"
+                    value={venueDetails}
+                    onChange={(event) => setVenueDetails(event.target.value)}
+                  />
+                </Field>
+              </div>
+            </section>
 
-          {template.supportsCover ? (
-            <Card>
-              <CardHeader title={fr.editor.coverTitle} description={fr.editor.coverHint} />
-              <CardBody className="space-y-3">
-                {previewDraft.cover_url ? (
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={previewDraft.cover_url}
-                      alt=""
-                      className="h-24 w-36 rounded-md border border-line object-cover"
-                    />
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => {
-                        setCoverFile(null)
-                        setCoverRemoved(true)
-                        setCoverPreview((previous) => {
-                          if (previous) URL.revokeObjectURL(previous)
-                          return null
-                        })
-                      }}
-                    >
-                      {fr.editor.coverRemove}
-                    </Button>
-                  </div>
-                ) : (
-                  <label className="inline-flex h-10 cursor-pointer items-center rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
-                    {fr.editor.coverUpload}
+            <section className="space-y-4">
+              <SectionTitle
+                action={
+                  <label className="inline-flex h-9 cursor-pointer items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
+                    {fr.editor.dressCodeUpload}
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
+                      multiple
                       className="sr-only"
-                      onChange={(event) => handleCoverChange(event.target.files?.[0] ?? null)}
+                      onChange={(event) => {
+                        handleDressFiles(event.target.files)
+                        event.target.value = ''
+                      }}
                     />
                   </label>
-                )}
-                {coverError ? (
-                  <p role="alert" className="text-xs text-danger">
-                    {coverError}
-                  </p>
-                ) : null}
-                <Field
-                  id="event-cover-text"
-                  label={fr.editor.coverTextLabel}
-                  hint={fr.editor.coverTextHelp}
-                  error={fieldErrors.cover_title?.[0]}
-                >
-                  <Input
-                    id="event-cover-text"
-                    value={coverText}
-                    placeholder={fr.editor.coverTextPlaceholder}
-                    onChange={(event) => setCoverText(event.target.value)}
-                  />
-                </Field>
-              </CardBody>
-            </Card>
-          ) : null}
-
-          <Card>
-            <CardHeader
-              title={fr.editor.dressCodeTitle}
-              description={fr.editor.dressCodeHint}
-              action={
-                <label className="inline-flex h-9 cursor-pointer items-center rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
-                  {fr.editor.dressCodeUpload}
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    multiple
-                    className="sr-only"
-                    onChange={(event) => {
-                      handleDressFiles(event.target.files)
-                      event.target.value = ''
-                    }}
-                  />
-                </label>
-              }
-            />
-            <CardBody className="space-y-3">
-              {dressRows.length === 0 ? (
-                <p className="text-sm text-ink-soft">{fr.editor.dressCodeHint}</p>
-              ) : (
+                }
+              >
+                {fr.editor.dressCodeTitle}
+              </SectionTitle>
+              <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.dressCodeHint}</p>
+              {dressRows.length === 0 ? null : (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {dressRows.map((row, index) => (
                     <div
                       key={row.id ?? `new-${index}`}
-                      className="space-y-2 rounded-md border border-line p-3"
+                      className="space-y-2 rounded-lg border border-line bg-surface-muted/40 p-3"
                     >
                       <img
                         src={row.url}
@@ -820,36 +689,34 @@ export function EventEditorPage() {
                   {dressError}
                 </p>
               ) : null}
-            </CardBody>
-          </Card>
+            </section>
 
-          <Card>
-            <CardHeader
-              title={fr.editor.programTitle}
-              description={fr.editor.programHint}
-              action={
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() =>
-                    setProgramRows((current) => [
-                      ...current,
-                      { start_time: '', end_time: '', description: '' },
-                    ])
-                  }
-                >
-                  {fr.editor.addProgramItem}
-                </Button>
-              }
-            />
-            <CardBody className="space-y-4">
+            <section className="space-y-4">
+              <SectionTitle
+                action={
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() =>
+                      setProgramRows((current) => [
+                        ...current,
+                        { start_time: '', end_time: '', description: '' },
+                      ])
+                    }
+                  >
+                    {fr.editor.addProgramItem}
+                  </Button>
+                }
+              >
+                {fr.editor.programTitle}
+              </SectionTitle>
               {programRows.length === 0 ? (
-                <p className="text-sm text-ink-soft">{fr.editor.programHint}</p>
+                <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.programHint}</p>
               ) : null}
               {programRows.map((row, index) => (
                 <div
                   key={row.id ?? `new-${index}`}
-                  className="space-y-3 rounded-md border border-line p-4"
+                  className="space-y-3 rounded-lg border border-line bg-surface-muted/40 p-4"
                 >
                   <div className="flex flex-wrap items-end gap-4">
                     <Field id={`program-${index}-start`} label={fr.editor.programStart} required>
@@ -899,41 +766,30 @@ export function EventEditorPage() {
                   {fieldErrors.program_items.join(' ')}
                 </p>
               ) : null}
-            </CardBody>
-          </Card>
+            </section>
 
-          <Card>
-            <CardHeader title={fr.editor.emphasisTitle} description={fr.editor.emphasisHint} />
-            <CardBody className="flex flex-wrap gap-3">
-              {template.emphasisFields.map((field) => (
-                <label key={field} className="flex items-center gap-2 text-sm text-ink">
-                  <input
-                    type="checkbox"
-                    checked={emphasis.includes(field)}
-                    onChange={() => toggleEmphasis(field)}
-                  />
-                  {emphasisLabel(field)}
-                </label>
-              ))}
-            </CardBody>
-          </Card>
-
-          <Card>
-            <CardHeader
-              title={fr.editor.questionsTitle}
-              description={fr.editor.questionsHint}
-              action={
-                <Button size="sm" variant="secondary" onClick={() => setQuestions((current) => [...current, blankQuestion()])}>
-                  {fr.editor.addQuestion}
-                </Button>
-              }
-            />
-            <CardBody className="space-y-4">
+            <section className="space-y-4">
+              <SectionTitle
+                action={
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setQuestions((current) => [...current, blankQuestion()])}
+                  >
+                    {fr.editor.addQuestion}
+                  </Button>
+                }
+              >
+                {fr.editor.questionsTitle}
+              </SectionTitle>
               {questions.length === 0 ? (
-                <p className="text-sm text-ink-soft">{fr.editor.questionsHint}</p>
+                <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.questionsHint}</p>
               ) : null}
               {questions.map((question, index) => (
-                <div key={question.id ?? `new-${index}`} className="space-y-3 rounded-md border border-line p-4">
+                <div
+                  key={question.id ?? `new-${index}`}
+                  className="space-y-3 rounded-lg border border-line bg-surface-muted/40 p-4"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <Field
                       id={`question-${index}-label`}
@@ -1005,6 +861,7 @@ export function EventEditorPage() {
                     <label className="flex h-10 items-center gap-2 text-sm text-ink">
                       <input
                         type="checkbox"
+                        className="h-4 w-4 rounded border-line-strong accent-ink"
                         checked={question.required}
                         onChange={(event) =>
                           setQuestions((current) =>
@@ -1019,6 +876,7 @@ export function EventEditorPage() {
                     <label className="flex h-10 items-center gap-2 text-sm text-ink">
                       <input
                         type="checkbox"
+                        className="h-4 w-4 rounded border-line-strong accent-ink"
                         checked={question.is_active}
                         onChange={(event) =>
                           setQuestions((current) =>
@@ -1103,43 +961,244 @@ export function EventEditorPage() {
                   </div>
                 </div>
               ))}
-            </CardBody>
-          </Card>
+            </section>
+          </div>
           {/* Submit at the end of the form — same action as the header button. */}
-          <div className="flex flex-wrap items-center justify-end gap-2 rounded-md border border-line bg-surface p-4">
+          <div className="sticky bottom-0 flex items-center justify-end gap-2 border-t border-line bg-surface px-4 py-3 lg:px-5">
             <Link
               to="/evenements"
-              className="inline-flex h-10 items-center rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
+              className="inline-flex h-10 items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
             >
               {fr.common.cancel}
             </Link>
             <Button loading={mutation.isPending} onClick={handleSubmit}>
               {mutation.isPending ? fr.editor.saving : isEdit ? fr.editor.save : fr.editor.create}
             </Button>
-          </div>        </div>
+          </div>
+        </section>
 
-        <div className="lg:sticky lg:top-6 lg:self-start">
-          <Card>
-            <CardHeader title={fr.editor.previewTitle} description={template.name} />
-            <CardBody>
-              <div className="max-h-[68vh] w-full overflow-y-auto rounded-md border border-line bg-surface-muted">
-                <div ref={previewCardRef} className="flex w-full flex-col" style={fontScaleStyle(fontSize)}>
-                  <template.Component draft={previewDraft} />
+        {/* CENTER — the invitation itself. */}
+        <section
+          aria-label={fr.editor.tabPreview}
+          className={`flex min-h-0 flex-col bg-surface-muted/50 lg:overflow-y-auto ${
+            isDesktop || mobileTab === 'apercu' ? '' : 'hidden'
+          }`}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3 lg:px-6">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-pill bg-brand" aria-hidden="true" />
+              <p className="truncate text-sm font-medium text-ink">{fr.editor.previewLive}</p>
+              <p className="truncate text-xs text-ink-faint">{template.name}</p>
+            </div>
+            <InvitationDownloadButton
+              targetRef={previewCardRef}
+              title={previewDraft.title}
+              templateKey={templateKey}
+              dressCode={previewDraft.dressCode}
+              program={previewDraft.program}
+              qrText={`${window.location.origin}/`}
+            />
+          </div>
+          <div className="flex flex-1 justify-center px-4 py-6 lg:px-8 lg:py-8">
+            <div className="w-full max-w-[24rem] overflow-hidden rounded-lg bg-surface shadow-canvas ring-1 ring-line">
+              <div
+                ref={previewCardRef}
+                className="flex w-full flex-col"
+                style={fontScaleStyle(fontSize)}
+              >
+                <template.Component draft={previewDraft} />
+              </div>
+            </div>
+          </div>
+          <p className="px-4 pb-6 text-center text-xs text-ink-faint lg:px-8">
+            {fr.editor.previewNote}
+          </p>
+        </section>
+
+        {/* RIGHT — how the invitation looks. */}
+        <section
+          aria-label={fr.editor.tabDesign}
+          className={`min-h-0 border-line bg-surface lg:overflow-y-auto lg:border-l ${
+            isDesktop || mobileTab === 'design' ? '' : 'hidden'
+          }`}
+        >
+          <div className="space-y-8 px-4 py-6 lg:px-5">
+            <section className="space-y-3">
+              <SectionTitle>{fr.editor.templateLabel}</SectionTitle>
+              <Select
+                aria-label={fr.editor.templateLabel}
+                value={templateKey}
+                onChange={(event) => selectTemplate(event.target.value)}
+              >
+                {TEMPLATES.map((item) => (
+                  <option key={item.key} value={item.key}>
+                    {item.name} — {item.categoryLabel}
+                  </option>
+                ))}
+              </Select>
+              <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.templateHint}</p>
+              <p className="text-xs text-ink-soft">
+                {template.name} — {template.categoryLabel}
+              </p>
+            </section>
+
+            <section className="space-y-4">
+              <SectionTitle>{fr.editor.typographyTitle}</SectionTitle>
+              <Field
+                id="event-message-font"
+                label={fr.editor.messageFontLabel}
+                hint={fr.editor.messageFontHint}
+              >
+                <div
+                  role="radiogroup"
+                  aria-label={fr.editor.messageFontLabel}
+                  className="flex flex-wrap gap-2"
+                >
+                  {MESSAGE_FONTS.map((font) => {
+                    const selected = font.key === messageFont
+                    return (
+                      <button
+                        key={font.key}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() => setMessageFont(font.key)}
+                        className={`flex items-center gap-2 whitespace-nowrap rounded-pill border px-3.5 py-2 text-sm transition-colors duration-150 ${
+                          selected
+                            ? 'border-ink bg-ink text-paper'
+                            : 'border-line-strong text-ink-soft hover:border-ink/40 hover:text-ink'
+                        }`}
+                      >
+                        <span
+                          className="text-lg leading-none"
+                          style={{ fontFamily: font.css }}
+                          aria-hidden="true"
+                        >
+                          Aa
+                        </span>
+                        <span>{font.label}</span>
+                      </button>
+                    )
+                  })}
                 </div>
+              </Field>
+              <Field
+                id="event-font-size"
+                label={fr.editor.fontSizeLabel}
+                hint={fr.editor.fontSizeHint}
+              >
+                <div
+                  role="radiogroup"
+                  aria-label={fr.editor.fontSizeLabel}
+                  className="flex flex-wrap gap-2"
+                >
+                  {FONT_SIZES.map((size) => {
+                    const selected = size.key === fontSize
+                    return (
+                      <button
+                        key={size.key}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() => setFontSize(size.key)}
+                        className={`flex items-center gap-2 whitespace-nowrap rounded-pill border px-3.5 py-2 text-sm transition-colors duration-150 ${
+                          selected
+                            ? 'border-ink bg-ink text-paper'
+                            : 'border-line-strong text-ink-soft hover:border-ink/40 hover:text-ink'
+                        }`}
+                      >
+                        <span
+                          className="leading-none"
+                          style={{ fontSize: `${size.scale * 1.1}rem` }}
+                          aria-hidden="true"
+                        >
+                          Aa
+                        </span>
+                        <span>{size.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+            </section>
+
+            <section className="space-y-3">
+              <SectionTitle>{fr.editor.emphasisTitle}</SectionTitle>
+              <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.emphasisHint}</p>
+              <div className="flex flex-col gap-2.5">
+                {template.emphasisFields.map((field) => (
+                  <label key={field} className="flex items-center gap-2.5 text-sm text-ink">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-line-strong accent-ink"
+                      checked={emphasis.includes(field)}
+                      onChange={() => toggleEmphasis(field)}
+                    />
+                    {emphasisLabel(field)}
+                  </label>
+                ))}
               </div>
-              <div className="mt-4 border-t border-line pt-4">
-                <InvitationDownloadButton
-                  targetRef={previewCardRef}
-                  title={previewDraft.title}
-                  templateKey={templateKey}
-                  dressCode={previewDraft.dressCode}
-                  program={previewDraft.program}
-                  qrText={`${window.location.origin}/`}
-                />
-              </div>
-            </CardBody>
-          </Card>
-        </div>
+            </section>
+
+            {template.supportsCover ? (
+              <section className="space-y-3">
+                <SectionTitle>{fr.editor.coverTitle}</SectionTitle>
+                <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.coverHint}</p>
+                {previewDraft.cover_url ? (
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={previewDraft.cover_url}
+                      alt=""
+                      className="h-24 w-36 rounded-md border border-line object-cover"
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        setCoverFile(null)
+                        setCoverRemoved(true)
+                        setCoverPreview((previous) => {
+                          if (previous) URL.revokeObjectURL(previous)
+                          return null
+                        })
+                      }}
+                    >
+                      {fr.editor.coverRemove}
+                    </Button>
+                  </div>
+                ) : (
+                  <label className="inline-flex h-10 cursor-pointer items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
+                    {fr.editor.coverUpload}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      onChange={(event) => handleCoverChange(event.target.files?.[0] ?? null)}
+                    />
+                  </label>
+                )}
+                {coverError ? (
+                  <p role="alert" className="text-xs text-danger">
+                    {coverError}
+                  </p>
+                ) : null}
+                <Field
+                  id="event-cover-text"
+                  label={fr.editor.coverTextLabel}
+                  hint={fr.editor.coverTextHelp}
+                  error={fieldErrors.cover_title?.[0]}
+                >
+                  <Input
+                    id="event-cover-text"
+                    value={coverText}
+                    placeholder={fr.editor.coverTextPlaceholder}
+                    onChange={(event) => setCoverText(event.target.value)}
+                  />
+                </Field>
+              </section>
+            ) : null}
+          </div>
+        </section>
       </div>
     </div>
   )

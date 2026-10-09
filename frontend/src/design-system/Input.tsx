@@ -1,15 +1,21 @@
-import { useState, type InputHTMLAttributes, type SelectHTMLAttributes } from 'react'
+import {
+  useState,
+  type InputHTMLAttributes,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from 'react'
 
 import { fr } from '../locales/fr.ts'
 import { IconEye, IconEyeOff } from './icons.tsx'
 
 function controlClasses(invalid: boolean | undefined, className: string): string {
   const border = invalid
-    ? 'border-danger focus:border-danger focus:ring-danger/20'
-    : 'border-line-strong focus:border-brand focus:ring-brand/20'
+    ? 'border-danger focus:border-danger focus:ring-danger/15'
+    : 'border-line-strong hover:border-ink-faint/50 focus:border-ink/60 focus:ring-ink/8'
   return (
-    'w-full rounded-md border bg-surface text-sm text-ink placeholder:text-ink-faint ' +
-    'transition-colors duration-150 focus:outline-none focus:ring-2 ' +
+    'w-full min-w-0 rounded-md border bg-surface text-sm text-ink shadow-xs placeholder:text-ink-faint ' +
+    'transition-[border-color,box-shadow] duration-150 focus:outline-none focus:ring-4 ' +
+    'disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-ink-faint ' +
     `${border} ${className}`
   )
 }
@@ -58,10 +64,31 @@ export function Select({ invalid, className = '', children, ...props }: SelectPr
   return (
     <select
       aria-invalid={invalid || undefined}
-      className={controlClasses(invalid, `h-10 px-3 ${className}`)}
+      className={controlClasses(
+        invalid,
+        `h-10 cursor-pointer appearance-none bg-[length:16px] bg-[right_0.6rem_center] bg-no-repeat pl-3 pr-9 ${className}`,
+      )}
+      style={{
+        backgroundImage:
+          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238e887f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")",
+      }}
       {...props}
     >
       {children}
     </select>
+  )
+}
+
+export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  invalid?: boolean
+}
+
+export function Textarea({ invalid, className = '', ...props }: TextareaProps) {
+  return (
+    <textarea
+      aria-invalid={invalid || undefined}
+      className={controlClasses(invalid, `px-3 py-2.5 leading-relaxed ${className}`)}
+      {...props}
+    />
   )
 }

@@ -7,13 +7,20 @@
  * `GET /api/events/{id}/responses/`, which is organizer-scoped and paginated.
  */
 import { useQuery } from '@tanstack/react-query'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 
-import { Badge, type BadgeTone } from '../design-system/Badge.tsx'
-import { Button } from '../design-system/Button.tsx'
-import { Card, CardBody, CardHeader } from '../design-system/Card.tsx'
-import { Stat } from '../design-system/Stat.tsx'
-import { EmptyState, ErrorState, LoadingState } from '../design-system/states.tsx'
+import {
+  Badge,
+  Card,
+  EmptyState,
+  ErrorState,
+  IconInbox,
+  MetricCard,
+  PageHeader,
+  Pagination,
+  SkeletonRows,
+  type BadgeTone,
+} from '../design-system/index.ts'
 import { eventsApi } from '../lib/api.ts'
 import { formatDateTime, formatNumber } from '../lib/format.ts'
 import type {
@@ -39,9 +46,10 @@ const STATUS_LABELS: Record<InvitationState, string> = {
 
 /** Per-option tallies as slim proportional bars (share of responding guests). */
 function QuestionTally({ question, total }: { question: ResponseQuestionTally; total: number }) {
+  const leader = Math.max(0, ...question.options.map((option) => option.count))
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+    <div className="p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h3 className="text-sm font-semibold text-ink">{question.label}</h3>
         <span className="text-xs text-ink-faint">
           {question.input_type === 'single'
@@ -49,14 +57,17 @@ function QuestionTally({ question, total }: { question: ResponseQuestionTally; t
             : fr.responses.inputType.multiple}
         </span>
       </div>
-      <ul className="space-y-2">
+      <ul className="mt-4 space-y-3">
         {question.options.map((option) => {
           const percent = total > 0 ? Math.round((option.count / total) * 100) : 0
+          const top = option.count > 0 && option.count === leader
           return (
             <li key={option.id}>
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                <span className="text-sm text-ink-soft">{option.label}</span>
-                <span className="text-xs tabular-nums text-ink-faint">
+              <div className="flex items-baseline justify-between gap-x-3">
+                <span className={`min-w-0 truncate text-sm ${top ? 'font-medium text-ink' : 'text-ink-soft'}`}>
+                  {option.label}
+                </span>
+                <span className="shrink-0 text-xs tabular-nums text-ink-faint">
                   {(option.count <= 1 ? fr.responses.votesOne : fr.responses.votes).replace(
                     '{count}',
                     formatNumber(option.count),
@@ -64,9 +75,9 @@ function QuestionTally({ question, total }: { question: ResponseQuestionTally; t
                   · {percent} %
                 </span>
               </div>
-              <div className="mt-1 h-1.5 rounded-pill bg-surface-muted">
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-pill bg-surface-muted">
                 <div
-                  className="h-full rounded-pill bg-brand transition-all duration-300"
+                  className={`h-full rounded-pill transition-[width] duration-500 ${top ? 'bg-ink' : 'bg-ink-faint/60'}`}
                   style={{ width: `${percent}%` }}
                 />
               </div>
@@ -82,37 +93,35 @@ function QuestionTally({ question, total }: { question: ResponseQuestionTally; t
 function ResponseRow({ response }: { response: GuestResponsePayload }) {
   const updated = response.updated_at !== response.submitted_at
   return (
-    <Card>
-      <CardHeader
-        title={response.display_name}
-        description={
-          updated
-            ? `${fr.responses.answeredOn.replace('{date}', formatDateTime(response.submitted_at))} · ${fr.responses.updatedOn.replace('{date}', formatDateTime(response.updated_at))}`
-            : fr.responses.answeredOn.replace('{date}', formatDateTime(response.submitted_at))
-        }
-        action={
-          <Badge tone={STATUS_TONES[response.invitation_status]}>
-            {STATUS_LABELS[response.invitation_status]}
-          </Badge>
-        }
-      />
-      <CardBody>
-        {response.answers.length === 0 ? (
-          <p className="text-sm text-ink-soft">{fr.responses.noAnswers}</p>
-        ) : (
-          <dl className="space-y-2">
-            {response.answers.map((answer) => (
-              <div key={answer.question} className="flex flex-wrap gap-x-2 gap-y-1">
-                <dt className="text-sm font-medium text-ink">{answer.question_label}</dt>
-                <dd className="text-sm text-ink-soft">
-                  {answer.options.map((option) => option.label).join(', ')}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        )}
-      </CardBody>
-    </Card>
+    <li className="px-5 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-semibold text-ink">{response.display_name}</h3>
+          <p className="mt-0.5 text-xs text-ink-faint">
+            {updated
+              ? `${fr.responses.answeredOn.replace('{date}', formatDateTime(response.submitted_at))} · ${fr.responses.updatedOn.replace('{date}', formatDateTime(response.updated_at))}`
+              : fr.responses.answeredOn.replace('{date}', formatDateTime(response.submitted_at))}
+          </p>
+        </div>
+        <Badge tone={STATUS_TONES[response.invitation_status]} dot>
+          {STATUS_LABELS[response.invitation_status]}
+        </Badge>
+      </div>
+      {response.answers.length === 0 ? (
+        <p className="mt-3 text-sm text-ink-soft">{fr.responses.noAnswers}</p>
+      ) : (
+        <dl className="mt-3 grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
+          {response.answers.map((answer) => (
+            <div key={answer.question} className="min-w-0 rounded-md bg-surface-muted/70 px-3 py-2">
+              <dt className="text-xs text-ink-faint">{answer.question_label}</dt>
+              <dd className="mt-0.5 text-sm font-medium text-ink">
+                {answer.options.map((option) => option.label).join(', ')}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </li>
   )
 }
 
@@ -146,101 +155,101 @@ export function ResponsesPage() {
   const summary = data?.summary
   const results = data?.results ?? []
   const totalPages = data ? Math.max(1, Math.ceil(data.count / 25)) : 1
+  const rate =
+    summary && summary.invitations > 0
+      ? Math.round((summary.responses / summary.invitations) * 100)
+      : null
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-ink">{fr.responses.title}</h1>
-          <p className="mt-1 text-sm text-ink-soft">{fr.responses.subtitle}</p>
-          {eventQuery.data ? (
-            <p className="mt-1 text-xs text-ink-faint">{eventQuery.data.title}</p>
-          ) : null}
-        </div>
-        <Link
-          to={`/evenements/${eventId}/invitations`}
-          className="inline-flex h-10 items-center rounded-md border border-line-strong bg-surface px-4 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
-        >
-          {fr.responses.back}
-        </Link>
-      </header>
+      <PageHeader
+        back={{ to: `/evenements/${eventId}/invitations`, label: fr.responses.back }}
+        eyebrow={eventQuery.data?.title}
+        title={fr.responses.title}
+        description={fr.responses.subtitle}
+      />
 
-      {query.isLoading ? <LoadingState /> : null}
+      {query.isLoading ? <SkeletonRows rows={3} /> : null}
 
       {query.isError ? (
-        <ErrorState
-          title={fr.responses.error.title}
-          description={fr.responses.error.description}
-          onRetry={() => query.refetch()}
-        />
-      ) : null}
-
-      {summary ? (
         <Card>
-          <CardHeader title={fr.responses.summaryTitle} />
-          <CardBody className="space-y-6">
-            <div className="grid grid-cols-1 gap-4 sm:max-w-xs">
-              <Stat
-                label={fr.responses.received}
-                value={formatNumber(summary.responses)}
-                hint={fr.responses.ofInvitations.replace(
-                  '{count}',
-                  formatNumber(summary.invitations),
-                )}
-                emphasis={summary.responses > 0 ? 'success' : 'default'}
-              />
-            </div>
-            {summary.questions.length > 0 ? (
-              <div className="space-y-6">
-                <h2 className="text-sm font-semibold text-ink">{fr.responses.questionsTitle}</h2>
-                {summary.questions.map((question) => (
-                  <QuestionTally
-                    key={question.id}
-                    question={question}
-                    total={summary.responses}
-                  />
-                ))}
-              </div>
-            ) : null}
-          </CardBody>
+          <ErrorState
+            title={fr.responses.error.title}
+            description={fr.responses.error.description}
+            onRetry={() => void query.refetch()}
+          />
         </Card>
       ) : null}
 
+      {summary ? (
+        <>
+          <dl className="grid grid-cols-2 gap-3 lg:max-w-2xl lg:gap-4">
+            <MetricCard
+              label={fr.responses.received}
+              value={formatNumber(summary.responses)}
+              footer={fr.responses.ofInvitations.replace('{count}', formatNumber(summary.invitations))}
+            />
+            <MetricCard
+              label={fr.responses.rateLabel}
+              value={rate === null ? '—' : `${rate} %`}
+            />
+          </dl>
+
+          <section className="space-y-3" aria-labelledby="responses-questions">
+            <h2 id="responses-questions" className="text-sm font-semibold text-ink">
+              {fr.responses.questionsTitle}
+            </h2>
+            {summary.questions.length > 0 ? (
+              <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
+                {summary.questions.map((question) => (
+                  <Card key={question.id}>
+                    <QuestionTally question={question} total={summary.responses} />
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-ink-soft">{fr.responses.noQuestions}</p>
+            )}
+          </section>
+        </>
+      ) : null}
+
       {data && results.length > 0 ? (
-        <div className="space-y-3">
-          <h2 className="text-sm font-semibold text-ink">{fr.responses.listTitle}</h2>
-          {results.map((response) => (
-            <ResponseRow key={response.id} response={response} />
-          ))}
+        <section className="space-y-3" aria-labelledby="responses-list">
+          <h2 id="responses-list" className="text-sm font-semibold text-ink">
+            {fr.responses.listTitle}
+          </h2>
+          <Card className="overflow-hidden">
+            <ul className="divide-y divide-line">
+              {results.map((response) => (
+                <ResponseRow key={response.id} response={response} />
+              ))}
+            </ul>
+          </Card>
 
           {totalPages > 1 ? (
-            <div className="flex items-center justify-between pt-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={page <= 1}
-                onClick={() => updateParam('page', String(page - 1))}
-              >
-                {fr.responses.prev}
-              </Button>
-              <span className="text-xs text-ink-soft">
-                {fr.responses.page.replace('{page}', `${page} / ${totalPages}`)}
-              </span>
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={!data.next}
-                onClick={() => updateParam('page', String(page + 1))}
-              >
-                {fr.responses.next}
-              </Button>
-            </div>
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              hasNext={Boolean(data.next)}
+              onPrev={() => updateParam('page', String(page - 1))}
+              onNext={() => updateParam('page', String(page + 1))}
+              prevLabel={fr.responses.prev}
+              nextLabel={fr.responses.next}
+              pageLabel={fr.responses.page}
+            />
           ) : null}
-        </div>
+        </section>
       ) : null}
 
       {data && results.length === 0 ? (
-        <EmptyState title={fr.responses.empty.title} description={fr.responses.empty.description} />
+        <Card>
+          <EmptyState
+            icon={<IconInbox className="h-5 w-5" />}
+            title={fr.responses.empty.title}
+            description={fr.responses.empty.description}
+          />
+        </Card>
       ) : null}
     </div>
   )

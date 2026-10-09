@@ -6,16 +6,31 @@ export interface FieldProps {
   hint?: string
   error?: string
   required?: boolean
+  /** Visually hide the label (it stays the accessible name). */
+  hideLabel?: boolean
+  className?: string
   children: ReactNode
 }
 
-export function Field({ id, label, hint, error, required, children }: FieldProps) {
+export function Field({
+  id,
+  label,
+  hint,
+  error,
+  required,
+  hideLabel,
+  className = '',
+  children,
+}: FieldProps) {
   return (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-sm font-medium text-ink">
+    <div className={`min-w-0 space-y-1.5 ${className}`}>
+      <label
+        htmlFor={id}
+        className={hideLabel ? 'sr-only' : 'block text-[0.8125rem] font-medium text-ink'}
+      >
         {label}
         {required ? (
-          <span className="text-danger" aria-hidden="true">
+          <span className="text-ink-faint" aria-hidden="true">
             {' '}
             *
           </span>
@@ -27,7 +42,7 @@ export function Field({ id, label, hint, error, required, children }: FieldProps
           {error}
         </p>
       ) : hint ? (
-        <p id={`${id}-hint`} className="text-xs text-ink-soft">
+        <p id={`${id}-hint`} className="text-xs leading-relaxed text-ink-faint">
           {hint}
         </p>
       ) : null}

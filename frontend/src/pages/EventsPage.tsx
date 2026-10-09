@@ -6,12 +6,28 @@ import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { Alert } from '../design-system/Alert.tsx'
-import { Badge } from '../design-system/Badge.tsx'
-import { Button } from '../design-system/Button.tsx'
-import { Card, CardBody } from '../design-system/Card.tsx'
-import { Input, Select } from '../design-system/Input.tsx'
-import { EmptyState, ErrorState, LoadingState } from '../design-system/states.tsx'
+import {
+  Alert,
+  Badge,
+  Card,
+  ConfirmDialog,
+  EmptyState,
+  ErrorState,
+  IconCalendar,
+  IconEdit,
+  IconEvents,
+  IconPlus,
+  IconSearch,
+  IconTrash,
+  IconUsers,
+  Input,
+  PageHeader,
+  Pagination,
+  Select,
+  SkeletonRows,
+  Toolbar,
+  buttonClasses,
+} from '../design-system/index.ts'
 import { ApiError, eventsApi } from '../lib/api.ts'
 import { formatDate } from '../lib/format.ts'
 import type { EventModel, TemplateCategory } from '../lib/types.ts'
@@ -29,7 +45,30 @@ const CATEGORIES: Array<{ value: TemplateCategory | ''; label: string }> = [
   { value: 'other', label: 'Autre' },
 ]
 
-function DeleteButton({ event, onDeleted }: { event: EventModel; onDeleted: () => void }) {
+/** Calendar tile: day number over the abbreviated month. */
+function DateTile({ iso }: { iso: string }) {
+  if (!iso) {
+    return (
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-line bg-surface-muted text-ink-faint">
+        <IconCalendar className="h-4.5 w-4.5" />
+      </div>
+    )
+  }
+  const date = new Date(`${iso}T12:00:00`)
+  const day = new Intl.DateTimeFormat('fr-FR', { day: '2-digit' }).format(date)
+  const month = new Intl.DateTimeFormat('fr-FR', { month: 'short' }).format(date).replace('.', '')
+  return (
+    <div
+      aria-hidden="true"
+      className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-md border border-line bg-surface-muted leading-none"
+    >
+      <span className="text-[0.625rem] font-semibold uppercase tracking-[0.08em] text-brand">{month}</span>
+      <span className="mt-1 text-lg font-semibold tracking-tight text-ink tabular-nums">{day}</span>
+    </div>
+  )
+}
+
+function EventRow({ event, onDeleted }: { event: EventModel; onDeleted: () => void }) {
   const [confirming, setConfirming] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const queryClient = useQueryClient()
@@ -51,53 +90,83 @@ function DeleteButton({ event, onDeleted }: { event: EventModel; onDeleted: () =
     },
   })
 
+  const invitations =
+    event.invitations_count > 0
+      ? `${event.invitations_count} ${fr.events.invitationsMany}`
+      : fr.events.noInvitations
+
   return (
-    <div className="flex flex-col items-end gap-2">
-      <div className="flex items-center gap-2">
-        <Link
-          to={`/evenements/${event.id}/invitations`}
-          className="inline-flex h-8 items-center rounded-md border border-line-strong bg-surface px-3 text-xs font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
-        >
-          {fr.events.guests}
-        </Link>
+    <li className="group">
+      <div className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:gap-5 sm:px-5">
         <Link
           to={`/evenements/${event.id}`}
-          className="inline-flex h-8 items-center rounded-md border border-line-strong bg-surface px-3 text-xs font-medium text-ink transition-colors duration-150 hover:bg-surface-muted"
+          className="flex min-w-0 flex-1 items-center gap-4 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35"
+          aria-label={`${fr.events.edit} — ${event.title}`}
         >
-          {fr.events.edit}
-        </Link>
-        <Button variant="danger" size="sm" onClick={() => setConfirming(true)}>
-          {fr.events.delete}
-        </Button>
-      </div>
-      {confirming ? (
-        <div
-          role="alertdialog"
-          aria-label={fr.events.deleteTitle}
-          className="rounded-md border border-danger/30 bg-danger-soft p-3 text-right"
-        >
-          <p className="text-xs text-danger">{fr.events.deleteConfirm}</p>
-          <div className="mt-2 flex justify-end gap-2">
-            <Button size="sm" variant="secondary" onClick={() => setConfirming(false)}>
-              {fr.common.cancel}
-            </Button>
-            <Button
-              size="sm"
-              variant="danger"
-              loading={mutation.isPending}
-              onClick={() => mutation.mutate()}
-            >
-              {fr.events.delete}
-            </Button>
+          <DateTile iso={event.event_date} />
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-center gap-2">
+              <h2 className="truncate text-[0.9375rem] font-semibold tracking-tight text-ink group-hover:underline group-hover:decoration-line-strong group-hover:underline-offset-4">
+                {event.title}
+              </h2>
+              {event.is_active ? null : <Badge>{fr.events.statusInactive}</Badge>}
+            </div>
+            <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[0.8125rem] text-ink-soft">
+              <Badge tone="brand">{event.template_detail.name}</Badge>
+              <span className="whitespace-nowrap">
+                {event.event_date ? formatDate(event.event_date) : fr.events.noDate}
+              </span>
+              <span aria-hidden="true" className="text-line-strong">
+                ·
+              </span>
+              <span className="whitespace-nowrap">{invitations}</span>
+            </div>
           </div>
+        </Link>
+
+        <div className="flex shrink-0 items-center gap-1.5 sm:justify-end">
+          <Link
+            to={`/evenements/${event.id}/invitations`}
+            className={buttonClasses('secondary', 'sm', 'flex-1 sm:flex-none')}
+          >
+            <IconUsers className="h-3.5 w-3.5" />
+            {fr.events.guests}
+          </Link>
+          <Link
+            to={`/evenements/${event.id}`}
+            className={buttonClasses('secondary', 'sm', 'flex-1 sm:flex-none')}
+          >
+            <IconEdit className="h-3.5 w-3.5" />
+            {fr.events.edit}
+          </Link>
+          <button
+            type="button"
+            onClick={() => setConfirming(true)}
+            aria-label={fr.events.delete}
+            title={fr.events.delete}
+            className={buttonClasses('danger-ghost', 'sm', 'w-8 px-0')}
+          >
+            <IconTrash className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+      {error ? (
+        <div className="px-4 pb-4 sm:px-5">
+          <p role="alert" className="text-[0.8125rem] text-danger">
+            {error}
+          </p>
         </div>
       ) : null}
-      {error ? (
-        <p role="alert" className="max-w-xs text-right text-xs text-danger">
-          {error}
-        </p>
-      ) : null}
-    </div>
+      <ConfirmDialog
+        open={confirming}
+        title={fr.events.deleteTitle}
+        message={fr.events.deleteConfirm}
+        confirmLabel={fr.events.delete}
+        loading={mutation.isPending}
+        onCancel={() => setConfirming(false)}
+        onConfirm={() => mutation.mutate()}
+      />
+    </li>
   )
 }
 
@@ -126,46 +195,52 @@ export function EventsPage() {
 
   const results = query.data?.results ?? []
   const totalPages = query.data ? Math.max(1, Math.ceil(query.data.count / 25)) : 1
+  const filtered = Boolean(q || category || isActive)
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-ink">{fr.events.title}</h1>
-          <p className="mt-1 text-sm text-ink-soft">{fr.events.subtitle}</p>
-        </div>
-        <Link
-          to="/evenements/nouveau"
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-brand px-4 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-        >
-          {fr.events.create}
-        </Link>
-      </header>
+      <PageHeader
+        title={fr.events.title}
+        description={fr.events.subtitle}
+        actions={
+          <Link to="/evenements/nouveau" className={buttonClasses('primary', 'md')}>
+            <IconPlus className="h-4 w-4" />
+            {fr.events.create}
+          </Link>
+        }
+      />
 
       {deleted ? <Alert tone="success">{fr.events.deleted}</Alert> : null}
 
-      <div className="space-y-3">
+      <Toolbar>
         <form
-          className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2.5"
+          role="search"
+          className="relative min-w-0 flex-1"
           onSubmit={(e) => {
             e.preventDefault()
             setDeleted(false)
             updateParam('q', searchInput.trim())
           }}
         >
-          <div className="min-w-[13rem] flex-1">
-            <Input
-              type="search"
-              aria-label={fr.events.search}
-              placeholder={fr.events.searchPlaceholder}
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
-          </div>
+          <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
+          <Input
+            type="search"
+            aria-label={fr.events.search}
+            placeholder={fr.events.searchPlaceholder}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onBlur={() => {
+              if (searchInput.trim() !== q) updateParam('q', searchInput.trim())
+            }}
+            className="border-transparent pl-9 shadow-none hover:border-transparent focus:border-line-strong"
+          />
+        </form>
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
           <Select
             aria-label={fr.events.categoryLabel}
             value={category}
             onChange={(e) => updateParam('categorie', e.target.value)}
+            className="sm:w-52"
           >
             {CATEGORIES.map((option) => (
               <option key={option.value} value={option.value}>
@@ -177,93 +252,72 @@ export function EventsPage() {
             aria-label={fr.events.statusLabel}
             value={isActive}
             onChange={(e) => updateParam('statut', e.target.value)}
+            className="sm:w-40"
           >
             <option value="">{fr.events.statusAll}</option>
             <option value="true">{fr.events.statusActive}</option>
             <option value="false">{fr.events.statusInactive}</option>
           </Select>
-          <Button type="submit" variant="secondary">
-            {fr.common.search}
-          </Button>
-        </form>
+        </div>
+      </Toolbar>
 
-        {query.isPending ? <LoadingState /> : null}
-        {query.isError ? (
+      {query.isPending ? <SkeletonRows rows={4} /> : null}
+      {query.isError ? (
+        <Card>
           <ErrorState
             title={fr.events.error.title}
             description={fr.events.error.description}
             onRetry={() => void query.refetch()}
           />
-        ) : null}
-        {query.isSuccess && results.length === 0 ? (
-          <Card>
-            <CardBody>
-              <EmptyState
-                title={fr.events.empty.title}
-                description={fr.events.empty.description}
-                action={
-                  <Link
-                    to="/evenements/nouveau"
-                    className="inline-flex h-9 items-center rounded-md bg-brand px-4 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-strong"
-                  >
-                    {fr.events.create}
-                  </Link>
-                }
-              />
-            </CardBody>
+        </Card>
+      ) : null}
+      {query.isSuccess && results.length === 0 ? (
+        <Card>
+          <EmptyState
+            icon={<IconEvents className="h-5 w-5" />}
+            title={fr.events.empty.title}
+            description={fr.events.empty.description}
+            action={
+              filtered ? undefined : (
+                <Link to="/evenements/nouveau" className={buttonClasses('primary', 'md')}>
+                  <IconPlus className="h-4 w-4" />
+                  {fr.events.create}
+                </Link>
+              )
+            }
+          />
+        </Card>
+      ) : null}
+
+      {results.length > 0 ? (
+        <div className="space-y-3">
+          <p className="text-[0.8125rem] text-ink-faint">
+            {(query.data?.count ?? 0) === 1
+              ? fr.events.countOne
+              : fr.events.count.replace('{count}', String(query.data?.count ?? 0))}
+          </p>
+          <Card className="overflow-hidden">
+            <ul className="divide-y divide-line">
+              {results.map((event) => (
+                <EventRow key={event.id} event={event} onDeleted={() => setDeleted(true)} />
+              ))}
+            </ul>
           </Card>
-        ) : null}
 
-        {results.length > 0 ? (
-          <div className="space-y-3">
-            {results.map((event) => (
-              <Card key={event.id}>
-                <CardBody className="flex flex-wrap items-center justify-between gap-4 py-4">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="truncate text-sm font-semibold text-ink">{event.title}</h2>
-                      <Badge tone="brand">{event.template_detail.name}</Badge>
-                      {event.is_active ? null : <Badge>{fr.events.statusInactive}</Badge>}
-                    </div>
-                    <p className="mt-1 text-xs text-ink-soft">
-                      {event.event_date ? formatDate(event.event_date) : '—'}
-                      {' · '}
-                      {event.invitations_count > 0
-                        ? `${event.invitations_count} ${fr.events.invitationsMany}`
-                        : fr.events.noInvitations}
-                    </p>
-                  </div>
-                  <DeleteButton event={event} onDeleted={() => setDeleted(true)} />
-                </CardBody>
-              </Card>
-            ))}
-
-            {totalPages > 1 ? (
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={page <= 1}
-                  onClick={() => updateParam('page', String(page - 1))}
-                >
-                  {fr.events.prev}
-                </Button>
-                <span className="text-xs text-ink-soft">
-                  {fr.events.page.replace('{page}', `${page} / ${totalPages}`)}
-                </span>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={!query.data?.next}
-                  onClick={() => updateParam('page', String(page + 1))}
-                >
-                  {fr.events.next}
-                </Button>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
+          {totalPages > 1 ? (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              hasNext={Boolean(query.data?.next)}
+              onPrev={() => updateParam('page', String(page - 1))}
+              onNext={() => updateParam('page', String(page + 1))}
+              prevLabel={fr.events.prev}
+              nextLabel={fr.events.next}
+              pageLabel={fr.events.page}
+            />
+          ) : null}
+        </div>
+      ) : null}
     </div>
   )
 }

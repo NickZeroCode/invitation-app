@@ -170,3 +170,235 @@ export function IconRefresh({ className = 'h-5 w-5' }: IconProps) {
     </svg>
   )
 }
+
+export function IconSidebar({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="3" y="4" width="18" height="16" rx="2.5" />
+      <path d="M9.5 4v16" />
+    </svg>
+  )
+}
+
+export function IconPlus({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  )
+}
+
+export function IconSearch({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m20 20-4.2-4.2" />
+    </svg>
+  )
+}
+
+export function IconUsers({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <circle cx="9" cy="8" r="3.25" />
+      <path d="M3 19.5c.6-3.2 3-5 6-5s5.4 1.8 6 5" />
+      <path d="M15.5 4.9a3.25 3.25 0 0 1 0 6.2" />
+      <path d="M17.5 14.7c1.8.6 3.1 2.1 3.5 4.8" />
+    </svg>
+  )
+}
+
+export function IconMail({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3.5 6.5 8.5 6.5 8.5-6.5" />
+    </svg>
+  )
+}
+
+export function IconChart({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M4 20V10M10 20V4M16 20v-7M21 20H3" />
+    </svg>
+  )
+}
+
+export function IconEdit({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" />
+      <path d="m13.5 6.5 4 4" />
+    </svg>
+  )
+}
+
+export function IconTrash({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M4 7h16" />
+      <path d="M9 7V4.5h6V7" />
+      <path d="M6 7l1 13h10l1-13" />
+      <path d="M10 11v5M14 11v5" />
+    </svg>
+  )
+}
+
+export function IconLink({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" />
+      <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
+    </svg>
+  )
+}
+
+export function IconDownload({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M12 4v11" />
+      <path d="m7 10.5 5 5 5-5" />
+      <path d="M5 20h14" />
+    </svg>
+  )
+}
+
+export function IconBan({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="m6 6 12 12" />
+    </svg>
+  )
+}
+
+export function IconMore({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <circle cx="5.5" cy="12" r="1" fill="currentColor" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" />
+      <circle cx="18.5" cy="12" r="1" fill="currentColor" />
+    </svg>
+  )
+}
+
+export function IconArrowRight({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M5 12h14" />
+      <path d="m13 6 6 6-6 6" />
+    </svg>
+  )
+}
+
+export function IconCalendar({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
+      <path d="M8 3v4M16 3v4M3.5 10h17" />
+    </svg>
+  )
+}
+
+export function IconPin({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" />
+      <circle cx="12" cy="10" r="2.4" />
+    </svg>
+  )
+}
+
+export function IconType({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M5 7V5h14v2" />
+      <path d="M12 5v14M9 19h6" />
+    </svg>
+  )
+}
+
+export function IconImage({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+      <circle cx="9" cy="10" r="1.75" />
+      <path d="m20.5 16-4.8-4.8L6 19.5" />
+    </svg>
+  )
+}
+
+export function IconShirt({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M9 3.5 4 6l1.6 4.2L8 9.4V20.5h8V9.4l2.4.8L20 6l-5-2.5a3 3 0 0 1-6 0Z" />
+    </svg>
+  )
+}
+
+export function IconClock({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
+    </svg>
+  )
+}
+
+export function IconQuestion({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M4.5 18.5V6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H8l-3.5 2Z" />
+      <path d="M9.8 8.6a2.3 2.3 0 0 1 4.4.9c0 1.5-2.2 1.9-2.2 3" />
+      <path d="M12 14.6h.01" />
+    </svg>
+  )
+}
+
+export function IconSparkle({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M12 3.5 13.7 10.3 20.5 12l-6.8 1.7L12 20.5l-1.7-6.8L3.5 12l6.8-1.7Z" />
+    </svg>
+  )
+}
+
+export function IconPalette({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M12 3.5a8.5 8.5 0 0 0 0 17c1.2 0 1.8-.8 1.8-1.7 0-1.3-1.1-1.7-1.1-2.9 0-1 .8-1.6 1.8-1.6h2.2a3.8 3.8 0 0 0 3.8-3.8c0-3.9-3.8-7-8.5-7Z" />
+      <circle cx="7.8" cy="11.3" r="1" fill="currentColor" />
+      <circle cx="10.4" cy="7.6" r="1" fill="currentColor" />
+      <circle cx="14.9" cy="7.9" r="1" fill="currentColor" />
+    </svg>
+  )
+}
+
+export function IconPhone({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="6.5" y="2.75" width="11" height="18.5" rx="2.25" />
+      <path d="M11 18h2" />
+    </svg>
+  )
+}
+
+export function IconMonitor({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="3" y="4" width="18" height="12.5" rx="2" />
+      <path d="M9 20h6M12 16.5V20" />
+    </svg>
+  )
+}
+
+export function IconExternal({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M14 4.5h5.5V10" />
+      <path d="M19.5 4.5 11 13" />
+      <path d="M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10" />
+    </svg>
+  )
+}

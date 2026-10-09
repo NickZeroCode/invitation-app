@@ -6,10 +6,15 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 
-import { Badge } from '../design-system/Badge.tsx'
-import { Button } from '../design-system/Button.tsx'
-import { Input } from '../design-system/Input.tsx'
-import { EmptyState, ErrorState, LoadingState } from '../design-system/states.tsx'
+import {
+  EmptyState,
+  ErrorState,
+  IconArrowRight,
+  IconSearch,
+  Input,
+  PageHeader,
+  buttonClasses,
+} from '../design-system/index.ts'
 import { templatesApi } from '../lib/api.ts'
 import type { InvitationTemplate } from '../lib/types.ts'
 import { fr } from '../locales/fr.ts'
@@ -19,7 +24,7 @@ function TemplatePreview({ template }: { template: InvitationTemplate }) {
   const definition = getTemplate(template.key)
   return (
     <div
-      className="aspect-[3/4] w-full overflow-hidden rounded-md border border-line bg-surface-muted"
+      className="pointer-events-none aspect-[3/4] w-full overflow-hidden bg-surface-muted"
       aria-label={fr.templates.previewLabel}
     >
       {definition ? (
@@ -29,6 +34,19 @@ function TemplatePreview({ template }: { template: InvitationTemplate }) {
           {template.name}
         </div>
       )}
+    </div>
+  )
+}
+
+function GallerySkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" aria-hidden="true">
+      {Array.from({ length: 6 }, (_, index) => (
+        <div key={index} className="overflow-hidden rounded-lg border border-line bg-surface">
+          <div className="aspect-[3/4] animate-pulse bg-surface-muted" />
+          <div className="h-[4.5rem]" />
+        </div>
+      ))}
     </div>
   )
 }
@@ -59,47 +77,49 @@ export function TemplatesPage() {
     })
   }, [query.data, search, category])
 
+  const chip = (active: boolean) =>
+    `inline-flex h-8 shrink-0 items-center whitespace-nowrap rounded-pill px-3.5 text-[0.8125rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 ${
+      active
+        ? 'bg-ink text-white'
+        : 'border border-line-strong bg-surface text-ink-soft hover:border-ink-faint/60 hover:text-ink'
+    }`
+
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-ink">{fr.templates.title}</h1>
-          <p className="mt-1 text-sm text-ink-soft">{fr.templates.subtitle}</p>
-        </div>
-      </header>
+      <PageHeader title={fr.templates.title} description={fr.templates.subtitle} />
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="w-full max-w-xs">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        {/* Category chips scroll horizontally on phones instead of wrapping into a wall. */}
+        <div className="scroll-quiet -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+          <button type="button" className={chip(category === '')} onClick={() => setCategory('')}>
+            {fr.templates.all}
+          </button>
+          {categories.map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              className={chip(category === value)}
+              aria-pressed={category === value}
+              onClick={() => setCategory(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="relative w-full lg:max-w-xs">
+          <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
           <Input
             type="search"
             aria-label={fr.events.search}
             placeholder={fr.events.searchPlaceholder}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
+            className="pl-9"
           />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            variant={category === '' ? 'primary' : 'secondary'}
-            onClick={() => setCategory('')}
-          >
-            {fr.templates.all}
-          </Button>
-          {categories.map(([value, label]) => (
-            <Button
-              key={value}
-              size="sm"
-              variant={category === value ? 'primary' : 'secondary'}
-              onClick={() => setCategory(value)}
-            >
-              {label}
-            </Button>
-          ))}
         </div>
       </div>
 
-      {query.isPending ? <LoadingState /> : null}
+      {query.isPending ? <GallerySkeleton /> : null}
       {query.isError ? (
         <ErrorState
           title={fr.templates.error.title}
@@ -107,28 +127,40 @@ export function TemplatesPage() {
           onRetry={() => void query.refetch()}
         />
       ) : null}
-      {query.isSuccess && visible.length === 0 ? (
-        <EmptyState title={fr.templates.empty} />
-      ) : null}
+      {query.isSuccess && visible.length === 0 ? <EmptyState title={fr.templates.empty} /> : null}
 
       {visible.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {visible.map((template) => (
-            <article key={template.key} className="flex flex-col gap-3">
-              <TemplatePreview template={template} />
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-sm font-semibold text-ink">{template.name}</h2>
-                  <p className="mt-0.5 text-xs text-ink-soft">{template.description}</p>
+            <article
+              key={template.key}
+              className="group flex flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-card transition-shadow duration-200 hover:shadow-raised"
+            >
+              <div className="relative overflow-hidden border-b border-line">
+                <div className="transition-transform duration-500 ease-out group-hover:scale-[1.015]">
+                  <TemplatePreview template={template} />
                 </div>
-                <Badge tone="brand">{template.category_label}</Badge>
               </div>
-              <Link
-                to={`/evenements/nouveau?modele=${encodeURIComponent(template.key)}`}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-brand px-4 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-              >
-                {fr.templates.use}
-              </Link>
+              <div className="flex flex-1 flex-col p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="min-w-0 truncate text-[0.9375rem] font-semibold tracking-tight text-ink">
+                    {template.name}
+                  </h2>
+                  <span className="shrink-0 whitespace-nowrap text-xs text-ink-faint">
+                    {template.category_label}
+                  </span>
+                </div>
+                <p className="mt-1 line-clamp-2 text-[0.8125rem] leading-relaxed text-ink-soft">
+                  {template.description}
+                </p>
+                <Link
+                  to={`/evenements/nouveau?modele=${encodeURIComponent(template.key)}`}
+                  className={buttonClasses('secondary', 'md', 'mt-4 w-full group-hover:border-ink group-hover:bg-ink group-hover:text-white')}
+                >
+                  {fr.templates.use}
+                  <IconArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
             </article>
           ))}
         </div>

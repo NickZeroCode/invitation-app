@@ -6,13 +6,13 @@ import {
   Alert,
   Button,
   Card,
-  CardBody,
-  CardHeader,
   Field,
   Input,
+  PageHeader,
   PasswordInput,
   Select,
 } from '../design-system/index.ts'
+import { initials } from '../layout/nav.ts'
 import { ApiError, authApi } from '../lib/api.ts'
 import { fr } from '../locales/fr.ts'
 
@@ -140,42 +140,51 @@ export function SettingsPage() {
   }
 
   return (
-    <div>
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-ink">{fr.settings.title}</h1>
-        <p className="mt-1 text-sm text-ink-soft">{fr.settings.subtitle}</p>
-      </header>
+    <div className="max-w-5xl">
+      <PageHeader title={fr.settings.title} description={fr.settings.subtitle} />
 
-      <div className="mt-8 space-y-6">
-        <Card>
-          <CardHeader
-            title={fr.settings.profile.title}
-            description={fr.settings.profile.description}
-          />
-          <CardBody>
-            <form onSubmit={handleProfileSubmit} noValidate className="max-w-md space-y-5">
+      <Card className="mt-8 flex items-center gap-4 p-5">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-pill bg-ink text-sm font-semibold text-white">
+          {initials(user?.full_name ?? '')}
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-[0.9375rem] font-semibold tracking-tight text-ink">{user?.full_name}</p>
+          <p className="truncate text-[0.8125rem] text-ink-soft">{user?.email}</p>
+        </div>
+      </Card>
+
+      <div className="mt-6 divide-y divide-line">
+        <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)] lg:gap-10">
+          <div>
+            <h2 className="text-[0.9375rem] font-semibold tracking-tight text-ink">{fr.settings.profile.title}</h2>
+            <p className="mt-1 text-[0.8125rem] leading-relaxed text-ink-soft">{fr.settings.profile.description}</p>
+          </div>
+          <Card className="p-5 sm:p-6">
+            <form onSubmit={handleProfileSubmit} noValidate className="space-y-5">
               {profileSuccess ? <Alert tone="success">{fr.settings.profile.success}</Alert> : null}
               {profileFormError ? <Alert tone="danger">{profileFormError}</Alert> : null}
 
-              <Field id="profile-first-name" label={fr.settings.profile.firstName} error={profileErrors.first_name}>
-                <Input
-                  id="profile-first-name"
-                  autoComplete="given-name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  invalid={Boolean(profileErrors.first_name)}
-                />
-              </Field>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field id="profile-first-name" label={fr.settings.profile.firstName} error={profileErrors.first_name}>
+                  <Input
+                    id="profile-first-name"
+                    autoComplete="given-name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    invalid={Boolean(profileErrors.first_name)}
+                  />
+                </Field>
 
-              <Field id="profile-last-name" label={fr.settings.profile.lastName} error={profileErrors.last_name}>
-                <Input
-                  id="profile-last-name"
-                  autoComplete="family-name"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  invalid={Boolean(profileErrors.last_name)}
-                />
-              </Field>
+                <Field id="profile-last-name" label={fr.settings.profile.lastName} error={profileErrors.last_name}>
+                  <Input
+                    id="profile-last-name"
+                    autoComplete="family-name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    invalid={Boolean(profileErrors.last_name)}
+                  />
+                </Field>
+              </div>
 
               <Field
                 id="profile-timezone"
@@ -197,20 +206,22 @@ export function SettingsPage() {
                 </Select>
               </Field>
 
-              <Button type="submit" loading={profileSaving}>
-                {fr.settings.profile.submit}
-              </Button>
+              <div className="flex justify-end border-t border-line pt-5">
+                <Button type="submit" loading={profileSaving}>
+                  {fr.settings.profile.submit}
+                </Button>
+              </div>
             </form>
-          </CardBody>
-        </Card>
+          </Card>
+        </section>
 
-        <Card>
-          <CardHeader
-            title={fr.settings.password.title}
-            description={fr.settings.password.description}
-          />
-          <CardBody>
-            <form onSubmit={handlePasswordSubmit} noValidate className="max-w-md space-y-5">
+        <section className="grid gap-5 py-8 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)] lg:gap-10">
+          <div>
+            <h2 className="text-[0.9375rem] font-semibold tracking-tight text-ink">{fr.settings.password.title}</h2>
+            <p className="mt-1 text-[0.8125rem] leading-relaxed text-ink-soft">{fr.settings.password.description}</p>
+          </div>
+          <Card className="p-5 sm:p-6">
+            <form onSubmit={handlePasswordSubmit} noValidate className="space-y-5">
               {passwordSuccess ? <Alert tone="success">{fr.settings.password.success}</Alert> : null}
               {passwordFormError ? <Alert tone="danger">{passwordFormError}</Alert> : null}
 
@@ -259,12 +270,14 @@ export function SettingsPage() {
                 />
               </Field>
 
-              <Button type="submit" loading={passwordSaving}>
-                {fr.settings.password.submit}
-              </Button>
+              <div className="flex justify-end border-t border-line pt-5">
+                <Button type="submit" loading={passwordSaving}>
+                  {fr.settings.password.submit}
+                </Button>
+              </div>
             </form>
-          </CardBody>
-        </Card>
+          </Card>
+        </section>
       </div>
     </div>
   )
