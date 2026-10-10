@@ -56,3 +56,6 @@ LAC MUNKAMBA - BOB.pdf
 
 # Local development uploads (production media lives on S3)
 backend/media/
+
+# Local probe scripts (never commit)
+backend/_tmp_probe3.py
