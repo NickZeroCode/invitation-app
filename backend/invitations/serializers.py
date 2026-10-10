@@ -22,6 +22,18 @@ from invitations.models import Invitation
 from preferences.models import GuestResponse
 
 
+def guest_identity(guest_name: str, civility: str) -> str:
+    """Identity key for the *visible* guest label.
+
+    The organizer's guest list shows `display_name`, so « M. Éric » and
+    « Éric » are two different guests and the civility prefix is part of the
+    identity. Case and whitespace runs are folded in Python so « Éric » and
+    « éric  » collide the same way on SQLite and Postgres.
+    """
+    label = Invitation.display_name_for(guest_name, civility)
+    return " ".join(label.split()).casefold()
+
+
 class InvitationSerializer(serializers.ModelSerializer):
     event = serializers.IntegerField(source="event_model_id", read_only=True)
     event_title = serializers.CharField(source="event_model.title", read_only=True)
@@ -119,15 +131,22 @@ class InvitationSerializer(serializers.ModelSerializer):
             if event is not None and not event.is_active:
                 raise DomainValidationError("Cet événement est désactivé.")
             guest_name = attrs.get("guest_name", "")
+            civility = attrs.get("civility", Invitation.Civility.NONE)
+            previous_identity = None
         else:
             guest_name = attrs.get("guest_name", self.instance.guest_name)
+            civility = attrs.get("civility", self.instance.civility)
+            previous_identity = guest_identity(self.instance.guest_name, self.instance.civility)
 
         # A guest keeps at most one live (active or expired) invitation per
         # event; re-issuing a link for the same guest goes through the
         # explicit "duplicate" action, which is exempt from this rule.
-        # Comparison is casefold-based in Python so « Éric » and « éric »
-        # collide the same way on SQLite and Postgres.
-        if self.context.get("check_duplicate_name", True):
+        # Identity is the *visible* label (civility-aware): « M. Éric » and
+        # « Éric » are two different guests in the organizer's list. An edit
+        # that does not change the guest identity is never refused — the row
+        # cannot collide with itself.
+        target = guest_identity(guest_name, civility)
+        if target != previous_identity and self.context.get("check_duplicate_name", True):
             event = self.context.get("event") or (self.instance.event_model if self.instance else None)
             if event is not None:
                 clashes = Invitation.objects.filter(event_model=event).exclude(
@@ -135,10 +154,9 @@ class InvitationSerializer(serializers.ModelSerializer):
                 )
                 if self.instance is not None:
                     clashes = clashes.exclude(pk=self.instance.pk)
-                target = guest_name.strip().casefold()
                 if any(
-                    name.strip().casefold() == target
-                    for name in clashes.values_list("guest_name", flat=True)
+                    guest_identity(name, civ) == target
+                    for name, civ in clashes.values_list("guest_name", "civility")
                 ):
                     raise serializers.ValidationError(
                         {"guest_name": "Cet invité a déjà une invitation pour cet événement."}
@@ -184,12 +202,13 @@ class InvitationBulkSerializer(serializers.Serializer):
             if not row_serializer.is_valid():
                 errors[index] = dict(row_serializer.errors)
                 continue
-            name = row_serializer.validated_data["guest_name"].casefold()
+            row_data = row_serializer.validated_data
+            name = guest_identity(row_data["guest_name"], row_data.get("civility", Invitation.Civility.NONE))
             if name in seen:
                 errors[index] = {"guest_name": ["Ce nom apparaît plusieurs fois dans la liste."]}
                 continue
             seen[name] = index
-            cleaned.append(row_serializer.validated_data)
+            cleaned.append(row_data)
         if errors:
             raise serializers.ValidationError(errors)
         return cleaned

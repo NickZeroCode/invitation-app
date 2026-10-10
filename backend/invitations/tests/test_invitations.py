@@ -229,6 +229,55 @@ def test_update_rejects_rename_to_existing_guest(auth_client, organizer):
     assert "guest_name" in response.json()["error"]["fields"]
 
 
+def test_create_allows_same_name_with_different_civility(auth_client, organizer):
+    event = make_event(organizer)
+    auth_client.post(
+        invitations_url(event), {"guest_name": "Nickson Mukombozi", "civility": "m"}, format="json"
+    )
+
+    # The visible label decides identity: « Nickson Mukombozi » is not the
+    # same guest as « M. Nickson Mukombozi » in the organizer's list.
+    bare = auth_client.post(
+        invitations_url(event), {"guest_name": "Nickson Mukombozi"}, format="json"
+    )
+
+    assert bare.status_code == 201
+
+    # An identical visible guest is still refused.
+    twin = auth_client.post(
+        invitations_url(event), {"guest_name": "Nickson Mukombozi", "civility": "m"}, format="json"
+    )
+    assert twin.status_code == 400
+
+
+def test_update_rename_onto_civility_variant_is_allowed(auth_client, organizer):
+    event = make_event(organizer)
+    make_invitation(event, guest_name="Nickson Mukombozi", civility=Invitation.Civility.M)
+    second = make_invitation(
+        event, guest_name="Nickson Mukombozi Zero-Faray", civility=Invitation.Civility.NONE
+    )
+
+    response = auth_client.patch(
+        f"{INVITATIONS_ENDPOINT}{second.pk}/", {"guest_name": "Nickson Mukombozi"}, format="json"
+    )
+
+    assert response.status_code == 200
+    assert response.json()["display_name"] == "Nickson Mukombozi"
+
+
+def test_update_that_keeps_identity_is_never_refused(auth_client, organizer):
+    event = make_event(organizer)
+    invitation = make_invitation(event)
+    auth_client.post(f"{INVITATIONS_ENDPOINT}{invitation.pk}/duplicate/")
+
+    reissued = event.invitations.order_by("pk").last()
+    response = auth_client.patch(
+        f"{INVITATIONS_ENDPOINT}{reissued.pk}/", {"expires_at": future_iso()}, format="json"
+    )
+
+    assert response.status_code == 200
+
+
 def test_state_is_read_only_on_update(auth_client, organizer):
     event = make_event(organizer)
     invitation = make_invitation(event)

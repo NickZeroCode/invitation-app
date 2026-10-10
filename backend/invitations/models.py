@@ -67,11 +67,17 @@ class Invitation(models.Model):
     def __str__(self) -> str:
         return f"Invitation {self.guest_name} ({self.state})"
 
+    @classmethod
+    def display_name_for(cls, guest_name: str, civility: str) -> str:
+        """Visible guest label — the single format behind `display_name`."""
+        if civility == cls.Civility.NONE:
+            return guest_name
+        label = dict(cls.Civility.choices).get(civility, civility)
+        return f"{label} {guest_name}".strip()
+
     @property
     def display_name(self) -> str:
-        if self.civility == self.Civility.NONE:
-            return self.guest_name
-        return f"{self.get_civility_display()} {self.guest_name}".strip()
+        return self.display_name_for(self.guest_name, self.civility)
 
     def is_currently_valid(self) -> bool:
         """Valid = active state AND not past expiry. Backend authority."""
