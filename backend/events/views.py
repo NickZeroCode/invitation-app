@@ -6,8 +6,10 @@ validated (type + size) and stored through the configured storage backend.
 """
 from __future__ import annotations
 
+import os
 import uuid
 
+from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db import transaction
 from django.db.models import Count, Q
@@ -20,6 +22,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.exceptions import EventHasInvitationsError, EventHasResponsesError
+from core.imaging import ImageRejected, optimize_image
 from core.pagination import StandardPagination
 from events.models import DressCodeImage, EventModel
 from events.serializers import EventModelSerializer
@@ -34,6 +37,20 @@ COVER_CONTENT_TYPES = {
 }
 MAX_COVER_BYTES = 4 * 1024 * 1024  # 4 MB: under Vercel Functions' 4.5 MB request
 # body cap (a 5 MB body is rejected 413 before Django validates).
+
+
+def optimized_upload(uploaded) -> ContentFile:
+    """Run a validated upload through the image optimiser.
+
+    Returns a ``ContentFile`` whose name carries the final extension (the
+    optimiser may switch format, e.g. a PNG photo to lossless WebP).
+    """
+    uploaded.seek(0)
+    try:
+        result = optimize_image(uploaded.read())
+    except ImageRejected as exc:
+        raise serializers.ValidationError({"image": str(exc)}) from exc
+    return ContentFile(result.content, name=f"image{result.extension}")
 
 
 class CoverUploadSerializer(serializers.Serializer):
@@ -146,11 +163,14 @@ class EventModelCoverView(APIView):
                 {"image": "L'image ne doit pas dépasser 4 Mo."}
             )
 
+        optimized = optimized_upload(uploaded)
+        extension = os.path.splitext(optimized.name)[1]
+
         with transaction.atomic():
             if event.cover_image:
                 event.cover_image.delete(save=False)
             name = default_storage.save(
-                f"covers/event-{event.pk}/{uuid.uuid4().hex}{extension}", uploaded
+                f"covers/event-{event.pk}/{uuid.uuid4().hex}{extension}", optimized
             )
             event.cover_image.name = name
             event.save(update_fields=["cover_image", "updated_at"])
@@ -206,9 +226,12 @@ class EventDressCodeView(APIView):
             last = event.dress_code_images.order_by("-order", "-id").first()
             order = (last.order + 1) if last else 0
 
+        optimized = optimized_upload(uploaded)
+        extension = os.path.splitext(optimized.name)[1]
+
         with transaction.atomic():
             name = default_storage.save(
-                f"dress-code/event-{event.pk}/{uuid.uuid4().hex}{extension}", uploaded
+                f"dress-code/event-{event.pk}/{uuid.uuid4().hex}{extension}", optimized
             )
             item = DressCodeImage.objects.create(
                 event=event,

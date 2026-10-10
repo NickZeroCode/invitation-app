@@ -92,3 +92,37 @@ def test_cover_cross_organizer_returns_404(auth_client, second_organizer, settin
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "not_found"
+
+
+def test_cover_upload_is_optimised_before_storage(auth_client, organizer, settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    event = make_event(organizer)
+    upload = image_file(name="grosse.png", image_format="PNG", content_type="image/png", size=(3200, 1800))
+    original_size = upload.size
+
+    response = auth_client.put(
+        f"{ENDPOINT}{event.pk}/cover/", {"image": upload}, format="multipart"
+    )
+
+    assert response.status_code == 200
+    event.refresh_from_db()
+    stored = event.cover_image.storage.path(event.cover_image.name)
+    with Image.open(stored) as saved:
+        assert max(saved.size) == 2560
+    assert event.cover_image.size < original_size
+    assert event.cover_image.name.endswith((".png", ".webp"))
+
+
+def test_cover_with_unreadable_bytes_is_still_a_clean_400(auth_client, organizer, settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    event = make_event(organizer)
+    truncated = image_file().read()[:40]
+
+    response = auth_client.put(
+        f"{ENDPOINT}{event.pk}/cover/",
+        {"image": SimpleUploadedFile("cover.jpg", truncated, content_type="image/jpeg")},
+        format="multipart",
+    )
+
+    assert response.status_code == 400
+    assert "image" in response.json()["error"]["fields"]
