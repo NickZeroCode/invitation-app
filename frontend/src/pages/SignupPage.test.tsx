@@ -50,6 +50,7 @@ function renderSignup(routes: MockRoute[]): MockFetch {
 async function fillForm(
   user: ReturnType<typeof userEvent.setup>,
   overrides: Partial<Record<'firstName' | 'lastName' | 'email' | 'password' | 'confirmPassword', string>> = {},
+  acceptTerms = true,
 ) {
   await user.type(screen.getByLabelText(/^Prénom/), overrides.firstName ?? 'Grâce')
   await user.type(screen.getByLabelText(/^Nom/), overrides.lastName ?? 'Mukendi')
@@ -59,6 +60,9 @@ async function fillForm(
     screen.getByLabelText(/^Confirmer le mot de passe/),
     overrides.confirmPassword ?? 'mot-de-passe-secret',
   )
+  if (acceptTerms) {
+    await user.click(screen.getByRole('checkbox', { name: /conditions générales/i }))
+  }
 }
 
 afterEach(() => {
@@ -87,6 +91,22 @@ describe('SignupPage', () => {
     await user.click(screen.getByRole('button', { name: 'Créer mon compte' }))
 
     expect(await screen.findByText('Les mots de passe ne correspondent pas.')).toBeInTheDocument()
+    expect(mock.callsTo('/api/auth/register/', 'POST')).toHaveLength(0)
+  })
+
+  it('refuses to create an account until the terms are accepted', async () => {
+    const user = userEvent.setup()
+    const mock = renderSignup([{ url: '/api/auth/me/', status: 401, body: null }])
+
+    await screen.findByRole('heading', { name: 'Créer un compte' })
+    await fillForm(user, {}, false)
+    await user.click(screen.getByRole('button', { name: 'Créer mon compte' }))
+
+    expect(
+      await screen.findByText(
+        'Vous devez accepter les conditions générales d’utilisation et la politique de confidentialité pour créer un compte.',
+      ),
+    ).toBeInTheDocument()
     expect(mock.callsTo('/api/auth/register/', 'POST')).toHaveLength(0)
   })
 

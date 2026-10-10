@@ -20,6 +20,7 @@ import {
   LogoArtwork,
   LogoMark,
 } from '../design-system/index.ts'
+import { LegalLinks } from '../components/LegalLinks.tsx'
 import { fr } from '../locales/fr.ts'
 import { getTemplate, sampleDraft, TEMPLATES } from '../templates/registry.tsx'
 
@@ -429,9 +430,12 @@ export function LandingPage() {
               <p className="text-xs text-ink-faint">{fr.landing.footer.tagline}</p>
             </div>
           </div>
-          <p className="text-xs text-ink-faint">
-            © {CURRENT_YEAR} {fr.appName}. {fr.landing.footer.rights}
-          </p>
+          <div className="flex flex-col items-start gap-3 sm:items-end">
+            <LegalLinks />
+            <p className="text-xs text-ink-faint">
+              © {CURRENT_YEAR} {fr.appName}. {fr.landing.footer.rights}
+            </p>
+          </div>
         </div>
       </footer>
     </div>

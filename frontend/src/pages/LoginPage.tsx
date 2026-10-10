@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../auth/AuthContext.tsx'
 import { Alert, BrandLockup, Button, Field, Input, LogoMark, PasswordInput } from '../design-system/index.ts'
+import { LegalLinks } from '../components/LegalLinks.tsx'
 import { ApiError } from '../lib/api.ts'
 import { fr } from '../locales/fr.ts'
 
@@ -159,6 +160,8 @@ export function LoginPage() {
               {fr.login.createAccount}
             </Link>
           </p>
+
+          <LegalLinks className="mt-4" />
         </div>
       </main>
     </div>

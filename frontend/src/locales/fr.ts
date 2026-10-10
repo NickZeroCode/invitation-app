@@ -68,6 +68,14 @@ export const fr = {
     passwordMismatch: 'Les mots de passe ne correspondent pas.',
     haveAccount: 'Déjà un compte ?',
     signIn: 'Se connecter',
+    consent: {
+      prefix: 'J’ai lu et j’accepte les ',
+      cgu: 'conditions générales d’utilisation',
+      middle: ' et la ',
+      privacy: 'politique de confidentialité',
+      suffix: '.',
+      error: 'Vous devez accepter les conditions générales d’utilisation et la politique de confidentialité pour créer un compte.',
+    },
   },
   overview: {
     title: "Vue d'ensemble",
@@ -492,6 +500,338 @@ export const fr = {
     footer: {
       tagline: "L'art d'inviter, avec élégance et simplicité.",
       rights: 'Tous droits réservés.',
+    },
+  },
+  legal: {
+    nav: {
+      cgu: 'Conditions générales d’utilisation',
+      privacy: 'Politique de confidentialité',
+      cookies: 'Paramètres de cookies',
+    },
+    navLabel: 'Informations légales',
+    updated: 'Dernière mise à jour : 10 octobre 2026.',
+    contact: 'support@nickevents.com',
+    cgu: {
+      title: 'Conditions générales d’utilisation',
+      intro:
+        'Les présentes conditions générales d’utilisation (ci-après « CGU ») définissent les règles d’utilisation du service NickEvents, accessible sur nickevents.com. En créant un compte ou en utilisant le service, vous acceptez sans réserve les présentes CGU.',
+      sections: [
+        {
+          title: 'Éditeur du service',
+          paragraphs: [
+            'Le service NickEvents (ci-après « le service ») est édité par NickEvents, marque du service (ci-après « l’éditeur » ou « nous »).',
+            'Pour toute question sur le service ou sur les présentes CGU : support@nickevents.com.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Objet du service',
+          paragraphs: [
+            'NickEvents est un service de création d’invitations numériques. Il permet de concevoir des invitations à partir de modèles, de générer des liens nominatifs accompagnés d’un QR code de vérification, de les partager avec vos invités et de recueillir leurs réponses.',
+            'Chaque invitation possède une date d’expiration et peut être révoquée à tout moment par l’organisateur. Les invités consultent leur invitation et soumettent leurs réponses depuis un navigateur, sans installation ni création de compte.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Accès au service et compte organisateur',
+          paragraphs: [
+            'La création d’un compte est réservée aux personnes disposant de la capacité juridique nécessaire. Vous vous engagez à fournir des informations exactes et à les tenir à jour.',
+            'Vos identifiants de connexion sont strictement personnels : vous êtes responsable de toute activité réalisée depuis votre compte. Signalez-nous sans délai toute utilisation non autorisée à support@nickevents.com.',
+            'L’utilisation du service ne donne actuellement lieu à aucune facturation ; toute évolution fera l’objet d’une information préalable et d’une mise à jour des présentes CGU.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Engagements de l’utilisateur',
+          paragraphs: [
+            'Vous vous engagez à utiliser le service conformément à sa destination, de bonne foi et dans le respect de la loi applicable. Vous vous engagez notamment à :',
+          ],
+          list: [
+            'n’utiliser le service que pour l’organisation de vos événements et la communication avec vos invités ;',
+            'ne publier aucun contenu illicite, diffamatoire, trompeur ou portant atteinte aux droits de tiers ;',
+            'ne pas perturber le fonctionnement du service (intrusion, surcharge, automatisation abusive, ingénierie inverse) ;',
+            'ne pas utiliser les liens nominatifs et les QR codes à des fins de spam ou de sollicitation non sollicitée.',
+          ],
+          table: [],
+        },
+        {
+          title: 'Données personnelles de vos invités',
+          paragraphs: [
+            'Dans le cadre de l’organisation de vos événements, vous déterminez les finalités et les moyens du traitement des données de vos invités (civilité, nom, réponses) : vous en êtes le responsable de traitement. NickEvents agit alors comme sous-traitant, à votre seule instruction.',
+            'Vous vous engagez à informer vos invités de l’utilisation de leurs données et à ne collecter que les informations nécessaires à votre événement. La collecte de données sensibles (informations de santé ou d’appartenance religieuse, qui peuvent résulter de certaines préférences alimentaires) est déconseillée et reste de votre seule responsabilité.',
+            'Le traitement de vos propres données de compte est décrit dans notre politique de confidentialité.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Contenus et propriété intellectuelle',
+          paragraphs: [
+            'Les modèles, éléments graphiques, textes et composants du service sont protégés par le droit de la propriété intellectuelle et restent la propriété de l’éditeur ou de ses concédants.',
+            'Vous conservez la propriété du contenu que vous créez (informations de vos événements, messages, images de couverture). Vous accordez à l’éditeur une licence limitée à l’hébergement, à l’affichage et à la transmission de ce contenu aux seules fins du fonctionnement du service.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Disponibilité et responsabilité',
+          paragraphs: [
+            'Le service est fourni « en l’état », selon une obligation de moyens. Nous nous efforçons d’en assurer la continuité et la sécurité, mais ne garantissons pas une disponibilité ininterrompue : des interruptions peuvent survenir pour maintenance, mise à jour ou cas de force majeure.',
+            'L’éditeur ne saurait être tenu responsable des dommages indirects résultant de l’utilisation ou de l’impossibilité d’utiliser le service. Lorsqu’elle est engagée, sa responsabilité se limite aux dommages directs, dans les limites autorisées par la loi applicable.',
+            'Le QR code et le lien nominatif sont des outils de vérification ; il appartient à l’organisateur de contrôler l’identité des personnes se présentant à son événement.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Suspension et résiliation',
+          paragraphs: [
+            'Vous pouvez cesser d’utiliser le service à tout moment. La suppression de votre compte s’effectue sur demande à support@nickevents.com.',
+            'En cas de manquement grave aux présentes CGU, nous nous réservons le droit de suspendre ou de résilier votre accès au service, dans la mesure du possible après vous en avoir informé.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Modification des CGU',
+          paragraphs: [
+            'Les présentes CGU peuvent être modifiées pour tenir compte de l’évolution du service, de la réglementation ou de nos pratiques. La date de dernière mise à jour figure en tête de page ; en cas de modification substantielle, un avis sera publié sur le site. La poursuite de l’utilisation du service après modification vaut acceptation des nouvelles conditions.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Droit applicable et litiges',
+          paragraphs: [
+            'Les présentes CGU sont régies par le droit congolais (République Démocratique du Congo), sans préjudice des dispositions impératives de protection du consommateur applicables dans votre pays de résidence.',
+            'En cas de différend, nous vous invitons à contacter d’abord notre service à support@nickevents.com afin de rechercher une solution amiable. À défaut d’accord, les tribunaux compétents de Kinshasa seront saisis, sous réserve des dispositions impératives contraires.',
+          ],
+          list: [],
+          table: [],
+        },
+      ],
+    },
+    privacy: {
+      title: 'Politique de confidentialité',
+      intro:
+        'Cette politique de confidentialité décrit les données personnelles traitées par le service NickEvents, les finalités et les bases juridiques de ces traitements, leurs durées de conservation et la manière d’exercer vos droits. Elle est établie conformément au Règlement (UE) 2016/679 (RGPD) et, pour la République Démocratique du Congo, à la loi n° 20/017 du 29 décembre 2020 portant Code du numérique.',
+      sections: [
+        {
+          title: 'Responsable du traitement',
+          paragraphs: [
+            'Pour les données de votre compte organisateur, le responsable du traitement est NickEvents, marque du service, éditeur de nickevents.com. Contact : support@nickevents.com.',
+            'Pour les données de vos invités (civilité, nom, réponses) recueillies dans le cadre de vos événements, le responsable du traitement est l’organisateur de l’événement ; NickEvents agit comme sous-traitant.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Données traitées',
+          paragraphs: ['Le service traite les catégories de données suivantes :'],
+          list: [],
+          table: [
+            ['Catégorie', 'Données concernées', 'Source'],
+            [
+              'Compte organisateur',
+              'Prénom, nom, adresse e-mail, fuseau horaire, date de création du compte, mot de passe (stocké sous forme hachée)',
+              'Fournies par vous à l’inscription',
+            ],
+            [
+              'Événements',
+              'Titre, date, lieu, message, code vestimentaire, programme, modèle visuel, image de couverture',
+              'Créées par l’organisateur',
+            ],
+            [
+              'Invités',
+              'Civilité, nom, lien unique de l’invitation, dates d’émission et d’expiration, état de l’invitation',
+              'Créées par l’organisateur',
+            ],
+            [
+              'Réponses des invités',
+              'Sélections d’options aux questions de préférence définies par l’organisateur (choix uniques ou multiples), dates de soumission et de modification',
+              'Fournies par l’invité via son lien unique',
+            ],
+            [
+              'Données techniques',
+              'Horodatage des requêtes, adresse IP, type de navigateur, journaux de sécurité',
+              'Générées automatiquement par le fonctionnement du service',
+            ],
+          ],
+        },
+        {
+          title: 'Finalités et bases juridiques',
+          paragraphs: [],
+          list: [],
+          table: [
+            ['Finalité', 'Base juridique', 'Précision'],
+            [
+              'Création et gestion de votre compte, accès au service',
+              'Exécution du contrat (art. 6.1.b du RGPD)',
+              'Le contrat est formé à l’inscription.',
+            ],
+            [
+              'Création des invitations, transmission aux invités, gestion des réponses',
+              'Exécution du contrat (art. 6.1.b) et intérêt légitime de l’organisateur (art. 6.1.f)',
+              'Cœur du service demandé par l’organisateur.',
+            ],
+            [
+              'Sécurité du service, prévention des abus et des fraudes',
+              'Intérêt légitime (art. 6.1.f)',
+              'Journaux techniques et contrôle d’accès.',
+            ],
+            [
+              'Respect des obligations légales',
+              'Obligation légale (art. 6.1.c)',
+              'Réponses aux demandes des autorités compétentes.',
+            ],
+            [
+              'Cookies strictement nécessaires',
+              'Exemptés de consentement (art. 82 de la loi Informatique et Libertés ; art. 5.3 de la directive ePrivacy)',
+              'Détail dans la page Paramètres de cookies.',
+            ],
+          ],
+        },
+        {
+          title: 'Traitements non réalisés',
+          paragraphs: [
+            'Aucun traitement n’est réalisé à des fins de prospection commerciale, de publicité ou de profilage. Aucune donnée n’est vendue ni louée à des tiers. NickEvents n’envoie pas d’e-mails de sollicitation.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Destinataires',
+          paragraphs: [
+            'Vos données sont accessibles au personnel habilité de l’éditeur, uniquement pour les besoins du fonctionnement du service, ainsi qu’à nos prestataires techniques d’hébergement, de base de données et de stockage, qui agissent selon nos instructions.',
+            'Les données de vos invités sont accessibles à l’organisateur de l’événement concerné. Elles ne sont jamais transmises à d’autres invités ni à des tiers commerciaux.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Transferts hors de votre pays',
+          paragraphs: [
+            'Nos prestataires d’hébergement (Vercel) et de base de données et de stockage (Neon) sont établis aux États-Unis. Ces transferts sont encadrés, notamment, par les clauses contractuelles types de la Commission européenne et, lorsque le prestataire y est certifié, par le cadre du Data Privacy Framework UE–États-Unis.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Durées de conservation',
+          paragraphs: ['Les données sont conservées pour la durée strictement nécessaire aux finalités décrites :'],
+          list: [
+            'données de compte : pendant toute la durée d’utilisation du service, puis suppression ou anonymisation dans les meilleurs délais après la fermeture du compte, hors obligation légale contraire ;',
+            'événements, invitations et réponses : pour la durée nécessaire à l’organisation de vos événements, jusqu’à leur suppression depuis votre espace ou la fermeture de votre compte ;',
+            'réponses des invités : jusqu’à l’expiration de l’invitation, sauf conservation demandée par l’organisateur pour son événement ;',
+            'journaux techniques : quelques mois, durée nécessaire à la sécurité et au diagnostic.',
+          ],
+          table: [],
+        },
+        {
+          title: 'Vos droits',
+          paragraphs: [
+            'Conformément au RGPD, vous disposez des droits d’accès, de rectification, d’effacement, de limitation, de portabilité et d’opposition sur vos données, ainsi que du droit de définir des directives relatives au sort de vos données après votre décès.',
+            'Pour exercer ces droits, écrivez-nous à support@nickevents.com depuis l’adresse e-mail de votre compte. Nous répondons dans un délai d’un mois, conformément à l’article 12 du RGPD.',
+            'Si vous êtes l’invité d’un événement, adressez votre demande à l’organisateur de l’événement, responsable du traitement de vos données ; nous l’assistons pour y répondre.',
+            'Vous pouvez également introduire une réclamation auprès de l’autorité de protection des données de votre pays de résidence — par exemple la CNIL en France (cnil.fr) — ou de toute autre autorité compétente.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Sécurité',
+          paragraphs: [
+            'Nous mettons en œuvre des mesures techniques et organisationnelles adaptées : chiffrement des échanges (TLS), hachage et salage des mots de passe, contrôle d’accès par compte, jetons d’invitation uniques, isolation des espaces organisateurs et durcissement des navigateurs (en-têtes de sécurité, cookies limités au strict nécessaire).',
+            'Aucun système n’étant infaillible, signalez-nous toute vulnérabilité ou tout incident présumé à support@nickevents.com.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Cookies',
+          paragraphs: [
+            'NickEvents n’utilise que des cookies strictement nécessaires au fonctionnement du service (session de connexion et protection CSRF). Aucune mesure d’audience, aucune publicité et aucun traceur tiers ne sont déposés. Le détail figure dans notre page Paramètres de cookies.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Contact',
+          paragraphs: [
+            'Pour toute question sur cette politique ou sur le traitement de vos données : support@nickevents.com.',
+          ],
+          list: [],
+          table: [],
+        },
+      ],
+    },
+    cookies: {
+      title: 'Paramètres de cookies',
+      intro:
+        'Cette page décrit les cookies utilisés par NickEvents et les moyens de les contrôler. En résumé : le service ne dépose que des cookies strictement nécessaires à son fonctionnement — aucun traceur publicitaire ou de mesure d’audience.',
+      sections: [
+        {
+          title: 'Qu’est-ce qu’un cookie ?',
+          paragraphs: [
+            'Un cookie est un petit fichier texte déposé sur votre appareil lorsque vous consultez un site. Il permet notamment de maintenir votre session ouverte ou de sécuriser les formulaires.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Cookies déposés par NickEvents',
+          paragraphs: ['Le service utilise uniquement les cookies suivants :'],
+          list: [],
+          table: [
+            ['Cookie', 'Rôle', 'Durée'],
+            [
+              'sessionid',
+              'Maintient votre session de connexion à votre espace organisateur',
+              'Deux semaines au maximum, réinitialisée à chaque usage ; supprimé à la déconnexion',
+            ],
+            [
+              'csrftoken',
+              'Protège les formulaires et les réponses des invités contre les attaques de falsification de requête (CSRF)',
+              'Jusqu’à la fermeture du navigateur',
+            ],
+          ],
+        },
+        {
+          title: 'Pourquoi aucun consentement n’est demandé',
+          paragraphs: [
+            'Ces cookies sont strictement nécessaires à la fourniture du service que vous avez expressément demandé (connexion, sécurité des échanges). À ce titre, ils sont exemptés de consentement préalable au titre de l’article 5.3 de la directive ePrivacy 2002/58/CE, de l’article 82 de la loi Informatique et Libertés et de la délibération n° 2020-091 du 17 septembre 2020 de la CNIL.',
+            'Aucun autre cookie n’est déposé : pas de mesure d’audience, pas de boutons de partage, pas de contenus publicitaires tiers.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Gérer vos paramètres',
+          paragraphs: [
+            'Vous pouvez à tout moment consulter et supprimer les cookies depuis les paramètres de votre navigateur (Chrome, Firefox, Safari, Edge : rubriques « Confidentialité », « Cookies » ou « Données du site »).',
+            'Le blocage de ces cookies empêche toute connexion à votre espace organisateur et l’enregistrement d’une réponse d’invité : vous ne pourrez pas gérer vos invitations ni valider votre réponse depuis votre lien. La simple consultation d’une invitation reste possible.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Évolution de cette page',
+          paragraphs: [
+            'Cette page peut évoluer si l’utilisation des cookies venait à changer. La date de dernière mise à jour figure en tête de page ; toute nouvelle catégorie de cookie fera l’objet d’une information préalable.',
+          ],
+          list: [],
+          table: [],
+        },
+        {
+          title: 'Contact',
+          paragraphs: ['Une question sur les cookies ? Écrivez-nous à support@nickevents.com.'],
+          list: [],
+          table: [],
+        },
+      ],
     },
   },
   notFound: {

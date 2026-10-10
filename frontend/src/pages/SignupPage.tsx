@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../auth/AuthContext.tsx'
 import { Alert, BrandLockup, Button, Field, Input, LogoMark, PasswordInput } from '../design-system/index.ts'
+import { LegalLinks } from '../components/LegalLinks.tsx'
 import { ApiError } from '../lib/api.ts'
 import { fr } from '../locales/fr.ts'
 
@@ -23,6 +24,7 @@ export function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState<string | null>(null)
+  const [accepted, setAccepted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   if (status === 'authenticated') {
@@ -51,6 +53,9 @@ export function SignupPage() {
       errors.confirm_password = fr.common.requiredField
     } else if (confirmPassword !== password) {
       errors.confirm_password = fr.signup.passwordMismatch
+    }
+    if (!accepted) {
+      errors.accepted = fr.signup.consent.error
     }
     return errors
   }
@@ -210,6 +215,53 @@ export function SignupPage() {
               />
             </Field>
 
+            <div className="space-y-1.5">
+              <div className="flex items-start gap-2.5">
+                <input
+                  id="signup-consent"
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-line-strong accent-ink"
+                  checked={accepted}
+                  onChange={(event) => {
+                    setAccepted(event.target.checked)
+                    if (event.target.checked) {
+                      setFieldErrors((current) => {
+                        if (!current.accepted) return current
+                        const next = { ...current }
+                        delete next.accepted
+                        return next
+                      })
+                    }
+                  }}
+                  aria-describedby={fieldErrors.accepted ? 'signup-consent-error' : undefined}
+                />
+                <label htmlFor="signup-consent" className="text-[0.8125rem] leading-relaxed text-ink">
+                  {fr.signup.consent.prefix}
+                  <Link
+                    to="/cgu"
+                    onClick={(event) => event.stopPropagation()}
+                    className="font-medium text-ink underline decoration-line-strong underline-offset-4 transition-colors hover:text-brand"
+                  >
+                    {fr.signup.consent.cgu}
+                  </Link>
+                  {fr.signup.consent.middle}
+                  <Link
+                    to="/politique-de-confidentialite"
+                    onClick={(event) => event.stopPropagation()}
+                    className="font-medium text-ink underline decoration-line-strong underline-offset-4 transition-colors hover:text-brand"
+                  >
+                    {fr.signup.consent.privacy}
+                  </Link>
+                  {fr.signup.consent.suffix}
+                </label>
+              </div>
+              {fieldErrors.accepted ? (
+                <p id="signup-consent-error" role="alert" className="text-xs text-danger">
+                  {fieldErrors.accepted}
+                </p>
+              ) : null}
+            </div>
+
             <Button type="submit" className="w-full" loading={submitting}>
               {submitting ? fr.signup.submitting : fr.signup.submit}
             </Button>
@@ -224,6 +276,8 @@ export function SignupPage() {
               {fr.signup.signIn}
             </Link>
           </p>
+
+          <LegalLinks className="mt-4" />
         </div>
       </main>
     </div>

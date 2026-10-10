@@ -17,6 +17,9 @@ import { EventEditorPage } from './pages/EventEditorPage.tsx'
 import { GuestsPage } from './pages/GuestsPage.tsx'
 import { ResponsesPage } from './pages/ResponsesPage.tsx'
 import { PublicInvitationPage } from './pages/PublicInvitationPage.tsx'
+import { CguPage } from './pages/legal/CguPage.tsx'
+import { CookiesPage } from './pages/legal/CookiesPage.tsx'
+import { PrivacyPage } from './pages/legal/PrivacyPage.tsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,6 +62,9 @@ export default function App() {
               }
             />
             <Route path="/i/:token" element={<PublicInvitationPage />} />
+            <Route path="/cgu" element={<CguPage />} />
+            <Route path="/politique-de-confidentialite" element={<PrivacyPage />} />
+            <Route path="/parametres-de-cookies" element={<CookiesPage />} />
             <Route
               element={
                 <ProtectedRoute>
