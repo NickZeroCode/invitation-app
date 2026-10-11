@@ -1,8 +1,8 @@
 @import 'tailwindcss';
 
 /*
- * NickEvents design tokens — "paper & ink" editorial system with the
- * signature gold of the NickEvents logo (gold & ivory on black). Tailwind
+ * MalaikaEvents design tokens — "paper & ink" editorial system with the
+ * signature gold of the MalaikaEvents logo (gold & ivory on black). Tailwind
  * v4 theme namespace: each token below generates utilities
  * (bg-paper, text-ink, font-display, rounded-md, ...).
  */
@@ -22,7 +22,7 @@
   --color-line: #e8e5df;
   --color-line-strong: #d8d4cc;
 
-  /* Brand — signature gold from the NickEvents logo. The deep gold keeps
+  /* Brand — signature gold from the MalaikaEvents logo. The deep gold keeps
      white-on-gold buttons accessible and gold text readable on ivory. */
   --color-brand: #8f6518;
   --color-brand-strong: #6b4711;

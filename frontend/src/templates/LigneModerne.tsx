@@ -32,7 +32,7 @@ export function LigneModerne({ draft }: TemplateProps) {
             className="text-[1.02em] font-semibold uppercase"
             style={{ letterSpacing: '0.42em', color: ACCENT }}
           >
-            NickEvents
+            MalaikaEvents
           </p>
           <p className="text-[1.02em] uppercase" style={{ letterSpacing: '0.28em', opacity: 0.7 }}>
             Invitation

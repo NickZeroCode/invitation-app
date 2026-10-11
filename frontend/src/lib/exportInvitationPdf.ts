@@ -744,7 +744,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
     doc.setProperties({
       title: content.title,
       subject: 'Invitation',
-      creator: 'NickEvents',
+      creator: 'MalaikaEvents',
     })
     pages.forEach((page, index) => {
       const height = pageHeightMm(page)

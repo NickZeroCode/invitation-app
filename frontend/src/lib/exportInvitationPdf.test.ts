@@ -165,7 +165,7 @@ describe('exportInvitationPdf', () => {
     expect(doc.props).toEqual({
       title: 'Mariage de Grâce et Éric',
       subject: 'Invitation',
-      creator: 'NickEvents',
+      creator: 'MalaikaEvents',
     })
 
     expect(QRCode.toDataURL).toHaveBeenCalledWith('https://nickevents.cd/i/tok-abc123', {

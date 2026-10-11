@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Django management entry point (NickEvents backend)."""
+"""Django management entry point (MalaikaEvents backend)."""
 import os
 import sys
 

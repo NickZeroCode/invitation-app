@@ -114,7 +114,7 @@ function LifecycleStateScreen({ lifecycle }: { lifecycle: 'expired' | 'revoked' 
       <div className="w-full max-w-md rounded-[1.6rem] border border-line bg-white/85 p-8 text-center shadow-[0_24px_70px_rgba(25,32,28,0.12)] ring-1 ring-white/70 backdrop-blur-sm">
         <p className="flex items-center justify-center gap-2.5 text-xs font-medium uppercase tracking-[0.35em] text-ink-faint">
           <LogoMark className="h-7 w-7 rounded-md" />
-          NickEvents
+          MalaikaEvents
         </p>
         <span
           className={`mt-6 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${expired ? 'bg-warning-soft text-warning' : 'bg-danger-soft text-danger'}`}
@@ -285,7 +285,7 @@ export function PublicInvitationPage() {
           <div>
             <p className="flex items-center gap-2.5 text-xs font-medium uppercase tracking-[0.35em] text-ink-faint">
               <LogoMark className="h-7 w-7 rounded-md" />
-              NickEvents
+              MalaikaEvents
             </p>
             <h1 className="mt-2 text-2xl font-semibold text-ink md:text-3xl">Invitation</h1>
           </div>

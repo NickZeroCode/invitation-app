@@ -5,7 +5,7 @@
  * localization without touching component markup.
  */
 export const fr = {
-  appName: 'NickEvents',
+  appName: 'MalaikaEvents',
   common: {
     loading: 'Chargement…',
     retry: 'Réessayer',
@@ -46,7 +46,7 @@ export const fr = {
     submitting: 'Connexion en cours…',
     heroTitle: 'Des invitations élégantes, pour des moments inoubliables.',
     heroText:
-      "NickEvents vous accompagne de la création de l'invitation jusqu'à l'accueil de vos invités.",
+      "MalaikaEvents vous accompagne de la création de l'invitation jusqu'à l'accueil de vos invités.",
     heroPoint1: 'Modèles raffinés pour chaque occasion',
     heroPoint2: 'Liens uniques et vérification par QR code',
     heroPoint3: 'Préférences et réponses des invités en un seul endroit',
@@ -411,7 +411,7 @@ export const fr = {
     hero: {
       eyebrow: 'Plateforme d\u2019invitations · République démocratique du Congo',
       title: 'Des invitations dignes de vos plus beaux moments.',
-      text: "NickEvents réunit des modèles d'exception, un partage digital fluide et une vérification par QR code — de la première annonce au jour J.",
+      text: "MalaikaEvents réunit des modèles d'exception, un partage digital fluide et une vérification par QR code — de la première annonce au jour J.",
       primaryCta: 'Se connecter',
       signupCta: 'Créer un compte',
       secondaryCta: 'Découvrir les modèles',
@@ -514,12 +514,12 @@ export const fr = {
     cgu: {
       title: 'Conditions générales d’utilisation',
       intro:
-        'Les présentes conditions générales d’utilisation (ci-après « CGU ») définissent les règles d’utilisation du service NickEvents, accessible sur nickevents.com. En créant un compte ou en utilisant le service, vous acceptez sans réserve les présentes CGU.',
+        'Les présentes conditions générales d’utilisation (ci-après « CGU ») définissent les règles d’utilisation du service MalaikaEvents, accessible sur nickevents.com. En créant un compte ou en utilisant le service, vous acceptez sans réserve les présentes CGU.',
       sections: [
         {
           title: 'Éditeur du service',
           paragraphs: [
-            'Le service NickEvents (ci-après « le service ») est édité par NickEvents, marque du service (ci-après « l’éditeur » ou « nous »).',
+            'Le service MalaikaEvents (ci-après « le service ») est édité par MalaikaEvents, marque du service (ci-après « l’éditeur » ou « nous »).',
             'Pour toute question sur le service ou sur les présentes CGU : support@nickevents.com.',
           ],
           list: [],
@@ -528,7 +528,7 @@ export const fr = {
         {
           title: 'Objet du service',
           paragraphs: [
-            'NickEvents est un service de création d’invitations numériques. Il permet de concevoir des invitations à partir de modèles, de générer des liens nominatifs accompagnés d’un QR code de vérification, de les partager avec vos invités et de recueillir leurs réponses.',
+            'MalaikaEvents est un service de création d’invitations numériques. Il permet de concevoir des invitations à partir de modèles, de générer des liens nominatifs accompagnés d’un QR code de vérification, de les partager avec vos invités et de recueillir leurs réponses.',
             'Chaque invitation possède une date d’expiration et peut être révoquée à tout moment par l’organisateur. Les invités consultent leur invitation et soumettent leurs réponses depuis un navigateur, sans installation ni création de compte.',
           ],
           list: [],
@@ -560,7 +560,7 @@ export const fr = {
         {
           title: 'Données personnelles de vos invités',
           paragraphs: [
-            'Dans le cadre de l’organisation de vos événements, vous déterminez les finalités et les moyens du traitement des données de vos invités (civilité, nom, réponses) : vous en êtes le responsable de traitement. NickEvents agit alors comme sous-traitant, à votre seule instruction.',
+            'Dans le cadre de l’organisation de vos événements, vous déterminez les finalités et les moyens du traitement des données de vos invités (civilité, nom, réponses) : vous en êtes le responsable de traitement. MalaikaEvents agit alors comme sous-traitant, à votre seule instruction.',
             'Vous vous engagez à informer vos invités de l’utilisation de leurs données et à ne collecter que les informations nécessaires à votre événement. La collecte de données sensibles (informations de santé ou d’appartenance religieuse, qui peuvent résulter de certaines préférences alimentaires) est déconseillée et reste de votre seule responsabilité.',
             'Le traitement de vos propres données de compte est décrit dans notre politique de confidentialité.',
           ],
@@ -617,13 +617,13 @@ export const fr = {
     privacy: {
       title: 'Politique de confidentialité',
       intro:
-        'Cette politique de confidentialité décrit les données personnelles traitées par le service NickEvents, les finalités et les bases juridiques de ces traitements, leurs durées de conservation et la manière d’exercer vos droits. Elle est établie conformément au Règlement (UE) 2016/679 (RGPD) et, pour la République Démocratique du Congo, à la loi n° 20/017 du 29 décembre 2020 portant Code du numérique.',
+        'Cette politique de confidentialité décrit les données personnelles traitées par le service MalaikaEvents, les finalités et les bases juridiques de ces traitements, leurs durées de conservation et la manière d’exercer vos droits. Elle est établie conformément au Règlement (UE) 2016/679 (RGPD) et, pour la République Démocratique du Congo, à la loi n° 20/017 du 29 décembre 2020 portant Code du numérique.',
       sections: [
         {
           title: 'Responsable du traitement',
           paragraphs: [
-            'Pour les données de votre compte organisateur, le responsable du traitement est NickEvents, marque du service, éditeur de nickevents.com. Contact : support@nickevents.com.',
-            'Pour les données de vos invités (civilité, nom, réponses) recueillies dans le cadre de vos événements, le responsable du traitement est l’organisateur de l’événement ; NickEvents agit comme sous-traitant.',
+            'Pour les données de votre compte organisateur, le responsable du traitement est MalaikaEvents, marque du service, éditeur de nickevents.com. Contact : support@nickevents.com.',
+            'Pour les données de vos invités (civilité, nom, réponses) recueillies dans le cadre de vos événements, le responsable du traitement est l’organisateur de l’événement ; MalaikaEvents agit comme sous-traitant.',
           ],
           list: [],
           table: [],
@@ -697,7 +697,7 @@ export const fr = {
         {
           title: 'Traitements non réalisés',
           paragraphs: [
-            'Aucun traitement n’est réalisé à des fins de prospection commerciale, de publicité ou de profilage. Aucune donnée n’est vendue ni louée à des tiers. NickEvents n’envoie pas d’e-mails de sollicitation.',
+            'Aucun traitement n’est réalisé à des fins de prospection commerciale, de publicité ou de profilage. Aucune donnée n’est vendue ni louée à des tiers. MalaikaEvents n’envoie pas d’e-mails de sollicitation.',
           ],
           list: [],
           table: [],
@@ -753,7 +753,7 @@ export const fr = {
         {
           title: 'Cookies',
           paragraphs: [
-            'NickEvents n’utilise que des cookies strictement nécessaires au fonctionnement du service (session de connexion et protection CSRF). Aucune mesure d’audience, aucune publicité et aucun traceur tiers ne sont déposés. Le détail figure dans notre page Paramètres de cookies.',
+            'MalaikaEvents n’utilise que des cookies strictement nécessaires au fonctionnement du service (session de connexion et protection CSRF). Aucune mesure d’audience, aucune publicité et aucun traceur tiers ne sont déposés. Le détail figure dans notre page Paramètres de cookies.',
           ],
           list: [],
           table: [],
@@ -771,7 +771,7 @@ export const fr = {
     cookies: {
       title: 'Paramètres de cookies',
       intro:
-        'Cette page décrit les cookies utilisés par NickEvents et les moyens de les contrôler. En résumé : le service ne dépose que des cookies strictement nécessaires à son fonctionnement — aucun traceur publicitaire ou de mesure d’audience.',
+        'Cette page décrit les cookies utilisés par MalaikaEvents et les moyens de les contrôler. En résumé : le service ne dépose que des cookies strictement nécessaires à son fonctionnement — aucun traceur publicitaire ou de mesure d’audience.',
       sections: [
         {
           title: 'Qu’est-ce qu’un cookie ?',
@@ -782,7 +782,7 @@ export const fr = {
           table: [],
         },
         {
-          title: 'Cookies déposés par NickEvents',
+          title: 'Cookies déposés par MalaikaEvents',
           paragraphs: ['Le service utilise uniquement les cookies suivants :'],
           list: [],
           table: [
