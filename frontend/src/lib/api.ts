@@ -32,7 +32,12 @@ import type {
   ProfileUpdatePayload,
   PublicInvitationPayload,
   PublicInvitationVerification,
+  PublicVerificationLinkInfo,
   RegisterPayload,
+  VerificationLink,
+  VerificationLinkPayload,
+  VerificationScanResult,
+  VerificationSession,
 } from './types.ts'
 
 const NETWORK_MESSAGE = 'Impossible de joindre le serveur. Vérifiez votre connexion internet.'
@@ -126,8 +131,13 @@ function toApiError(status: number, data: unknown): ApiError {
   )
 }
 
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const headers: Record<string, string> = { Accept: 'application/json' }
+async function request<T>(
+  method: string,
+  path: string,
+  body?: unknown,
+  extraHeaders?: Record<string, string>,
+): Promise<T> {
+  const headers: Record<string, string> = { Accept: 'application/json', ...extraHeaders }
   let payload: BodyInit | undefined
   if (body instanceof FormData) {
     // Multipart upload: the browser sets Content-Type with the boundary.
@@ -251,6 +261,55 @@ export const publicApi = {
       'POST',
       `/api/public/invitations/${encodeURIComponent(token)}/response/`,
       payload,
+    ),
+  /** One-way guest presence confirmation (idempotent). */
+  confirmPresence: (token: string) =>
+    request<{ presence: { confirmed: boolean; confirmed_at: string | null } }>(
+      'POST',
+      `/api/public/invitations/${encodeURIComponent(token)}/confirm-presence/`,
+      {},
+    ),
+}
+
+/** Organizer-side management of delegated QR-verification links. */
+export const verificationApi = {
+  listForEvent: (eventId: number) =>
+    request<{ results: VerificationLink[] }>(
+      'GET',
+      `/api/events/${eventId}/verification-links/`,
+    ),
+  create: (eventId: number, payload: VerificationLinkPayload) =>
+    request<VerificationLink>('POST', `/api/events/${eventId}/verification-links/`, payload),
+  revoke: (id: number) =>
+    request<VerificationLink>('POST', `/api/verification-links/${id}/revoke/`, {}),
+  /** Owner-side door verdict (authenticated, event-scoped — no link needed). */
+  scanForEvent: (eventId: number, content: string) =>
+    request<VerificationScanResult>(
+      'POST',
+      `/api/events/${eventId}/verification-scan/`,
+      { content },
+    ),
+}
+
+/** Public (delegated verifier) flow: link status → code exchange → scans. */
+export const publicVerificationApi = {
+  link: (token: string) =>
+    request<PublicVerificationLinkInfo>(
+      'GET',
+      `/api/public/verify-links/${encodeURIComponent(token)}/`,
+    ),
+  authorize: (token: string, code: string) =>
+    request<VerificationSession>(
+      'POST',
+      `/api/public/verify-links/${encodeURIComponent(token)}/authorize/`,
+      { code },
+    ),
+  scan: (token: string, session: string, content: string) =>
+    request<VerificationScanResult>(
+      'POST',
+      `/api/public/verify-links/${encodeURIComponent(token)}/scan/`,
+      { content },
+      { 'X-Verification-Session': session },
     ),
 }
 

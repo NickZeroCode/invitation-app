@@ -50,6 +50,8 @@ class DashboardOverviewView(APIView):
             Q(state=Invitation.State.EXPIRED) | Q(state=Invitation.State.ACTIVE, expires_at__lte=now)
         )
         revoked = invitations.filter(state=Invitation.State.REVOKED)
+        # Guest self-confirmed presences (null = not confirmed yet).
+        presences_confirmed = invitations.filter(presence_confirmed_at__isnull=False)
 
         return Response(
             {
@@ -63,6 +65,7 @@ class DashboardOverviewView(APIView):
                     "expired": expired.count(),
                     "revoked": revoked.count(),
                 },
+                "presences": {"confirmed": presences_confirmed.count()},
                 "responses": {"total": responses.count()},
                 "generated_at": now.isoformat(),
             }

@@ -5,8 +5,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import QRCode from 'qrcode'
 
 import { Button } from '../design-system/Button.tsx'
+import { IconCheck } from '../design-system/icons.tsx'
 import { LogoMark } from '../design-system/Logo.tsx'
-import { InvitationDownloadButton } from '../templates/InvitationDownloadButton.tsx'
 import { ErrorState, LoadingState } from '../design-system/states.tsx'
 import { ApiError, publicApi } from '../lib/api.ts'
 import type {
@@ -161,6 +161,10 @@ export function PublicInvitationPage() {
   const [answerOverrides, setAnswerOverrides] = useState<Record<number, number[]> | null>(null)
   const [submitMessage, setSubmitMessage] = useState('')
   const [submitError, setSubmitError] = useState('')
+  // Guest presence confirmation (one-way): the stamped timestamp wins over
+  // the payload's value so the confirmed state appears without a re-render gap.
+  const [presenceStamped, setPresenceStamped] = useState<string | null>(null)
+  const [presenceError, setPresenceError] = useState('')
   const cardRef = useRef<HTMLDivElement>(null)
 
   // Saved answers seed the form; guest edits layer on top as explicit
@@ -187,6 +191,22 @@ export function PublicInvitationPage() {
       } else {
         setSubmitError('La réponse n’a pas pu être enregistrée.')
       }
+    },
+  })
+
+  const confirmPresenceMutation = useMutation({
+    mutationFn: () => publicApi.confirmPresence(publicToken),
+    onSuccess: async (result) => {
+      setPresenceError('')
+      setPresenceStamped(result.presence.confirmed_at)
+      await queryClient.invalidateQueries({ queryKey: ['public-invitation', publicToken] })
+    },
+    onError: (error: unknown) => {
+      setPresenceError(
+        error instanceof ApiError
+          ? error.message
+          : 'Votre présence n’a pas pu être confirmée.',
+      )
     },
   })
 
@@ -597,29 +617,70 @@ export function PublicInvitationPage() {
             ) : null}
 
             <PanelCard skin={skin} templateKey={data.event.template.key} title="Actions">
-              <div className="mt-4 flex justify-center">
-                <InvitationDownloadButton
-                  targetRef={cardRef}
-                  title={data.event.title}
-                  guestName={data.invitation.display_name}
-                  templateKey={data.event.template.key}
-                  dressCode={(data.dress_code?.images ?? []).map((image) => ({
-                    url: image.url,
-                    caption: image.caption,
-                  }))}
-                  program={(data.program?.items ?? []).map((item) => ({
-                    start_time: item.start_time,
-                    end_time: item.end_time,
-                    description: item.description,
-                  }))}
-                  table={
-                    data.table?.enabled
-                      ? { number: data.table.number, text: data.table.text }
-                      : undefined
+              <div className="mt-4 flex flex-col items-center gap-3 text-center">
+                {(() => {
+                  const confirmedAt = presenceStamped ?? data.presence?.confirmed_at ?? null
+                  if (confirmedAt) {
+                    return (
+                      <>
+                        <Button
+                          variant="primary"
+                          size="md"
+                          disabled
+                          style={{
+                            backgroundColor: skin.accent,
+                            borderColor: skin.accent,
+                            color: skin.onAccent,
+                            opacity: 1,
+                          }}
+                        >
+                          <span className="inline-flex items-center gap-2">
+                            <IconCheck className="h-5 w-5" />
+                            Présence confirmée
+                          </span>
+                        </Button>
+                        <p role="status" className="text-xs" style={{ color: skin.inkSoft }}>
+                          {'Confirmée le '}
+                          {new Date(confirmedAt).toLocaleDateString('fr-FR', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                          })}
+                        </p>
+                      </>
+                    )
                   }
-                  qrText={`${window.location.origin}/i/${publicToken}`}
-                  style={{ backgroundColor: skin.accent, borderColor: skin.accent, color: skin.onAccent }}
-                />
+                  return (
+                    <>
+                      <Button
+                        variant="primary"
+                        size="md"
+                        loading={confirmPresenceMutation.isPending}
+                        disabled={confirmPresenceMutation.isPending}
+                        onClick={() => confirmPresenceMutation.mutate()}
+                        style={{
+                          backgroundColor: skin.accent,
+                          borderColor: skin.accent,
+                          color: skin.onAccent,
+                        }}
+                      >
+                        Confirmer la présence
+                      </Button>
+                      <p className="text-xs" style={{ color: skin.inkSoft }}>
+                        Prévenez l’organisateur que vous serez présent(e).
+                      </p>
+                      {presenceError ? (
+                        <p
+                          role="alert"
+                          className="text-sm font-medium text-danger"
+                          style={onDarkPaper ? { color: '#FFB4A8' } : undefined}
+                        >
+                          {presenceError}
+                        </p>
+                      ) : null}
+                    </>
+                  )
+                })()}
               </div>
             </PanelCard>
           </aside>

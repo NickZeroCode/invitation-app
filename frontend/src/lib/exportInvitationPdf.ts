@@ -131,23 +131,29 @@ function triggerDownload(
  * Fetch a remote image and inline it as a data URL (CORS-friendly capture).
  * Anything that is not a real image payload (SPA fallback HTML, storage XML
  * error bodies, …) counts as a failure — those would rasterize as broken
- * image icons.
+ * image icons. A failure is retried once bypassing the HTTP cache: browsers
+ * may hand back a stale cached error for an expired presigned URL even after
+ * a fresh one was issued ("sometimes the pictures are missing").
  */
 async function fetchAsDataUrl(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url)
-    if (!response.ok) return null
-    const blob = await response.blob()
-    if (blob.type && !blob.type.startsWith('image/')) return null
-    return await new Promise<string | null>((resolve) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : null)
-      reader.onerror = () => resolve(null)
-      reader.readAsDataURL(blob)
-    })
-  } catch {
-    return null
+  const load = async (cache: RequestCache): Promise<string | null> => {
+    try {
+      const response = await fetch(url, { cache })
+      if (!response.ok) return null
+      const blob = await response.blob()
+      if (blob.type && !blob.type.startsWith('image/')) return null
+      return await new Promise<string | null>((resolve) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : null)
+        reader.onerror = () => resolve(null)
+        reader.readAsDataURL(blob)
+      })
+    } catch {
+      return null
+    }
   }
+  const direct = await load('default')
+  return direct ?? load('no-store')
 }
 
 /**

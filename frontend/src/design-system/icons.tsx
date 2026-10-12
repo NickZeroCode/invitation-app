@@ -197,6 +197,18 @@ export function IconSearch({ className = 'h-5 w-5' }: IconProps) {
   )
 }
 
+export function IconQr({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="4" y="4" width="5.5" height="5.5" rx="1.2" />
+      <rect x="14.5" y="4" width="5.5" height="5.5" rx="1.2" />
+      <rect x="4" y="14.5" width="5.5" height="5.5" rx="1.2" />
+      <rect x="16.2" y="16.2" width="3.8" height="3.8" rx="0.9" />
+      <path d="M14.5 12.2h.01M20 12.2h.01M12.2 20h.01" />
+    </svg>
+  )
+}
+
 export function IconUsers({ className = 'h-5 w-5' }: IconProps) {
   return (
     <svg {...base(className)}>

@@ -18,7 +18,7 @@ from django.utils.timezone import now as timezone_now
 from rest_framework import serializers
 
 from core.exceptions import DomainValidationError
-from invitations.models import Invitation
+from invitations.models import Invitation, VerificationLink
 from preferences.models import GuestResponse
 
 
@@ -94,6 +94,7 @@ class InvitationSerializer(serializers.ModelSerializer):
             "status",
             "is_valid",
             "has_response",
+            "presence_confirmed_at",
             "created_at",
             "updated_at",
         )
@@ -108,6 +109,7 @@ class InvitationSerializer(serializers.ModelSerializer):
             "status",
             "is_valid",
             "has_response",
+            "presence_confirmed_at",
             "created_at",
             "updated_at",
         )
@@ -234,3 +236,66 @@ class InvitationBulkSerializer(serializers.Serializer):
         event = self.context["event"]
         invitations = [Invitation.objects.create(event_model=event, **row) for row in rows]
         return {"count": len(invitations), "invitations": invitations}
+
+
+class VerificationLinkSerializer(serializers.ModelSerializer):
+    """Organizer-facing verification link (delegated door verification).
+
+    `code` is WRITE-ONLY and stored hashed (PBKDF2) — it never comes back in
+    any response. The link URL is composed client-side from `token`, exactly
+    like guest invitation links (`/verification/<token>`).
+    """
+
+    status = serializers.SerializerMethodField()
+    code = serializers.CharField(
+        write_only=True,
+        min_length=6,
+        max_length=VerificationLink.MAX_CODE_LENGTH,
+        error_messages={
+            "required": "Le code d'autorisation est obligatoire.",
+            "blank": "Le code d'autorisation est obligatoire.",
+            "min_length": "Le code d'autorisation doit contenir au moins 6 caractères.",
+            "max_length": "Le code d'autorisation ne doit pas dépasser 64 caractères.",
+        },
+    )
+    expires_at = serializers.DateTimeField(
+        error_messages={
+            "required": "La date d'expiration est obligatoire.",
+            "invalid": "Format de date invalide.",
+        },
+    )
+    label = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=120,
+        error_messages={"max_length": "Le libellé ne doit pas dépasser 120 caractères."},
+    )
+
+    class Meta:
+        model = VerificationLink
+        fields = (
+            "id",
+            "label",
+            "token",
+            "status",
+            "expires_at",
+            "revoked_at",
+            "created_at",
+            "code",
+        )
+        read_only_fields = ("id", "token", "status", "revoked_at", "created_at")
+
+    def get_status(self, obj: VerificationLink) -> str:
+        return obj.status
+
+    def validate_expires_at(self, value):
+        if value <= timezone_now():
+            raise serializers.ValidationError("La date d'expiration doit être dans le futur.")
+        return value
+
+    def create(self, validated_data: dict) -> VerificationLink:
+        code = validated_data.pop("code")
+        link = VerificationLink(event_model=self.context["event"], **validated_data)
+        link.set_code(code)
+        link.save()
+        return link

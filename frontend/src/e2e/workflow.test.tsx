@@ -2,7 +2,7 @@
  * End-to-end workflow tests (§19) — the complete real invitation workflow:
  *
  *   log in → create an event model → create a guest invitation → open its
- *   unique link → verify its QR code → download the invitation image →
+ *   unique link → verify its QR code → confirm the guest's presence →
  *   follow the scanned QR payload → submit guest preferences → confirm the
  *   response in the organizer dashboard → revoke the invitation → verify
  *   that subsequent access is handled correctly.
@@ -24,7 +24,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider, createMemoryRouter, type RouteObject } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import QRCode from 'qrcode'
-import { toJpeg } from 'html-to-image'
 
 vi.mock('html-to-image', () => ({
   toJpeg: vi.fn(async () => 'data:image/jpeg;base64,JPEGDATA'),
@@ -220,6 +219,8 @@ interface PublicFixture {
   event: EventModel
   questions: PreferenceQuestion[]
   response: GuestResponsePayload | null
+  /** Guest attendance confirmation timestamp (feature: présence). */
+  presence_confirmed_at?: string | null
   /** When set, POST response/ is rejected with this validation message. */
   rejectSubmit?: string
 }
@@ -289,6 +290,10 @@ function publicPayload(fixture: PublicFixture): unknown {
       enabled: fixture.questions.some((question) => question.is_active),
       questions: fixture.questions,
     },
+    presence: {
+      confirmed: Boolean(fixture.presence_confirmed_at),
+      confirmed_at: fixture.presence_confirmed_at ?? null,
+    },
     response: fixture.response,
   }
 }
@@ -350,6 +355,9 @@ function createBackend(initialFixtures: Record<string, PublicFixture> = {}): Bac
             revoked: state.invitations.filter((i) => i.status === 'revoked').length,
           },
           responses: { total: state.responses.length },
+          presences: {
+            confirmed: state.invitations.filter((i) => i.presence_confirmed_at).length,
+          },
           generated_at: NOW,
         }),
     },
@@ -480,6 +488,7 @@ function createBackend(initialFixtures: Record<string, PublicFixture> = {}): Bac
           status: 'active',
           is_valid: true,
           has_response: false,
+          presence_confirmed_at: null,
           created_at: NOW,
           updated_at: NOW,
         }
@@ -487,6 +496,7 @@ function createBackend(initialFixtures: Record<string, PublicFixture> = {}): Bac
         state.fixtures.set(invitation.token, {
           token: invitation.token,
           status: 'active',
+          presence_confirmed_at: null,
           invitation: {
             guest_name: invitation.guest_name,
             civility,
@@ -549,6 +559,31 @@ function createBackend(initialFixtures: Record<string, PublicFixture> = {}): Bac
           verified_at: '2026-10-07T12:30:00Z',
           guest_name: fixture.invitation.display_name,
           event_title: fixture.event.title,
+        })
+      },
+    },
+    {
+      method: 'POST',
+      pattern: /^\/api\/public\/invitations\/([^/]+)\/confirm-presence\/$/,
+      handle: (match) => {
+        const fixture = state.fixtures.get(match[1])
+        if (!fixture) return notFound()
+        if (fixture.status !== 'active') {
+          return json(400, {
+            error: {
+              code: 'validation_error',
+              message:
+                fixture.status === 'revoked'
+                  ? 'Cette invitation a été révoquée.'
+                  : 'Cette invitation a expiré.',
+            },
+          })
+        }
+        if (!fixture.presence_confirmed_at) fixture.presence_confirmed_at = NOW
+        const invitation = state.invitations.find((entry) => entry.token === fixture.token)
+        if (invitation) invitation.presence_confirmed_at = fixture.presence_confirmed_at
+        return json(200, {
+          presence: { confirmed: true, confirmed_at: fixture.presence_confirmed_at },
         })
       },
     },
@@ -807,12 +842,15 @@ describe('Parcours complet (E2E)', () => {
       expect(await screen.findByText('Cette invitation est actuellement valide.')).toBeInTheDocument()
       expect(backend.calls.some((call) => call.url.includes('/verify/'))).toBe(true)
 
-      // 9. Download the invitation as a PDF.
-      await user.click(screen.getByRole('button', { name: "Télécharger l’invitation" }))
-      await waitFor(() => expect(downloads).toHaveLength(1))
-      expect(downloads[0].download).toMatch(/^invitation-.*\.pdf$/)
-      expect(downloads[0].href).toContain('data:application/pdf')
-      expect(toJpeg).toHaveBeenCalledTimes(2)
+      // 9. The guest confirms their attendance — the action button then
+      //     shows the confirmed state instead.
+      await user.click(screen.getByRole('button', { name: 'Confirmer la présence' }))
+      expect(
+        await screen.findByRole('button', { name: /Présence confirmée/ }, { timeout: 5000 }),
+      ).toBeDisabled()
+      expect(
+        backend.calls.some((call) => call.url.includes('/confirm-presence/')),
+      ).toBe(true)
 
       // 10. "Scan" the QR code: follow its decoded payload back to the
       //     invitation (the PDF itself cannot be optically decoded in jsdom).
@@ -839,9 +877,11 @@ describe('Parcours complet (E2E)', () => {
         backend.calls.some((call) => call.url.includes('/api/events/7/responses/')),
       ).toBe(true)
 
-      // 13. Back to the guest list → revoke the invitation.
+      // 13. Back to the guest list → the confirmed presence is reported →
+      //     revoke the invitation.
       await user.click(screen.getByRole('link', { name: 'Retour aux invités' }))
       await waitFor(() => expect(router.state.location.pathname).toBe('/evenements/7/invitations'))
+      expect((await screen.findAllByText('Présence confirmée')).length).toBeGreaterThan(0)
       await user.click(await screen.findByRole('button', { name: 'Révoquer' }))
       expect(screen.getByRole('alertdialog')).toBeInTheDocument()
       await user.click(screen.getAllByRole('button', { name: 'Révoquer' })[1])

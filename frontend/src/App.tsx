@@ -17,6 +17,8 @@ import { EventEditorPage } from './pages/EventEditorPage.tsx'
 import { GuestsPage } from './pages/GuestsPage.tsx'
 import { ResponsesPage } from './pages/ResponsesPage.tsx'
 import { PublicInvitationPage } from './pages/PublicInvitationPage.tsx'
+import { VerificationPage } from './pages/VerificationPage.tsx'
+import { EventVerificationPage } from './pages/EventVerificationPage.tsx'
 import { CguPage } from './pages/legal/CguPage.tsx'
 import { CookiesPage } from './pages/legal/CookiesPage.tsx'
 import { PrivacyPage } from './pages/legal/PrivacyPage.tsx'
@@ -62,6 +64,7 @@ export default function App() {
               }
             />
             <Route path="/i/:token" element={<PublicInvitationPage />} />
+            <Route path="/verification/:token" element={<VerificationPage />} />
             <Route path="/cgu" element={<CguPage />} />
             <Route path="/politique-de-confidentialite" element={<PrivacyPage />} />
             <Route path="/parametres-de-cookies" element={<CookiesPage />} />
@@ -78,6 +81,7 @@ export default function App() {
               <Route path="/evenements/:id" element={<EventEditorPage />} />
               <Route path="/evenements/:id/invitations" element={<GuestsPage />} />
               <Route path="/evenements/:id/reponses" element={<ResponsesPage />} />
+              <Route path="/evenements/:id/verification" element={<EventVerificationPage />} />
               <Route path="/modeles" element={<TemplatesPage />} />
               <Route path="/parametres" element={<SettingsPage />} />
             </Route>

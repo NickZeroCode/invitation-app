@@ -86,6 +86,7 @@ function invitation(overrides: Record<string, unknown> = {}) {
     status: 'active',
     is_valid: true,
     has_response: true,
+    presence_confirmed_at: null,
     created_at: '2026-10-07T10:00:00Z',
     updated_at: '2026-10-07T10:00:00Z',
     table_number: '',
@@ -372,5 +373,73 @@ describe('GuestsPage', () => {
     // table alone opens it) and the styled verification QR page background.
     expect(toJpeg).toHaveBeenCalledTimes(3)
     clickSpy.mockRestore()
+  })
+
+  it('re-fetches the event when exporting so the cover is current', async () => {
+    const user = userEvent.setup()
+    const downloads: Array<{ download: string; href: string }> = []
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(function (this: HTMLAnchorElement) {
+        downloads.push({ download: this.download, href: this.href })
+      })
+    const mock = renderGuests([
+      { url: '/api/auth/me/', body: ORGANIZER },
+      { url: '/api/events/7/invitations/', body: PAGE },
+      // First GET (the page's own query) serves the stale cover; the export
+      // must re-fetch and get the replaced one.
+      {
+        url: '/api/events/7/',
+        body: { ...EVENT, cover_url: 'https://cdn.test/stale-cover.jpg' },
+        once: true,
+      },
+      {
+        url: '/api/events/7/',
+        body: { ...EVENT, cover_url: 'https://cdn.test/fresh-cover.jpg' },
+      },
+      { url: 'fresh-cover.jpg', body: 'IMGDATA' },
+    ])
+
+    await user.click(await screen.findByRole('button', { name: 'Exporter' }))
+
+    await waitFor(() => expect(downloads).toHaveLength(1))
+    // Regression: exporting re-reads the event so a replaced cover is used
+    // (stale presigned URLs produced blank pictures before).
+    expect(mock.callsTo('/api/events/7/', 'GET').length).toBeGreaterThanOrEqual(2)
+    // The replaced cover is fetched and the stale one never is. (mockFetch
+    // serves JSON content types, so fetchAsDataUrl retries once bypassing the
+    // HTTP cache before falling back to the placeholder.)
+    expect(mock.callsTo('fresh-cover.jpg').length).toBeGreaterThanOrEqual(1)
+    expect(mock.callsTo('stale-cover.jpg')).toHaveLength(0)
+    clickSpy.mockRestore()
+  })
+
+  it('shows the presence badge once the guest has confirmed', async () => {
+    renderGuests([
+      { url: '/api/auth/me/', body: ORGANIZER },
+      {
+        url: '/api/events/7/invitations/',
+        body: {
+          count: 1,
+          next: null,
+          previous: null,
+          results: [invitation({ presence_confirmed_at: '2026-10-07T12:00:00Z' })],
+        },
+      },
+      { url: '/api/events/7/', body: EVENT },
+    ])
+
+    expect(await screen.findByText('Présence confirmée')).toBeInTheDocument()
+  })
+
+  it('shows no presence badge when the guest has not confirmed', async () => {
+    renderGuests([
+      { url: '/api/auth/me/', body: ORGANIZER },
+      { url: '/api/events/7/invitations/', body: PAGE },
+      { url: '/api/events/7/', body: EVENT },
+    ])
+
+    expect(await screen.findByText('Mme Éric Mukendi')).toBeInTheDocument()
+    expect(screen.queryByText('Présence confirmée')).not.toBeInTheDocument()
   })
 })

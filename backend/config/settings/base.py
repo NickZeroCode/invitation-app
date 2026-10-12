@@ -124,6 +124,10 @@ REST_FRAMEWORK = {
         # Sensitive auth endpoints (login) and future public endpoints.
         "auth": env("THROTTLE_AUTH_RATE", "20/min"),
         "public": env("THROTTLE_PUBLIC_RATE", "120/min"),
+        # QR verification: code exchange is brute-force sensitive (plus the
+        # per-link lock), scans run in bursts at the door.
+        "verify-code": env("THROTTLE_VERIFY_CODE_RATE", "10/min"),
+        "verify": env("THROTTLE_VERIFY_RATE", "60/min"),
     },
     "EXCEPTION_HANDLER": "core.exceptions.api_exception_handler",
     "TEST_REQUEST_DEFAULT_FORMAT": "json",

@@ -23,6 +23,7 @@ const OVERVIEW = {
   events: { total: 4, upcoming: 1 },
   invitations: { total: 12, active: 8, expired: 3, revoked: 2 },
   responses: { total: 7 },
+  presences: { confirmed: 5 },
   generated_at: '2026-10-07T10:30:00Z',
 }
 
@@ -78,8 +79,10 @@ describe('OverviewPage', () => {
     expect(screen.getByText('12')).toBeInTheDocument()
     expect(screen.getByText('8')).toBeInTheDocument()
     expect(screen.getByText('7')).toBeInTheDocument()
+    expect(screen.getByText('5')).toBeInTheDocument()
     expect(screen.getByText('Événements créés')).toBeInTheDocument()
     expect(screen.getByText('Actives')).toBeInTheDocument()
+    expect(screen.getByText('Présences confirmées')).toBeInTheDocument()
   })
 
   it('shows an error state and recovers on retry', async () => {

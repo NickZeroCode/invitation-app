@@ -12,6 +12,7 @@ import {
   ErrorState,
   IconArrowRight,
   IconChart,
+  IconCheck,
   IconEvents,
   IconInbox,
   IconMail,
@@ -173,7 +174,7 @@ export function OverviewPage() {
         </Card>
       ) : (
         <>
-          <dl className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+          <dl className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
             <MetricCard
               label={fr.overview.events.total}
               value={formatNumber(data.events.total)}
@@ -191,6 +192,12 @@ export function OverviewPage() {
               value={formatNumber(data.responses.total)}
               icon={<IconInbox className="h-4 w-4" />}
               footer={fr.overview.responses.title}
+            />
+            <MetricCard
+              label={fr.overview.presences.total}
+              value={formatNumber(data.presences.confirmed)}
+              icon={<IconCheck className="h-4 w-4" />}
+              footer={fr.overview.presences.title}
             />
             <MetricCard
               label={fr.overview.rateTitle}

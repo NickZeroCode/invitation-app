@@ -40,6 +40,7 @@ export {
   IconPhone,
   IconPin,
   IconPlus,
+  IconQr,
   IconQuestion,
   IconRefresh,
   IconSearch,

@@ -6,7 +6,19 @@ from events.views import (
     EventModelCoverView,
     EventModelViewSet,
 )
-from invitations.public import PublicInvitationView, PublicVerificationView
+from invitations.public import (
+    PublicConfirmPresenceView,
+    PublicInvitationView,
+    PublicVerificationView,
+)
+from invitations.verification import (
+    EventVerificationLinksView,
+    EventVerificationScanView,
+    PublicVerificationAuthorizeView,
+    PublicVerificationLinkView,
+    PublicVerificationScanView,
+    VerificationLinkRevokeView,
+)
 from invitations.views import (
     InvitationBulkGenerateView,
     InvitationDetailView,
@@ -84,5 +96,42 @@ urlpatterns = [
         "public/invitations/<str:token>/response/",
         GuestResponseSubmitView.as_view(),
         name="public-invitation-response",
+    ),
+    # Guest presence confirmation (one-way, token-scoped).
+    path(
+        "public/invitations/<str:token>/confirm-presence/",
+        PublicConfirmPresenceView.as_view(),
+        name="public-invitation-confirm-presence",
+    ),
+    # QR-authenticity verification: delegated links + door-side verdicts.
+    path(
+        "events/<int:pk>/verification-links/",
+        EventVerificationLinksView.as_view(),
+        name="event-verification-links",
+    ),
+    path(
+        "events/<int:pk>/verification-scan/",
+        EventVerificationScanView.as_view(),
+        name="event-verification-scan",
+    ),
+    path(
+        "verification-links/<int:pk>/revoke/",
+        VerificationLinkRevokeView.as_view(),
+        name="verification-link-revoke",
+    ),
+    path(
+        "public/verify-links/<str:token>/",
+        PublicVerificationLinkView.as_view(),
+        name="public-verification-link",
+    ),
+    path(
+        "public/verify-links/<str:token>/authorize/",
+        PublicVerificationAuthorizeView.as_view(),
+        name="public-verification-authorize",
+    ),
+    path(
+        "public/verify-links/<str:token>/scan/",
+        PublicVerificationScanView.as_view(),
+        name="public-verification-scan",
     ),
 ]

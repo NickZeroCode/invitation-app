@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
+from core.exceptions import DomainValidationError
 from invitations.models import Invitation
 from preferences.models import GuestResponse
 from preferences.serializers import GuestResponseSerializer
@@ -133,6 +134,17 @@ def build_public_payload(invitation: Invitation, request) -> dict:
             "number": invitation.table_number,
             "text": invitation.table_text,
         },
+        # Guest self-confirmation of their presence (one-way, idempotent):
+        # `confirmed` gates the public-page action state, `confirmed_at` is
+        # surfaced to the organizer on the dashboard and the guest list.
+        "presence": {
+            "confirmed": invitation.presence_confirmed_at is not None,
+            "confirmed_at": (
+                invitation.presence_confirmed_at.isoformat()
+                if invitation.presence_confirmed_at
+                else None
+            ),
+        },
         "response": GuestResponseSerializer(response).data if response else None,
     }
 
@@ -150,6 +162,45 @@ class PublicInvitationView(APIView):
         if invitation is None:
             raise NotFound(UNKNOWN_LINK_MESSAGE)
         return Response(build_public_payload(invitation, request))
+
+
+class PublicConfirmPresenceView(APIView):
+    """``POST /api/public/invitations/{token}/confirm-presence/``.
+
+    The guest confirms from their own invitation page: the token is the
+    credential. Idempotent (re-posting keeps the original timestamp) and
+    refused for expired/revoked links, exactly like preference submissions.
+    Opening an invitation never mutates it — only this endpoint does.
+    """
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "public"
+
+    def post(self, request, token: str):
+        invitation = find_public_invitation(token)
+        if invitation is None:
+            raise NotFound(UNKNOWN_LINK_MESSAGE)
+        if not invitation.is_currently_valid():
+            reason = (
+                "Cette invitation a été révoquée."
+                if invitation.state == Invitation.State.REVOKED
+                else "Cette invitation a expiré."
+            )
+            raise DomainValidationError(reason)
+
+        if invitation.presence_confirmed_at is None:
+            invitation.presence_confirmed_at = timezone_now()
+            invitation.save(update_fields=["presence_confirmed_at", "updated_at"])
+        return Response(
+            {
+                "presence": {
+                    "confirmed": True,
+                    "confirmed_at": invitation.presence_confirmed_at.isoformat(),
+                }
+            }
+        )
 
 
 class PublicVerificationView(APIView):

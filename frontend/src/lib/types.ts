@@ -24,6 +24,10 @@ export interface DashboardOverview {
     expired: number
     revoked: number
   }
+  /** Guest self-confirmed presences (from the public invitation page). */
+  presences: {
+    confirmed: number
+  }
   responses: {
     total: number
   }
@@ -241,6 +245,8 @@ export interface Invitation {
   status: InvitationState
   is_valid: boolean
   has_response: boolean
+  /** Guest self-confirmation of their presence (null = not confirmed). */
+  presence_confirmed_at: string | null
   created_at: string
   updated_at: string
 }
@@ -391,6 +397,11 @@ export interface PublicInvitationPayload {
     number: string
     text: string
   }
+  /** Guest self-confirmation of their presence (one-way, idempotent). */
+  presence: {
+    confirmed: boolean
+    confirmed_at: string | null
+  }
   response: GuestResponsePayload | null
 }
 
@@ -400,4 +411,77 @@ export interface PublicInvitationVerification {
   verified_at: string
   guest_name?: string
   event_title?: string
+}
+
+// ---------------------------------------------------------------------------
+// QR-authenticity verification (delegated links + door-side scanner)
+// ---------------------------------------------------------------------------
+
+export type VerificationLinkStatus = 'active' | 'expired' | 'revoked'
+
+/** Organizer-facing delegated verification link (the code is never returned). */
+export interface VerificationLink {
+  id: number
+  label: string
+  token: string
+  status: VerificationLinkStatus
+  expires_at: string
+  revoked_at: string | null
+  created_at: string
+}
+
+export interface VerificationLinkPayload {
+  label?: string
+  /** Authorization code (min 6 chars) — stored hashed server-side. */
+  code: string
+  /** ISO datetime; the link stops working at this instant. */
+  expires_at: string
+}
+
+/** Public landing-page status for `/verification/<token>`. */
+export interface PublicVerificationLinkInfo {
+  status: VerificationLinkStatus
+  label: string
+  event_title: string
+  expires_at: string
+  revoked_at: string | null
+}
+
+/** Result of exchanging the authorization code for a scanner session. */
+export interface VerificationSession {
+  session: string
+  event_title: string
+  expires_at: string
+}
+
+export type VerificationScanResultCode =
+  | 'valid'
+  | 'expired'
+  | 'revoked'
+  | 'invalid'
+  | 'wrong_event'
+
+export interface VerificationScanSummary {
+  display_name: string
+  guest_name: string
+  civility: InvitationCivility
+  event_title: string
+  event_date: string
+  event_time: string | null
+  venue_name: string
+  table_number: string
+  table_text: string
+  issued_at: string
+  expires_at: string | null
+  presence_confirmed: boolean
+  presence_confirmed_at: string | null
+}
+
+/** Server-side verdict for one scanned QR payload (never from pixels). */
+export interface VerificationScanResult {
+  result: VerificationScanResultCode
+  is_authentic: boolean
+  message: string
+  summary: VerificationScanSummary | null
+  verified_at: string
 }

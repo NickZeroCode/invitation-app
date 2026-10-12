@@ -26,6 +26,7 @@ import {
   IconEdit,
   IconLink,
   IconPlus,
+  IconQr,
   IconSearch,
   IconTrash,
   IconUsers,
@@ -410,28 +411,35 @@ function GuestRow({
     setNotice(null)
     setError(null)
     try {
+      // Always compose the PDF from FRESH server data: the cached event can
+      // carry stale presigned image URLs (cover/dress-code URLs expire hourly
+      // and a replaced cover deletes its old object), which silently left the
+      // exported pictures blank. The cache is only a fallback for a transient
+      // refetch failure.
+      const fresh = await eventsApi.get(event.id).catch(() => null)
+      const source = fresh ?? event
       await exportInvitationPdf({
-        templateKey: event.template,
+        templateKey: source.template,
         draft: emptyDraft({
-          title: event.title,
-          message: event.message,
-          messageFont: event.message_font,
-          fontSize: event.font_size,
-          event_date: event.event_date,
-          event_time: event.event_time,
-          timezone: event.timezone,
-          venue_name: event.venue_name,
-          venue_address: event.venue_address,
-          venue_details: event.venue_details,
-          cover_url: event.cover_url,
-          coverTitle: event.cover_title,
-          emphasis: event.display_config.emphasis ?? [],
+          title: source.title,
+          message: source.message,
+          messageFont: source.message_font,
+          fontSize: source.font_size,
+          event_date: source.event_date,
+          event_time: source.event_time,
+          timezone: source.timezone,
+          venue_name: source.venue_name,
+          venue_address: source.venue_address,
+          venue_details: source.venue_details,
+          cover_url: source.cover_url,
+          coverTitle: source.cover_title,
+          emphasis: source.display_config.emphasis ?? [],
           guestName: invitation.display_name,
           dressCode: [],
           program: [],
         }),
-        dressCode: event.dress_code.map((image) => ({ url: image.url, caption: image.caption })),
-        program: event.program_items.map((item) => ({
+        dressCode: source.dress_code.map((image) => ({ url: image.url, caption: image.caption })),
+        program: source.program_items.map((item) => ({
           start_time: item.start_time,
           end_time: item.end_time,
           description: item.description,
@@ -439,7 +447,7 @@ function GuestRow({
         table: invitation.table_number
           ? { number: invitation.table_number, text: invitation.table_text }
           : undefined,
-        title: event.title,
+        title: source.title,
         guestName: invitation.display_name,
         qrText: `${window.location.origin}/i/${invitation.token}`,
       })
@@ -528,6 +536,11 @@ function GuestRow({
               {STATUS_LABELS[invitation.status]}
             </Badge>
             {invitation.has_response ? <Badge tone="brand">{fr.guests.responseBadge}</Badge> : null}
+            {invitation.presence_confirmed_at ? (
+              <Badge tone="success" dot>
+                {fr.guests.presenceBadge}
+              </Badge>
+            ) : null}
             {invitation.table_number ? (
               <Badge tone="neutral">
                 {fr.guests.tableBadge.replace('{number}', invitation.table_number)}
@@ -748,6 +761,13 @@ export function GuestsPage() {
         description={fr.guests.subtitle}
         actions={
           <>
+            <Link
+              to={`/evenements/${eventId}/verification`}
+              className={buttonClasses('secondary', 'md', 'flex-1 sm:flex-none')}
+            >
+              <IconQr className="h-4 w-4" />
+              {fr.verify.landing.eyebrow}
+            </Link>
             <Link
               to={`/evenements/${eventId}/reponses`}
               className={buttonClasses('secondary', 'md', 'flex-1 sm:flex-none')}
