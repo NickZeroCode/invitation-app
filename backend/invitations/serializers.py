@@ -56,6 +56,20 @@ class InvitationSerializer(serializers.ModelSerializer):
         default=Invitation.Civility.NONE,
         error_messages={"invalid_choice": "Civilité invalide."},
     )
+    # Per-guest seating (content-gated section): both fields are optional and
+    # trimmed; the number alone enables the section, the text decorates it.
+    table_number = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=32,
+        error_messages={"max_length": "Le numéro de table ne doit pas dépasser 32 caractères."},
+    )
+    table_text = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=255,
+        error_messages={"max_length": "Le texte de table ne doit pas dépasser 255 caractères."},
+    )
     expires_at = serializers.DateTimeField(
         required=False,
         allow_null=True,
@@ -70,6 +84,8 @@ class InvitationSerializer(serializers.ModelSerializer):
             "event_title",
             "guest_name",
             "civility",
+            "table_number",
+            "table_text",
             "display_name",
             "token",
             "issued_at",

@@ -227,6 +227,10 @@ export interface Invitation {
   event_title: string
   guest_name: string
   civility: InvitationCivility
+  /** Per-guest table number (seating); empty = section hidden. */
+  table_number: string
+  /** Optional free text shown with the table number. */
+  table_text: string
   display_name: string
   token: string
   issued_at: string
@@ -244,6 +248,8 @@ export interface Invitation {
 export interface InvitationPayload {
   guest_name: string
   civility?: InvitationCivility
+  table_number?: string
+  table_text?: string
   expires_at?: string | null
 }
 
@@ -378,6 +384,12 @@ export interface PublicInvitationPayload {
       description: string
       order: number
     }>
+  }
+  /** Per-guest seating: the number enables the section, the text decorates it. */
+  table: {
+    enabled: boolean
+    number: string
+    text: string
   }
   response: GuestResponsePayload | null
 }

@@ -122,10 +122,17 @@ def build_public_payload(invitation: Invitation, request) -> dict:
                 for q in questions
             ],
         },
-        # Dress code and programme are content-gated: an unfilled section is
-        # reported as disabled so the public page never renders it empty.
+        # Dress code, programme and table are content-gated: an unfilled section
+        # is reported as disabled so the public page never renders it empty.
         "dress_code": {"enabled": bool(dress_code), "images": dress_code},
         "program": {"enabled": bool(program), "items": program},
+        # The table is per-guest (a seating assignment): the number alone
+        # enables the section, the text is an optional line shown with it.
+        "table": {
+            "enabled": bool(invitation.table_number),
+            "number": invitation.table_number,
+            "text": invitation.table_text,
+        },
         "response": GuestResponseSerializer(response).data if response else None,
     }
 

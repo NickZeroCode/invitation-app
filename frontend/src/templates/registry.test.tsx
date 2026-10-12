@@ -37,6 +37,16 @@ describe('template registry', () => {
     }
   })
 
+  it('renders the table section in every template sample', () => {
+    for (const definition of TEMPLATES) {
+      const draft = sampleDraft(definition.key)
+      render(<definition.Component draft={draft} />)
+      expect(screen.getByText('Votre table')).toBeInTheDocument()
+      expect(screen.getByText('Avec vue sur le jardin')).toBeInTheDocument()
+      cleanup()
+    }
+  })
+
   it('resolves definitions by key and falls back safely', () => {
     expect(getTemplate('confetti')?.name).toBe('Confetti')
     expect(getTemplate('inconnu')).toBeUndefined()

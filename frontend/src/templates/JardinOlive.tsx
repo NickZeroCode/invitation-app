@@ -10,6 +10,7 @@ import {
   DressCodeSection,
   InvitationPaper,
   ProgramSection,
+  TableSection,
   guestLabel,
   isEmphasized,
 } from './shared.tsx'
@@ -140,6 +141,13 @@ export function JardinOlive({ draft }: TemplateProps) {
         ) : null}
 
         <ProgramSection
+          draft={draft}
+          accent={OLIVE}
+          ink={INK}
+          ornament={<Sprig />}
+          titleStyle={{ letterSpacing: '0.52em' }}
+        />
+        <TableSection
           draft={draft}
           accent={OLIVE}
           ink={INK}

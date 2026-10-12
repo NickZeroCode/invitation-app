@@ -32,7 +32,7 @@ import { ExportDetailsPage } from '../templates/ExportDetailsPage.tsx'
 import { ExportQrPage } from '../templates/ExportQrPage.tsx'
 import { fontScaleStyle } from '../templates/fontSizes.ts'
 import { getTemplate } from '../templates/registry.tsx'
-import type { DressCodeEntry, InvitationDraft, ProgramEntry } from '../templates/types.ts'
+import type { DressCodeEntry, InvitationDraft, ProgramEntry, TableEntry } from '../templates/types.ts'
 
 /** A4 page: fixed width everywhere, full height only for the QR page. */
 const A4_WIDTH_MM = 210
@@ -57,6 +57,8 @@ export interface InvitationPdfContent {
   dressCode: DressCodeEntry[]
   /** Programme steps (page 3). */
   program: ProgramEntry[]
+  /** Table assignment (page 3). */
+  table?: TableEntry
   /** Invitation title (PDF metadata + file name). */
   title: string
   /** Guest display name (file name). */
@@ -693,13 +695,14 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       })
     }
 
-    // Page 3 — dress code + programme on the template's paper tone.
-    if (content.dressCode.length || content.program.length) {
+    // Page 3 — dress code, programme and table on the template's paper tone.
+    if (content.dressCode.length || content.program.length || content.table?.number) {
       const details = renderOffscreen(
         createElement(ExportDetailsPage, {
           templateKey: content.templateKey,
           dressCode: content.dressCode,
           program: content.program,
+          table: content.table?.number ? content.table : undefined,
         }),
       )
       try {

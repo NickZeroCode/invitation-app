@@ -20,6 +20,7 @@ const pdfState = vi.hoisted(() => ({
 
 const captureState = vi.hoisted(() => ({
   skipDisplayDuringCapture: [] as string[],
+  capturedText: [] as string[],
 }))
 
 vi.mock('jspdf', () => {
@@ -58,6 +59,8 @@ vi.mock('html-to-image', () => ({
   toJpeg: vi.fn(async (node: HTMLElement) => {
     const skip = node.querySelector<HTMLElement>('[data-export-skip=""]')
     captureState.skipDisplayDuringCapture.push(skip ? skip.style.display : 'missing')
+    // Snapshot now: off-screen pages are unmounted after the export.
+    captureState.capturedText.push(node.textContent ?? '')
     return 'data:image/jpeg;base64,JPEGDATA'
   }),
 }))
@@ -110,6 +113,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   pdfState.instances.length = 0
   captureState.skipDisplayDuringCapture.length = 0
+  captureState.capturedText.length = 0
   document.body.innerHTML = ''
 })
 
@@ -230,6 +234,62 @@ describe('exportInvitationPdf', () => {
     expect(downloads[0]?.href).toContain('data:application/pdf')
     // The off-screen host is disposed after the export.
     expect(document.body.textContent).toBe('')
+    restore()
+  })
+
+  it('adds the details page for a table-only guest', async () => {
+    const card = document.createElement('div')
+    Object.defineProperty(card, 'offsetWidth', { value: 794 })
+    Object.defineProperty(card, 'offsetHeight', { value: 1122 })
+    card.textContent = 'Invitation'
+    document.body.appendChild(card)
+    const { downloads, restore } = captureDownloads()
+
+    await exportInvitationPdf({
+      cardNode: card,
+      templateKey: 'heritage-luxe',
+      dressCode: [],
+      program: [],
+      table: { number: '5', text: 'Avec vue sur le jardin' },
+      title: 'Gala',
+      qrText: 'https://nickevents.cd/i/tok-999',
+    })
+
+    const doc = pdfState.instances.at(-1) as FakePdfRecord
+    // Card + details + QR: the assigned table alone opens the details page.
+    expect(doc.pages).toHaveLength(3)
+    expect(toJpeg).toHaveBeenCalledTimes(3)
+    expect(downloads[0]?.download).toBe('invitation-gala.pdf')
+    restore()
+  })
+
+  it('places the table right after the programme on the details page', async () => {
+    const card = document.createElement('div')
+    Object.defineProperty(card, 'offsetWidth', { value: 794 })
+    Object.defineProperty(card, 'offsetHeight', { value: 1122 })
+    card.textContent = 'Invitation'
+    document.body.appendChild(card)
+    const { restore } = captureDownloads()
+
+    await exportInvitationPdf({
+      cardNode: card,
+      templateKey: 'heritage-luxe',
+      dressCode: [],
+      program: [{ start_time: '19:30:00', end_time: '20:30:00', description: 'Repas' }],
+      table: { number: '5', text: 'Avec vue sur le jardin' },
+      title: 'Gala',
+      qrText: 'https://nickevents.cd/i/tok-999',
+    })
+
+    const doc = pdfState.instances.at(-1) as FakePdfRecord
+    expect(doc.pages).toHaveLength(3)
+    // Captures: card (0), details (1), QR page background (2). The text is
+    // snapshotted at capture time — the details tree is unmounted afterwards.
+    const text = captureState.capturedText[1] ?? ''
+    expect(text.indexOf('Programme')).toBeGreaterThan(-1)
+    expect(text.indexOf('Votre table')).toBeGreaterThan(text.indexOf('Programme'))
+    expect(text).toContain('Avec vue sur le jardin')
+    expect(text).toContain('5')
     restore()
   })
 })

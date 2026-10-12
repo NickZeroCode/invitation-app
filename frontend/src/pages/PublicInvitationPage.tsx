@@ -20,6 +20,7 @@ import { DARK_PANEL_KEYS, PanelDecor, panelSkinFor } from '../templates/panelSki
 import type { PanelSkin } from '../templates/panelSkin.tsx'
 import { getTemplate } from '../templates/registry.tsx'
 import { formatEventDate, formatEventTime, formatProgramRange } from '../templates/shared.tsx'
+import { LuxuryTable } from '../templates/tableScene.tsx'
 import { panelRadiusFor } from '../templates/themes.ts'
 import type { InvitationDraft } from '../templates/types.ts'
 
@@ -257,10 +258,13 @@ export function PublicInvitationPage() {
     coverTitle: data.event.cover_title,
     emphasis: data.event.display_config.emphasis ?? data.event.template.config.emphasis_fields,
     guestName: data.invitation.display_name,
-    // Dress code and programme are presented in their own sidebar panel, so
-    // the paper stays focused on the invitation message (empty hides them).
+    // Dress code, programme and table are presented in their own sidebar
+    // panel, so the paper stays focused on the invitation message (empty
+    // hides them).
     dressCode: [],
     program: [],
+    tableNumber: '',
+    tableText: '',
   }
 
   const statusKey = verification.result ?? (data.is_valid ? 'valid' : 'expired')
@@ -341,7 +345,7 @@ export function PublicInvitationPage() {
               </div>
             </PanelCard>
 
-            {dressCode.length > 0 || program.length > 0 ? (
+            {dressCode.length > 0 || program.length > 0 || data.table?.enabled ? (
               <PanelCard skin={skin} templateKey={data.event.template.key}>
                 {dressCode.length > 0 ? (
                   <div>
@@ -404,6 +408,35 @@ export function PublicInvitationPage() {
                           <span style={{ color: skin.ink }}>{item.description}</span>
                         </div>
                       ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {data.table?.enabled ? (
+                  <div className={dressCode.length > 0 || program.length > 0 ? 'mt-6' : undefined}>
+                    <p
+                      className={`text-center text-[0.78rem] font-medium uppercase ${skin.titleClass}`}
+                      style={{ letterSpacing: '0.38em', color: skin.accent }}
+                    >
+                      Votre table
+                    </p>
+                    <TemplateOrnament
+                      templateKey={data.event.template.key}
+                      color={skin.accent}
+                      className="mx-auto mt-2.5 block h-auto w-32"
+                    />
+                    <div className="mt-3 flex flex-col items-center">
+                      <LuxuryTable
+                        number={data.table.number}
+                        accent={skin.accent}
+                        ink={skin.ink}
+                        className="w-40 sm:w-44"
+                      />
+                      {data.table.text ? (
+                        <p className="mt-3 text-center text-sm italic" style={{ color: skin.inkSoft }}>
+                          {data.table.text}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                 ) : null}
@@ -579,6 +612,11 @@ export function PublicInvitationPage() {
                     end_time: item.end_time,
                     description: item.description,
                   }))}
+                  table={
+                    data.table?.enabled
+                      ? { number: data.table.number, text: data.table.text }
+                      : undefined
+                  }
                   qrText={`${window.location.origin}/i/${publicToken}`}
                   style={{ backgroundColor: skin.accent, borderColor: skin.accent, color: skin.onAccent }}
                 />

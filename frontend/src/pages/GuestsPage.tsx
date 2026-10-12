@@ -130,6 +130,8 @@ function AddGuestForm({ eventId, onSuccess }: { eventId: number; onSuccess?: () 
   const [name, setName] = useState('')
   const [civility, setCivility] = useState<InvitationCivility>('none')
   const [expiry, setExpiry] = useState('')
+  const [tableNumber, setTableNumber] = useState('')
+  const [tableText, setTableText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const queryClient = useQueryClient()
@@ -140,6 +142,8 @@ function AddGuestForm({ eventId, onSuccess }: { eventId: number; onSuccess?: () 
       setName('')
       setCivility('none')
       setExpiry('')
+      setTableNumber('')
+      setTableText('')
       setError(null)
       setSuccess(true)
       onSuccess?.()
@@ -161,7 +165,13 @@ function AddGuestForm({ eventId, onSuccess }: { eventId: number; onSuccess?: () 
       return
     }
     setError(null)
-    mutation.mutate({ guest_name: trimmed, civility, expires_at: expiryPayload(expiry) })
+    mutation.mutate({
+      guest_name: trimmed,
+      civility,
+      expires_at: expiryPayload(expiry),
+      table_number: tableNumber.trim(),
+      table_text: tableText.trim(),
+    })
   }
 
   return (
@@ -198,6 +208,22 @@ function AddGuestForm({ eventId, onSuccess }: { eventId: number; onSuccess?: () 
             min={todayInputValue()}
             value={expiry}
             onChange={(event) => setExpiry(event.target.value)}
+          />
+        </Field>
+        <Field id="guest-table-number" label={fr.guests.tableNumberLabel} hint={fr.guests.tableNumberHint}>
+          <Input
+            id="guest-table-number"
+            placeholder={fr.guests.tableNumberPlaceholder}
+            value={tableNumber}
+            onChange={(event) => setTableNumber(event.target.value)}
+          />
+        </Field>
+        <Field id="guest-table-text" label={fr.guests.tableTextLabel}>
+          <Input
+            id="guest-table-text"
+            placeholder={fr.guests.tableTextPlaceholder}
+            value={tableText}
+            onChange={(event) => setTableText(event.target.value)}
           />
         </Field>
         <div className="flex items-start sm:pt-[1.625rem]">
@@ -351,6 +377,8 @@ function GuestRow({
   const [name, setName] = useState(invitation.guest_name)
   const [civility, setCivility] = useState<InvitationCivility>(invitation.civility)
   const [expiry, setExpiry] = useState(expiryInputValue(invitation.expires_at))
+  const [tableNumber, setTableNumber] = useState(invitation.table_number)
+  const [tableText, setTableText] = useState(invitation.table_text)
   const queryClient = useQueryClient()
 
   function invalidate() {
@@ -408,6 +436,9 @@ function GuestRow({
           end_time: item.end_time,
           description: item.description,
         })),
+        table: invitation.table_number
+          ? { number: invitation.table_number, text: invitation.table_text }
+          : undefined,
         title: event.title,
         guestName: invitation.display_name,
         qrText: `${window.location.origin}/i/${invitation.token}`,
@@ -469,7 +500,12 @@ function GuestRow({
     // PATCH partial: only send the date when it was edited — re-sending an
     // untouched (possibly already past) value would be re-validated and
     // rejected by the server even for an unrelated guest-name fix.
-    const payload: Partial<InvitationPayload> = { guest_name: trimmed, civility }
+    const payload: Partial<InvitationPayload> = {
+      guest_name: trimmed,
+      civility,
+      table_number: tableNumber.trim(),
+      table_text: tableText.trim(),
+    }
     if (expiry !== expiryInputValue(invitation.expires_at)) {
       payload.expires_at = expiryPayload(expiry)
     }
@@ -492,6 +528,11 @@ function GuestRow({
               {STATUS_LABELS[invitation.status]}
             </Badge>
             {invitation.has_response ? <Badge tone="brand">{fr.guests.responseBadge}</Badge> : null}
+            {invitation.table_number ? (
+              <Badge tone="neutral">
+                {fr.guests.tableBadge.replace('{number}', invitation.table_number)}
+              </Badge>
+            ) : null}
           </div>
           <p className="mt-1 truncate text-xs text-ink-faint">
             {fr.guests.issued.replace('{date}', formatDate(invitation.issued_at))}
@@ -603,6 +644,26 @@ function GuestRow({
               min={minInputValue(invitation.expires_at)}
               value={expiry}
               onChange={(event) => setExpiry(event.target.value)}
+            />
+          </Field>
+          <Field
+            id={`guest-${invitation.id}-table-number`}
+            label={fr.guests.tableNumberLabel}
+            hint={fr.guests.tableNumberHint}
+          >
+            <Input
+              id={`guest-${invitation.id}-table-number`}
+              placeholder={fr.guests.tableNumberPlaceholder}
+              value={tableNumber}
+              onChange={(event) => setTableNumber(event.target.value)}
+            />
+          </Field>
+          <Field id={`guest-${invitation.id}-table-text`} label={fr.guests.tableTextLabel}>
+            <Input
+              id={`guest-${invitation.id}-table-text`}
+              placeholder={fr.guests.tableTextPlaceholder}
+              value={tableText}
+              onChange={(event) => setTableText(event.target.value)}
             />
           </Field>
           <div className="flex flex-col-reverse gap-2 pt-1 sm:col-span-2 sm:flex-row sm:justify-end">

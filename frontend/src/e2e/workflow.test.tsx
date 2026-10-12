@@ -214,6 +214,8 @@ interface PublicFixture {
     display_name: string
     issued_at: string
     expires_at: string | null
+    table_number?: string
+    table_text?: string
   }
   event: EventModel
   questions: PreferenceQuestion[]
@@ -277,6 +279,11 @@ function publicPayload(fixture: PublicFixture): unknown {
           emphasis_fields: event.template_detail.config.emphasis_fields,
         },
       },
+    },
+    table: {
+      enabled: Boolean(fixture.invitation.table_number),
+      number: fixture.invitation.table_number ?? '',
+      text: fixture.invitation.table_text ?? '',
     },
     preferences: {
       enabled: fixture.questions.some((question) => question.is_active),
@@ -448,7 +455,13 @@ function createBackend(initialFixtures: Record<string, PublicFixture> = {}): Bac
       handle: (match, body) => {
         const event = findEvent(match)
         if (!event) return notFound()
-        const payload = body as { guest_name: string; civility?: InvitationCivility; expires_at?: string | null }
+        const payload = body as {
+          guest_name: string
+          civility?: InvitationCivility
+          expires_at?: string | null
+          table_number?: string
+          table_text?: string
+        }
         const civility = payload.civility ?? 'none'
         const displayName = [CIVILITY_PREFIX[civility], payload.guest_name].filter(Boolean).join(' ')
         const invitation: Invitation = {
@@ -457,6 +470,8 @@ function createBackend(initialFixtures: Record<string, PublicFixture> = {}): Bac
           event_title: event.title,
           guest_name: payload.guest_name,
           civility,
+          table_number: payload.table_number ?? '',
+          table_text: payload.table_text ?? '',
           display_name: displayName,
           token: 'tok-e2e-001',
           issued_at: NOW,
@@ -478,6 +493,8 @@ function createBackend(initialFixtures: Record<string, PublicFixture> = {}): Bac
             display_name: displayName,
             issued_at: NOW,
             expires_at: invitation.expires_at,
+            table_number: invitation.table_number,
+            table_text: invitation.table_text,
           },
           event,
           questions: event.preference_questions,

@@ -6,6 +6,7 @@ import {
   DressCodeSection,
   InvitationPaper,
   ProgramSection,
+  TableSection,
   formatEventDate,
   formatEventTime,
   guestLabel,
@@ -86,6 +87,13 @@ export function Memoire({ draft }: TemplateProps) {
         ) : null}
 
         <ProgramSection
+          draft={draft}
+          accent={SAGE}
+          ink={STONE}
+          ornament={<DiamondRule />}
+          titleStyle={{ letterSpacing: '0.5em' }}
+        />
+        <TableSection
           draft={draft}
           accent={SAGE}
           ink={STONE}

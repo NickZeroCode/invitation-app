@@ -10,6 +10,7 @@ import {
   DressCodeSection,
   InvitationPaper,
   ProgramSection,
+  TableSection,
   guestLabel,
   isEmphasized,
 } from './shared.tsx'
@@ -177,6 +178,13 @@ export function ArcheSoleil({ draft }: TemplateProps) {
         ) : null}
 
         <ProgramSection
+          draft={draft}
+          accent={TERRA}
+          ink={PLUM}
+          ornament={<DotBand />}
+          titleStyle={{ letterSpacing: '0.55em' }}
+        />
+        <TableSection
           draft={draft}
           accent={TERRA}
           ink={PLUM}

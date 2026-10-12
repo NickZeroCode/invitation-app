@@ -9,6 +9,7 @@ import {
   DressCodeSection,
   InvitationPaper,
   ProgramSection,
+  TableSection,
   guestLabel,
   isEmphasized,
 } from './shared.tsx'
@@ -139,6 +140,12 @@ export function HeritageLuxe({ draft }: TemplateProps) {
         ) : null}
 
         <ProgramSection
+          draft={draft}
+          accent={GOLD}
+          ink={INK}
+          ornament={<FlourishRule className="h-[1.3em] w-full" color={GOLD} />}
+        />
+        <TableSection
           draft={draft}
           accent={GOLD}
           ink={INK}

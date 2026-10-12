@@ -12,6 +12,7 @@
 /* oxlint-disable react/only-export-components -- pure helpers + one primitive component */
 import type { CSSProperties, ReactNode } from 'react'
 
+import { LuxuryTable } from './tableScene.tsx'
 import type { InvitationDraft } from './types.ts'
 
 export const PAPER_FONT_SIZE = '2.6cqw'
@@ -285,6 +286,61 @@ export function ProgramSection({
             </span>
           </div>
         ))}
+      </div>
+    </section>
+  )
+}
+
+/**
+ * Table section — the guest's seating assignment: a luxury table with the
+ * assigned number on it and the optional text under it (LAC MUNKAMBA
+ * reference, table card). Renders nothing when no number is set.
+ */
+export function TableSection({
+  draft,
+  accent,
+  ink,
+  ornament,
+  ornamentAlign,
+  titleStyle,
+  titleClassName,
+}: {
+  draft: InvitationDraft
+  accent: string
+  ink: string
+  /** Small motif drawn under the section title (the template's own drawing). */
+  ornament?: ReactNode
+  ornamentAlign?: 'center' | 'left'
+  titleStyle?: CSSProperties
+  titleClassName?: string
+}) {
+  if (!draft.tableNumber) return null
+  return (
+    <section data-export-skip="" className="mt-[3.2em] w-full">
+      <p
+        className={`text-[1em] uppercase ${titleClassName ?? ''}`}
+        style={{ letterSpacing: '0.38em', color: accent, ...titleStyle }}
+      >
+        Votre table
+      </p>
+      {ornament ? (
+        <div
+          className={`mt-[1em] flex w-full ${ornamentAlign === 'left' ? 'justify-start' : 'justify-center'}`}
+          aria-hidden="true"
+        >
+          <span className="block w-[10em]">{ornament}</span>
+        </div>
+      ) : null}
+      <div className="mx-auto mt-[1.6em] flex w-full max-w-[26em] flex-col items-center">
+        <LuxuryTable number={draft.tableNumber} accent={accent} ink={ink} className="w-full" />
+        {draft.tableText ? (
+          <p
+            className="mt-[1.2em] text-center text-[1.05em] italic leading-[1.5]"
+            style={{ color: ink, opacity: 0.85 }}
+          >
+            {draft.tableText}
+          </p>
+        ) : null}
       </div>
     </section>
   )

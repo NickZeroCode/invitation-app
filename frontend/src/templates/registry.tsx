@@ -151,6 +151,8 @@ export function emptyDraft(overrides: Partial<InvitationDraft> = {}): Invitation
     emphasis: [],
     dressCode: [],
     program: [],
+    tableNumber: '',
+    tableText: '',
     ...overrides,
   }
 }
@@ -241,6 +243,8 @@ export function sampleDraft(templateKey: string): InvitationDraft {
     event_date: '2026-12-12',
     event_time: '15:00',
     emphasis: [],
+    tableNumber: '5',
+    tableText: 'Avec vue sur le jardin',
     ...SAMPLES[templateKey],
   })
 }

@@ -303,6 +303,12 @@ export const fr = {
     addCivilityLabel: "Formule d'appel",
     addExpiryLabel: "Date d'expiration",
     addExpiryHint: "Facultatif. L'invitation reste valide jusqu'à cette date.",
+    tableNumberLabel: 'Numéro de table',
+    tableNumberHint: "Facultatif. Sans numéro, la section table n'apparaît pas sur l'invitation de l'invité.",
+    tableNumberPlaceholder: 'Ex. : 5',
+    tableTextLabel: 'Texte de table (facultatif)',
+    tableTextPlaceholder: 'Ex. : Près du jardin',
+    tableBadge: 'Table {number}',
     addSubmit: "Créer l'invitation",
     addSuccess: 'Invitation créée.',
     bulkTitle: 'Génération en lot',
@@ -560,7 +566,7 @@ export const fr = {
         {
           title: 'Données personnelles de vos invités',
           paragraphs: [
-            'Dans le cadre de l’organisation de vos événements, vous déterminez les finalités et les moyens du traitement des données de vos invités (civilité, nom, réponses) : vous en êtes le responsable de traitement. MalaikaEvents agit alors comme sous-traitant, à votre seule instruction.',
+            'Dans le cadre de l’organisation de vos événements, vous déterminez les finalités et les moyens du traitement des données de vos invités (civilité, nom, affectation de table, réponses) : vous en êtes le responsable de traitement. MalaikaEvents agit alors comme sous-traitant, à votre seule instruction.',
             'Vous vous engagez à informer vos invités de l’utilisation de leurs données et à ne collecter que les informations nécessaires à votre événement. La collecte de données sensibles (informations de santé ou d’appartenance religieuse, qui peuvent résulter de certaines préférences alimentaires) est déconseillée et reste de votre seule responsabilité.',
             'Le traitement de vos propres données de compte est décrit dans notre politique de confidentialité.',
           ],
@@ -623,7 +629,7 @@ export const fr = {
           title: 'Responsable du traitement',
           paragraphs: [
             'Pour les données de votre compte organisateur, le responsable du traitement est MalaikaEvents, marque du service, éditeur de nickevents.com. Contact : support@nickevents.com.',
-            'Pour les données de vos invités (civilité, nom, réponses) recueillies dans le cadre de vos événements, le responsable du traitement est l’organisateur de l’événement ; MalaikaEvents agit comme sous-traitant.',
+            'Pour les données de vos invités (civilité, nom, affectation de table, réponses) recueillies dans le cadre de vos événements, le responsable du traitement est l’organisateur de l’événement ; MalaikaEvents agit comme sous-traitant.',
           ],
           list: [],
           table: [],
@@ -646,7 +652,7 @@ export const fr = {
             ],
             [
               'Invités',
-              'Civilité, nom, lien unique de l’invitation, dates d’émission et d’expiration, état de l’invitation',
+              'Civilité, nom, affectation de table, lien unique de l’invitation, dates d’émission et d’expiration, état de l’invitation',
               'Créées par l’organisateur',
             ],
             [

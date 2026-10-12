@@ -6,6 +6,7 @@ import {
   DressCodeSection,
   InvitationPaper,
   ProgramSection,
+  TableSection,
   formatDayNumber,
   formatEventTime,
   formatMonthYear,
@@ -107,6 +108,17 @@ export function LigneModerne({ draft }: TemplateProps) {
         </div>
 
         <ProgramSection
+          draft={draft}
+          accent={ACCENT}
+          ink={INK}
+          ornamentAlign="left"
+          ornament={
+            <TemplateOrnament templateKey="ligne-moderne" color={ACCENT} className="block h-auto w-full" />
+          }
+          titleClassName="font-semibold"
+          titleStyle={{ letterSpacing: '0.42em' }}
+        />
+        <TableSection
           draft={draft}
           accent={ACCENT}
           ink={INK}

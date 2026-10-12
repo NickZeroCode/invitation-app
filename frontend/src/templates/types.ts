@@ -24,6 +24,14 @@ export interface ProgramEntry {
   description: string
 }
 
+/** One guest's table assignment (the optional « table » section). */
+export interface TableEntry {
+  /** Table number (or label) assigned to the guest — enables the section. */
+  number: string
+  /** Optional free text shown with the number. */
+  text: string
+}
+
 export interface InvitationDraft {
   title: string
   message: string
@@ -47,6 +55,10 @@ export interface InvitationDraft {
   dressCode: DressCodeEntry[]
   /** Programme rows; empty = section hidden. */
   program: ProgramEntry[]
+  /** Per-guest table number; empty = section hidden. */
+  tableNumber: string
+  /** Optional free text shown with the table number. */
+  tableText: string
 }
 
 export interface TemplateProps {

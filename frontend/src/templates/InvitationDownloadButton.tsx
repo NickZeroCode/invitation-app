@@ -10,7 +10,7 @@ import { useState, type CSSProperties, type RefObject } from 'react'
 
 import { Button } from '../design-system/Button.tsx'
 import { exportInvitationPdf } from '../lib/exportInvitationPdf.ts'
-import type { DressCodeEntry, ProgramEntry } from './types.ts'
+import type { DressCodeEntry, ProgramEntry, TableEntry } from './types.ts'
 
 interface InvitationDownloadButtonProps {
   /** Wrapper around the rendered template (the exact card to capture). */
@@ -23,6 +23,8 @@ interface InvitationDownloadButtonProps {
   dressCode?: DressCodeEntry[]
   /** Programme steps rendered on the PDF's details page. */
   program?: ProgramEntry[]
+  /** Table assignment rendered on the PDF's details page. */
+  table?: TableEntry
   /** Verification URL encoded on the PDF's final QR page. */
   qrText?: string
   /** Optional button tint (e.g. the template's accent on the public page). */
@@ -36,6 +38,7 @@ export function InvitationDownloadButton({
   templateKey,
   dressCode = [],
   program = [],
+  table,
   qrText,
   style,
 }: InvitationDownloadButtonProps) {
@@ -54,6 +57,7 @@ export function InvitationDownloadButton({
         templateKey,
         dressCode,
         program,
+        table,
         title,
         guestName,
         qrText,

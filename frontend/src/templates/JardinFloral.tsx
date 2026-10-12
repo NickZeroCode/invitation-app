@@ -7,6 +7,7 @@ import {
   DressCodeSection,
   InvitationPaper,
   ProgramSection,
+  TableSection,
   formatEventDate,
   formatEventTime,
   guestLabel,
@@ -127,6 +128,16 @@ export function JardinFloral({ draft }: TemplateProps) {
         ) : null}
 
         <ProgramSection
+          draft={draft}
+          accent={ROSE}
+          ink="#5C3A43"
+          ornament={
+            <TemplateOrnament templateKey="jardin-floral" color={ROSE} className="block h-auto w-full" />
+          }
+          titleClassName="font-display italic"
+          titleStyle={{ letterSpacing: '0.18em', textTransform: 'none' }}
+        />
+        <TableSection
           draft={draft}
           accent={ROSE}
           ink="#5C3A43"

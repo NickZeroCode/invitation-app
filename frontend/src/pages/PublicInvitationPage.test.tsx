@@ -186,6 +186,84 @@ describe('PublicInvitationPage', () => {
     expect(screen.getByText('Cocktail')).toBeInTheDocument()
   })
 
+  it('shows the table right after the programme in the shared panel', async () => {
+    mockFetch([
+      {
+        url: '/api/public/invitations/tok-abc123/',
+        body: {
+          ...PUBLIC_PAYLOAD,
+          program: {
+            enabled: true,
+            items: [
+              { start_time: '18:00:00', end_time: null, description: 'Cocktail', order: 1 },
+            ],
+          },
+          table: { enabled: true, number: '5', text: 'Avec vue sur le jardin' },
+        },
+      },
+      { url: '/api/public/invitations/tok-abc123/verify/', body: VERIFY },
+    ])
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={['/i/tok-abc123']}>
+          <Routes>
+            <Route path="/i/:token" element={<PublicInvitationPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    expect(await screen.findByText('Votre table')).toBeInTheDocument()
+    expect(screen.getByText('Avec vue sur le jardin')).toBeInTheDocument()
+
+    // The table travels with the programme: it sits right under it.
+    const programTitle = screen.getByText('Programme')
+    const tableTitle = screen.getByText('Votre table')
+    expect(programTitle.compareDocumentPosition(tableTitle)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+
+  it('hides the table block when no table is assigned', async () => {
+    mockFetch([
+      {
+        url: '/api/public/invitations/tok-abc123/',
+        body: {
+          ...PUBLIC_PAYLOAD,
+          program: {
+            enabled: true,
+            items: [
+              { start_time: '18:00:00', end_time: null, description: 'Cocktail', order: 1 },
+            ],
+          },
+          table: { enabled: false, number: '', text: '' },
+        },
+      },
+      { url: '/api/public/invitations/tok-abc123/verify/', body: VERIFY },
+    ])
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={['/i/tok-abc123']}>
+          <Routes>
+            <Route path="/i/:token" element={<PublicInvitationPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    expect(await screen.findByText('Programme')).toBeInTheDocument()
+    expect(screen.queryByText('Votre table')).not.toBeInTheDocument()
+    expect(screen.queryByText('Avec vue sur le jardin')).not.toBeInTheDocument()
+  })
+
   it('lets a guest submit a preference response', async () => {
     const user = (await import('@testing-library/user-event')).default.setup()
     mockFetch([

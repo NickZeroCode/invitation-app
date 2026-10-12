@@ -38,6 +38,13 @@ class Invitation(models.Model):
     guest_name = models.CharField("nom de l'invité", max_length=200)
     civility = models.CharField("civilité", max_length=16, choices=Civility.choices, default=Civility.NONE)
 
+    # Per-guest seating (the "table" section): the table number assigned to
+    # this guest and an optional free-text line shown with it. A blank number
+    # keeps the section hidden on this guest's invitation (content-gated, like
+    # the dress-code and programme sections).
+    table_number = models.CharField("numéro de table", max_length=32, blank=True, default="")
+    table_text = models.CharField("texte de table", max_length=255, blank=True, default="")
+
     token = models.CharField(
         "jeton public", max_length=64, unique=True, default=generate_invitation_token, editable=False
     )

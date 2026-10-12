@@ -10,6 +10,7 @@ import {
   DressCodeSection,
   InvitationPaper,
   ProgramSection,
+  TableSection,
   guestLabel,
   isEmphasized,
 } from './shared.tsx'
@@ -198,6 +199,13 @@ export function EterniteOr({ draft }: TemplateProps) {
         ) : null}
 
         <ProgramSection
+          draft={draft}
+          accent={GOLD}
+          ink={GOLD_SOFT}
+          ornament={<DecoRule />}
+          titleStyle={{ letterSpacing: '0.42em' }}
+        />
+        <TableSection
           draft={draft}
           accent={GOLD}
           ink={GOLD_SOFT}

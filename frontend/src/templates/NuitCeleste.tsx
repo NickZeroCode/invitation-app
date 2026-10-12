@@ -10,6 +10,7 @@ import {
   DressCodeSection,
   InvitationPaper,
   ProgramSection,
+  TableSection,
   guestLabel,
   isEmphasized,
 } from './shared.tsx'
@@ -235,6 +236,13 @@ export function NuitCeleste({ draft }: TemplateProps) {
         ) : null}
 
         <ProgramSection
+          draft={draft}
+          accent={GOLD}
+          ink={STAR}
+          ornament={<StarRule />}
+          titleStyle={{ letterSpacing: '0.52em' }}
+        />
+        <TableSection
           draft={draft}
           accent={GOLD}
           ink={STAR}

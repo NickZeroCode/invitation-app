@@ -88,6 +88,8 @@ function invitation(overrides: Record<string, unknown> = {}) {
     has_response: true,
     created_at: '2026-10-07T10:00:00Z',
     updated_at: '2026-10-07T10:00:00Z',
+    table_number: '',
+    table_text: '',
     ...overrides,
   }
 }
@@ -296,6 +298,79 @@ describe('GuestsPage', () => {
     // programme in this fixture) and the styled verification QR page
     // background; the QR code itself is overlaid at print resolution.
     expect(toJpeg).toHaveBeenCalledTimes(2)
+    clickSpy.mockRestore()
+  })
+
+  it('edits the guest table assignment and shows its badge', async () => {
+    const user = userEvent.setup()
+    const mock = renderGuests([
+      { url: '/api/auth/me/', body: ORGANIZER },
+      {
+        url: '/api/events/7/invitations/',
+        body: {
+          count: 1,
+          next: null,
+          previous: null,
+          results: [invitation({ table_number: '5', table_text: 'Avec vue sur le jardin' })],
+        },
+      },
+      { url: '/api/events/7/', body: EVENT },
+      CSRF_ROUTE,
+      {
+        url: '/api/invitations/41/',
+        method: 'PATCH',
+        body: invitation({ table_number: '7', table_text: 'Près de la piste' }),
+      },
+    ])
+
+    expect(await screen.findByText('Table 5')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Modifier' }))
+    await screen.findByRole('dialog')
+    await user.clear(byId('guest-41-table-number'))
+    await user.type(byId('guest-41-table-number'), '7')
+    await user.clear(byId('guest-41-table-text'))
+    await user.type(byId('guest-41-table-text'), 'Près de la piste')
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    await waitFor(() => expect(mock.callsTo('/api/invitations/41/', 'PATCH')).toHaveLength(1))
+    const [call] = mock.callsTo('/api/invitations/41/', 'PATCH')
+    expect(call.body).toMatchObject({
+      guest_name: 'Éric Mukendi',
+      table_number: '7',
+      table_text: 'Près de la piste',
+    })
+  })
+
+  it('exports the guest invitation with the table details page', async () => {
+    const user = userEvent.setup()
+    const downloads: Array<{ download: string; href: string }> = []
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(function (this: HTMLAnchorElement) {
+        downloads.push({ download: this.download, href: this.href })
+      })
+    renderGuests([
+      { url: '/api/auth/me/', body: ORGANIZER },
+      {
+        url: '/api/events/7/invitations/',
+        body: {
+          count: 1,
+          next: null,
+          previous: null,
+          results: [invitation({ table_number: '5', table_text: 'Avec vue sur le jardin' })],
+        },
+      },
+      { url: '/api/events/7/', body: EVENT },
+    ])
+
+    await user.click(await screen.findByRole('button', { name: 'Exporter' }))
+
+    await waitFor(() => expect(downloads).toHaveLength(1))
+    expect(downloads[0].download).toBe('invitation-mariage-de-grace-et-eric-mme-eric-mukendi.pdf')
+    // Three captures: the invitation card, the details page (the assigned
+    // table alone opens it) and the styled verification QR page background.
+    expect(toJpeg).toHaveBeenCalledTimes(3)
     clickSpy.mockRestore()
   })
 })

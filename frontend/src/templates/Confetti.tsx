@@ -7,6 +7,7 @@ import {
   DressCodeSection,
   InvitationPaper,
   ProgramSection,
+  TableSection,
   formatEventDate,
   formatEventTime,
   guestLabel,
@@ -109,6 +110,16 @@ export function Confetti({ draft }: TemplateProps) {
         </div>
 
         <ProgramSection
+          draft={draft}
+          accent={PINK}
+          ink="#312E81"
+          ornament={
+            <TemplateOrnament templateKey="confetti" color={PINK} className="block h-auto w-full" />
+          }
+          titleClassName="font-extrabold"
+          titleStyle={{ letterSpacing: '0.22em' }}
+        />
+        <TableSection
           draft={draft}
           accent={PINK}
           ink="#312E81"

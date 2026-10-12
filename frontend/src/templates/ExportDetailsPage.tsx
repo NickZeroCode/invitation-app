@@ -1,16 +1,19 @@
 /**
- * PDF page 3 — dress code + programme on the selected template's own paper
- * tone (LAC MUNKAMBA reference, p.3).
+ * PDF page 3 — dress code, programme and table on the selected template's own
+ * paper tone (LAC MUNKAMBA reference, p.3).
  *
  * The dress-code gallery sits centered under its title; the programme is a
  * symmetric two-column grid with mirrored badge bullets: the left column
- * leads with the badge, the right column mirrors it. The page is built at
- * the A4 width with a full A4 height floor and grows with the content.
+ * leads with the badge, the right column mirrors it. The table is a luxury
+ * table with the assigned number on it and the optional text under it. The
+ * page is built at the A4 width with a full A4 height floor and grows with
+ * the content.
  */
 import { TemplateOrnament } from './ornaments.tsx'
 import { PanelDecor, panelSkinFor } from './panelSkin.tsx'
 import { formatProgramRange } from './shared.tsx'
-import type { DressCodeEntry, ProgramEntry } from './types.ts'
+import { LuxuryTable } from './tableScene.tsx'
+import type { DressCodeEntry, ProgramEntry, TableEntry } from './types.ts'
 
 /** Full A4 height at 96dpi — the page keeps at least one paper height. */
 const A4_HEIGHT_PX = 1122
@@ -42,10 +45,12 @@ export function ExportDetailsPage({
   templateKey,
   dressCode,
   program,
+  table,
 }: {
   templateKey: string
   dressCode: DressCodeEntry[]
   program: ProgramEntry[]
+  table?: TableEntry
 }) {
   const skin = panelSkinFor(templateKey)
 
@@ -147,6 +152,28 @@ export function ExportDetailsPage({
                   </div>
                 )
               })}
+            </div>
+          </section>
+        ) : null}
+
+        {table?.number ? (
+          <section className={dressCode.length || program.length ? 'mt-12' : ''}>
+            <SectionTitle
+              title="Votre table"
+              templateKey={templateKey}
+              color={skin.accent}
+              titleClass={skin.titleClass}
+            />
+            <div className="mx-auto mt-9 flex w-full max-w-[26rem] flex-col items-center">
+              <LuxuryTable number={table.number} accent={skin.accent} ink={skin.ink} className="w-full" />
+              {table.text ? (
+                <p
+                  className="mt-5 text-center text-[1.02rem] italic leading-[1.5]"
+                  style={{ color: skin.inkSoft }}
+                >
+                  {table.text}
+                </p>
+              ) : null}
             </div>
           </section>
         ) : null}
