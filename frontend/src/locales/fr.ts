@@ -398,6 +398,7 @@ export const fr = {
       manualPlaceholder: 'Collez le lien ou le code de l’invitation',
       manualSubmit: 'Vérifier',
       next: 'Scanner l’invitation suivante',
+      starting: 'Démarrage de la caméra…',
       verifying: 'Vérification en cours…',
     },
     result: {

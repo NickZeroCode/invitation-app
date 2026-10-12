@@ -82,7 +82,7 @@ export function VerificationPage() {
   const link = linkQuery.data
   const statusBlock = (() => {
     if (linkQuery.isPending) {
-      return <LoadingState label={fr.verify.scanner.verifying} />
+      return <LoadingState label={fr.common.loading} />
     }
     if (linkQuery.isError || !link) {
       return (

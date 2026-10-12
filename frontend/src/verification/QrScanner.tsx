@@ -131,21 +131,23 @@ export function QrScanner({ onResult, verifying = false }: QrScannerProps) {
 
   return (
     <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-2xl border border-line bg-ink">
-        {cameraState === 'live' ? (
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            className="aspect-[4/3] w-full object-cover"
-            aria-label={fr.verify.scanner.title}
-          />
-        ) : (
-          <div className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 px-6 text-center text-white/80">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-line bg-ink">
+        {/* Always mounted so the stream can attach the moment it is granted:
+            the ref must exist before setCameraState('live') renders the feed. */}
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="h-full w-full object-cover"
+          aria-label={fr.verify.scanner.title}
+        />
+        {cameraState !== 'live' ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-white/80">
             {cameraState === 'starting' ? (
               <>
                 <Spinner className="h-6 w-6 text-white/70" />
-                <p className="text-sm">{fr.verify.scanner.verifying}</p>
+                <p className="text-sm">{fr.verify.scanner.starting}</p>
               </>
             ) : (
               <>
@@ -154,7 +156,7 @@ export function QrScanner({ onResult, verifying = false }: QrScannerProps) {
               </>
             )}
           </div>
-        )}
+        ) : null}
         <div className="pointer-events-none absolute inset-4 rounded-xl border border-white/25" />
       </div>
 

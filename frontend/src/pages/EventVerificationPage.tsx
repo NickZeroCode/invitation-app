@@ -166,7 +166,7 @@ export function EventVerificationPage() {
       />
 
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-start">
-        <Card>
+        <Card className="p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <SectionTitle as="h2">{fr.verify.scanner.title}</SectionTitle>
             {result ? (
@@ -204,7 +204,7 @@ export function EventVerificationPage() {
         </Card>
 
         <div className="space-y-6">
-          <Card>
+          <Card className="p-5 sm:p-6">
             <SectionTitle as="h2">{fr.verify.owner.createTitle}</SectionTitle>
             <p className="mt-1 text-sm leading-relaxed text-ink-soft">{fr.verify.owner.linksHint}</p>
             <form className="mt-4 space-y-4" onSubmit={submitCreate}>
@@ -297,7 +297,7 @@ export function EventVerificationPage() {
             ) : null}
           </Card>
 
-          <Card>
+          <Card className="p-5 sm:p-6">
             <SectionTitle as="h2">{fr.verify.owner.linksTitle}</SectionTitle>
             {linksQuery.isPending ? (
               <p className="mt-4 flex items-center gap-2 text-sm text-ink-soft">
