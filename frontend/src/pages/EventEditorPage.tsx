@@ -202,7 +202,7 @@ export function EventEditorPage() {
         cover_url: coverPreview ?? (coverRemoved ? null : (eventQuery.data?.cover_url ?? null)),
         coverTitle: coverText,
         emphasis,
-        dressCode: dressRows.map((row) => ({ url: row.url, caption: row.caption })),
+        dressCode: dressRows.map((row) => ({ id: row.id, url: row.url, caption: row.caption })),
         program: programRows
           .filter((row) => row.start_time && row.description.trim())
           .map((row) => ({
@@ -1047,6 +1047,19 @@ export function EventEditorPage() {
               templateKey={templateKey}
               dressCode={previewDraft.dressCode}
               program={previewDraft.program}
+              refresh={async () => {
+                if (!isEdit) return null
+                const latest = await eventsApi.get(eventId as number).catch(() => null)
+                return latest
+                  ? {
+                      cover: latest.cover_url,
+                      dressCode: latest.dress_code.map((image) => ({
+                        id: image.id,
+                        url: image.url,
+                      })),
+                    }
+                  : null
+              }}
               qrText={`${window.location.origin}/`}
             />
           </div>

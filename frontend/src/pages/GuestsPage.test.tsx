@@ -303,6 +303,41 @@ describe('GuestsPage', () => {
     clickSpy.mockRestore()
   })
 
+  it('warns when a dress-code photo cannot be loaded into the PDF', async () => {
+    const user = userEvent.setup()
+    const downloads: Array<{ download: string; href: string }> = []
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(function (this: HTMLAnchorElement) {
+        downloads.push({ download: this.download, href: this.href })
+      })
+    renderGuests([
+      { url: '/api/auth/me/', body: ORGANIZER },
+      { url: '/api/events/7/invitations/', body: PAGE },
+      {
+        url: '/api/events/7/',
+        body: {
+          ...EVENT,
+          dress_code: [
+            { id: 9, url: 'https://cdn.test/tenue-noire.jpg', caption: 'Tenue noire', order: 0 },
+          ],
+        },
+      },
+    ])
+
+    await user.click(await screen.findByRole('button', { name: 'Exporter' }))
+
+    await waitFor(() => expect(downloads).toHaveLength(1))
+    // No image exists behind that URL here: the photo is dropped from the PDF
+    // and the user is told — it never ships as an empty frame.
+    expect(
+      await screen.findByText(
+        'Certaines photos n’ont pas pu être chargées et ont été retirées du PDF.',
+      ),
+    ).toBeInTheDocument()
+    clickSpy.mockRestore()
+  })
+
   it('edits the guest table assignment and shows its badge', async () => {
     const user = userEvent.setup()
     const mock = renderGuests([

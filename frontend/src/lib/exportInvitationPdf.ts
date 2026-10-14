@@ -43,6 +43,7 @@ import {
   type PageDecoder,
   type PageRaster,
 } from './pdfCompression.ts'
+import { createImageLoader, type ImageLoader, type RefreshedImageUrls } from './pdfImages.ts'
 
 /** A4 page: fixed width everywhere, full height only for the QR page. */
 const A4_WIDTH_MM = 210
@@ -81,6 +82,20 @@ export interface InvitationPdfContent {
   qrText?: string
   /** Page decoder of the compression engine — injectable for tests. */
   pageDecoder?: PageDecoder
+  /** Re-reads the event so expired storage URLs can be replaced (used once). */
+  refresh?: () => Promise<RefreshedImageUrls | null>
+}
+
+/** What happened to the pictures the PDF needed. */
+export interface ExportImageReport {
+  /** Cover photo that could not be loaded — its page is omitted. */
+  coverMissing: boolean
+  /** Dress-code photos dropped because they could not be loaded. */
+  missingDressCode: number
+}
+
+export interface ExportResult {
+  images: ExportImageReport
 }
 
 function slugify(value: string): string {
@@ -138,57 +153,50 @@ function triggerDownload(
   }
 }
 
-/**
- * Fetch a remote image and inline it as a data URL (CORS-friendly capture).
- * Anything that is not a real image payload (SPA fallback HTML, storage XML
- * error bodies, …) counts as a failure — those would rasterize as broken
- * image icons. A failure is retried once bypassing the HTTP cache: browsers
- * may hand back a stale cached error for an expired presigned URL even after
- * a fresh one was issued ("sometimes the pictures are missing").
- */
-async function fetchAsDataUrl(url: string): Promise<string | null> {
-  const load = async (cache: RequestCache): Promise<string | null> => {
-    try {
-      const response = await fetch(url, { cache })
-      if (!response.ok) return null
-      const blob = await response.blob()
-      if (blob.type && !blob.type.startsWith('image/')) return null
-      return await new Promise<string | null>((resolve) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : null)
-        reader.onerror = () => resolve(null)
-        reader.readAsDataURL(blob)
-      })
-    } catch {
-      return null
-    }
-  }
-  const direct = await load('default')
-  return direct ?? load('no-store')
+/** Wait until every rendered image has decoded before rasterising. */
+async function decodeImages(node: HTMLElement): Promise<void> {
+  await Promise.all(
+    Array.from(node.querySelectorAll('img')).map((image) =>
+      image.decode?.().catch(() => undefined),
+    ),
+  )
 }
 
 /**
- * Swap every remote image inside `node` for an inlined data URL so the capture
- * can embed it (presigned storage URLs break under html-to-image's cacheBust).
- * Images that cannot be fetched are left untouched on screen and neutralized
- * with a transparent placeholder at capture time instead.
+ * Load every picture the capture needs through the image loader and inline it
+ * as a data URL, so no capture ever depends on the network or on expiring
+ * storage URLs. Images inside hidden export sections are skipped: those are
+ * `display: none` while the card is captured and appear on the details page
+ * instead. Anything that cannot be loaded is counted and reported — never
+ * painted as an empty box.
  */
-async function inlineImages(node: HTMLElement): Promise<void> {
-  const images = Array.from(node.querySelectorAll('img'))
+async function hydrateImages(
+  node: HTMLElement,
+  loader: ImageLoader,
+): Promise<{ missing: number; coverMissing: boolean }> {
+  const coverImage = node.querySelector<HTMLImageElement>('[data-export-skip="cover"] img')
+  let missing = 0
+  let coverMissing = false
+
   await Promise.all(
-    images.map(async (image) => {
+    Array.from(node.querySelectorAll('img')).map(async (image) => {
       const src = image.getAttribute('src') ?? ''
       if (!src || src.startsWith('data:')) return
-      const dataUrl = await fetchAsDataUrl(src)
-      if (!dataUrl) return
+      if (image !== coverImage && image.closest('[data-export-skip]')) return
+
+      const result = await loader.loadCardImage(src, image === coverImage)
+      if (!result.ok) {
+        missing += 1
+        if (image === coverImage) coverMissing = true
+        return
+      }
       image.removeAttribute('srcset')
       image.loading = 'eager'
-      image.setAttribute('src', dataUrl)
-      // Mobile browsers decode lazily: wait until the pixels are ready so the
-      // capture never snapshots an empty image box.
-      await image.decode?.().catch(() => undefined)
+      image.setAttribute('src', result.dataUrl)
     }),
   )
+  await decodeImages(node)
+  return { missing, coverMissing }
 }
 
 function measure(node: HTMLElement): { widthPx: number; heightPx: number } {
@@ -652,7 +660,7 @@ function pageHeightMm(page: PageRaster): number {
  * present), page 2 the full-bleed invitation card, page 3 the dress code and
  * programme, and the last page the centered verification QR code.
  */
-export async function exportInvitationPdf(content: InvitationPdfContent): Promise<void> {
+export async function exportInvitationPdf(content: InvitationPdfContent): Promise<ExportResult> {
   const pages: PageRaster[] = []
   let offscreen: { node: HTMLElement; dispose: () => void } | null = null
 
@@ -660,6 +668,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
     if (document.fonts?.ready) {
       await document.fonts.ready.catch(() => undefined)
     }
+    const loader = createImageLoader({ refresh: content.refresh })
 
     let cardNode = content.cardNode
     if (!cardNode) {
@@ -683,10 +692,14 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       cardNode = offscreen.node
     }
 
-    // Inline every remote image once (cover, card and its hidden sections
-    // alike) so no capture ever depends on network access or expiring
-    // storage URLs — those used to fail the whole export.
-    await inlineImages(cardNode)
+    // Load every picture the PDF needs before capturing anything, so no
+    // capture ever depends on network access or expiring storage URLs.
+    const [cardImages, dressCode] = await Promise.all([
+      hydrateImages(cardNode, loader),
+      content.dressCode.length
+        ? loader.loadDressCode(content.dressCode)
+        : Promise.resolve({ entries: [] as DressCodeEntry[], missing: 0 }),
+    ])
 
     const skipped = Array.from(cardNode.querySelectorAll<HTMLElement>('[data-export-skip]'))
 
@@ -713,17 +726,18 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
     }
 
     // Page 3 — dress code, programme and table on the template's paper tone.
-    if (content.dressCode.length || content.program.length || content.table?.number) {
+    // Photos that could not be loaded are already dropped from `dressCode`.
+    if (dressCode.entries.length || content.program.length || content.table?.number) {
       const details = renderOffscreen(
         createElement(ExportDetailsPage, {
           templateKey: content.templateKey,
-          dressCode: content.dressCode,
+          dressCode: dressCode.entries,
           program: content.program,
           table: content.table?.number ? content.table : undefined,
         }),
       )
       try {
-        await inlineImages(details.node)
+        await decodeImages(details.node)
         pages.push(await captureRaster(details.node))
       } catch (error) {
         console.warn('[exportInvitationPdf] details page skipped', error)
@@ -827,6 +841,12 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       }
 
       triggerDownload(doc, invitationPdfFileName(content.title, content.guestName), blob ?? undefined)
+      return {
+        images: {
+          coverMissing: cardImages.coverMissing,
+          missingDressCode: dressCode.missing,
+        },
+      }
     } finally {
       compressor.dispose()
     }

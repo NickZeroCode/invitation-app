@@ -244,7 +244,7 @@ export function createPageCompressor(
 // ---------------------------------------------------------------------------
 
 /** jsdom/happy-dom impersonate real browsers but have no 2D canvas. */
-function canUseCanvas(): boolean {
+export function canUseCanvas(): boolean {
   if (typeof document === 'undefined' || typeof navigator === 'undefined') return false
   if (/jsdom|happy-dom/i.test(navigator.userAgent)) return false
   try {
@@ -254,7 +254,7 @@ function canUseCanvas(): boolean {
   }
 }
 
-function loadImage(dataUrl: string): Promise<HTMLImageElement> {
+export function loadImage(dataUrl: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image()
     image.onload = () => resolve(image)
@@ -277,7 +277,7 @@ function drawOnWhite(source: CanvasImageSource, width: number, height: number): 
   return canvas
 }
 
-function releaseCanvas(canvas: HTMLCanvasElement): void {
+export function releaseCanvas(canvas: HTMLCanvasElement): void {
   // Safari keeps canvas backing stores alive until they are shrunk.
   canvas.width = 0
   canvas.height = 0
@@ -287,7 +287,7 @@ function releaseCanvas(canvas: HTMLCanvasElement): void {
  * Resample to `targetWidth` by repeated halving: a single big drawImage jump
  * aliases thin ornament strokes, halving keeps them smooth.
  */
-function resampleToCanvas(image: HTMLImageElement, targetWidth: number): HTMLCanvasElement {
+export function resampleToCanvas(image: HTMLImageElement, targetWidth: number): HTMLCanvasElement {
   const targetHeight = Math.max(1, Math.round((targetWidth * image.naturalHeight) / image.naturalWidth))
   let source: CanvasImageSource = image
   let sourceWidth = image.naturalWidth

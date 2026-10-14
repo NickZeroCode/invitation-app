@@ -43,6 +43,7 @@ import {
   type BadgeTone,
 } from '../design-system/index.ts'
 import { ApiError, eventsApi, invitationsApi } from '../lib/api.ts'
+import type { RefreshedImageUrls } from '../lib/pdfImages.ts'
 import { exportInvitationPdf } from '../lib/exportInvitationPdf.ts'
 import { formatDate } from '../lib/format.ts'
 import type {
@@ -405,6 +406,18 @@ function GuestRow({
 
   const [exporting, setExporting] = useState(false)
 
+  /** Fresh storage URLs for a photo whose presigned link died mid-export. */
+  async function refreshExportImages(): Promise<RefreshedImageUrls | null> {
+    if (!event) return null
+    const latest = await eventsApi.get(event.id).catch(() => null)
+    return latest
+      ? {
+          cover: latest.cover_url,
+          dressCode: latest.dress_code.map((image) => ({ id: image.id, url: image.url })),
+        }
+      : null
+  }
+
   async function exportPdf() {
     if (!event || exporting) return
     setExporting(true)
@@ -418,7 +431,7 @@ function GuestRow({
       // refetch failure.
       const fresh = await eventsApi.get(event.id).catch(() => null)
       const source = fresh ?? event
-      await exportInvitationPdf({
+      const result = await exportInvitationPdf({
         templateKey: source.template,
         draft: emptyDraft({
           title: source.title,
@@ -439,7 +452,11 @@ function GuestRow({
           dressCode: [],
           program: [],
         }),
-        dressCode: source.dress_code.map((image) => ({ url: image.url, caption: image.caption })),
+        dressCode: source.dress_code.map((image) => ({
+          id: image.id,
+          url: image.url,
+          caption: image.caption,
+        })),
         program: source.program_items.map((item) => ({
           start_time: item.start_time,
           end_time: item.end_time,
@@ -451,8 +468,13 @@ function GuestRow({
         title: source.title,
         guestName: invitation.display_name,
         qrText: `${window.location.origin}/i/${invitation.token}`,
+        refresh: refreshExportImages,
       })
-      setNotice(fr.guests.exported)
+      setNotice(
+        result.images.coverMissing || result.images.missingDressCode > 0
+          ? fr.common.exportImagesMissing
+          : fr.guests.exported,
+      )
     } catch {
       setError(fr.guests.exportError)
     } finally {
