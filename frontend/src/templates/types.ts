@@ -15,6 +15,8 @@ export interface DressCodeEntry {
   caption: string
   /** Stored image id — lets the PDF export swap an expired URL for a fresh one. */
   id?: number
+  /** Same-origin URL of the stored picture — the PDF export's first choice. */
+  fileUrl?: string
 }
 
 /** One programme step: a time or time range + what happens then. */

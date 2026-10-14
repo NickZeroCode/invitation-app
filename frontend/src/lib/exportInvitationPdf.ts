@@ -84,18 +84,29 @@ export interface InvitationPdfContent {
   pageDecoder?: PageDecoder
   /** Re-reads the event so expired storage URLs can be replaced (used once). */
   refresh?: () => Promise<RefreshedImageUrls | null>
+  /** Same-origin URL of the cover picture — tried before the storage URL. */
+  coverFileUrl?: string
 }
 
-/** What happened to the pictures the PDF needed. */
-export interface ExportImageReport {
-  /** Cover photo that could not be loaded — its page is omitted. */
-  coverMissing: boolean
-  /** Dress-code photos dropped because they could not be loaded. */
-  missingDressCode: number
-}
+/**
+ * An invitation PDF is complete or it is not produced: when a picture the
+ * organizer set (cover, dress-code photo) cannot be loaded, the export stops
+ * with this error instead of shipping an altered invitation.
+ */
+export class ExportImagesError extends Error {
+  readonly coverMissing: boolean
+  readonly missingDressCode: number
 
-export interface ExportResult {
-  images: ExportImageReport
+  constructor(coverMissing: boolean, missingDressCode: number) {
+    super(
+      `PDF export aborted: ${coverMissing ? 'cover photo' : ''}${
+        coverMissing && missingDressCode > 0 ? ' and ' : ''
+      }${missingDressCode > 0 ? `${missingDressCode} dress-code photo(s)` : ''} could not be loaded.`,
+    )
+    this.name = 'ExportImagesError'
+    this.coverMissing = coverMissing
+    this.missingDressCode = missingDressCode
+  }
 }
 
 function slugify(value: string): string {
@@ -167,12 +178,13 @@ async function decodeImages(node: HTMLElement): Promise<void> {
  * as a data URL, so no capture ever depends on the network or on expiring
  * storage URLs. Images inside hidden export sections are skipped: those are
  * `display: none` while the card is captured and appear on the details page
- * instead. Anything that cannot be loaded is counted and reported — never
- * painted as an empty box.
+ * instead. Anything that cannot be loaded is counted — the export then aborts
+ * rather than paint an empty box.
  */
 async function hydrateImages(
   node: HTMLElement,
   loader: ImageLoader,
+  coverFileUrl?: string,
 ): Promise<{ missing: number; coverMissing: boolean }> {
   const coverImage = node.querySelector<HTMLImageElement>('[data-export-skip="cover"] img')
   let missing = 0
@@ -184,7 +196,8 @@ async function hydrateImages(
       if (!src || src.startsWith('data:')) return
       if (image !== coverImage && image.closest('[data-export-skip]')) return
 
-      const result = await loader.loadCardImage(src, image === coverImage)
+      const isCover = image === coverImage
+      const result = await loader.loadCardImage(src, isCover, isCover ? coverFileUrl : undefined)
       if (!result.ok) {
         missing += 1
         if (image === coverImage) coverMissing = true
@@ -660,7 +673,7 @@ function pageHeightMm(page: PageRaster): number {
  * present), page 2 the full-bleed invitation card, page 3 the dress code and
  * programme, and the last page the centered verification QR code.
  */
-export async function exportInvitationPdf(content: InvitationPdfContent): Promise<ExportResult> {
+export async function exportInvitationPdf(content: InvitationPdfContent): Promise<void> {
   const pages: PageRaster[] = []
   let offscreen: { node: HTMLElement; dispose: () => void } | null = null
 
@@ -695,11 +708,18 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
     // Load every picture the PDF needs before capturing anything, so no
     // capture ever depends on network access or expiring storage URLs.
     const [cardImages, dressCode] = await Promise.all([
-      hydrateImages(cardNode, loader),
+      hydrateImages(cardNode, loader, content.coverFileUrl),
       content.dressCode.length
         ? loader.loadDressCode(content.dressCode)
         : Promise.resolve({ entries: [] as DressCodeEntry[], missing: 0 }),
     ])
+
+    // All-or-nothing: never print an invitation without a picture the
+    // organizer set. Failing here (before any page is rendered) lets the user
+    // simply retry instead of distributing an altered file.
+    if (cardImages.missing > 0 || dressCode.missing > 0) {
+      throw new ExportImagesError(cardImages.coverMissing, dressCode.missing)
+    }
 
     const skipped = Array.from(cardNode.querySelectorAll<HTMLElement>('[data-export-skip]'))
 
@@ -841,12 +861,6 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       }
 
       triggerDownload(doc, invitationPdfFileName(content.title, content.guestName), blob ?? undefined)
-      return {
-        images: {
-          coverMissing: cardImages.coverMissing,
-          missingDressCode: dressCode.missing,
-        },
-      }
     } finally {
       compressor.dispose()
     }

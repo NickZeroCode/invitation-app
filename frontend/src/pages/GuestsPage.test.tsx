@@ -303,7 +303,7 @@ describe('GuestsPage', () => {
     clickSpy.mockRestore()
   })
 
-  it('warns when a dress-code photo cannot be loaded into the PDF', async () => {
+  it('refuses to export an altered invitation when a dress-code photo cannot be loaded', async () => {
     const user = userEvent.setup()
     const downloads: Array<{ download: string; href: string }> = []
     const clickSpy = vi
@@ -327,14 +327,13 @@ describe('GuestsPage', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Exporter' }))
 
-    await waitFor(() => expect(downloads).toHaveLength(1))
-    // No image exists behind that URL here: the photo is dropped from the PDF
-    // and the user is told — it never ships as an empty frame.
+    // No image exists behind that URL here. An invitation missing a picture
+    // the organizer set is never distributed: nothing is downloaded and the
+    // user is told exactly why.
     expect(
-      await screen.findByText(
-        'Certaines photos n’ont pas pu être chargées et ont été retirées du PDF.',
-      ),
+      await screen.findByText(/Le PDF n’a pas été généré pour ne pas altérer l’invitation/),
     ).toBeInTheDocument()
+    expect(downloads).toHaveLength(0)
     clickSpy.mockRestore()
   })
 
@@ -433,7 +432,12 @@ describe('GuestsPage', () => {
         url: '/api/events/7/',
         body: { ...EVENT, cover_url: 'https://cdn.test/fresh-cover.jpg' },
       },
-      { url: 'fresh-cover.jpg', body: 'IMGDATA' },
+      // The same-origin cover endpoint is tried first (tests have no such
+      // picture: 404), then the fresh storage URL serves real JPEG bytes.
+      {
+        url: 'fresh-cover.jpg',
+        bytes: new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4]),
+      },
     ])
 
     await user.click(await screen.findByRole('button', { name: 'Exporter' }))
@@ -442,9 +446,9 @@ describe('GuestsPage', () => {
     // Regression: exporting re-reads the event so a replaced cover is used
     // (stale presigned URLs produced blank pictures before).
     expect(mock.callsTo('/api/events/7/', 'GET').length).toBeGreaterThanOrEqual(2)
-    // The replaced cover is fetched and the stale one never is. (mockFetch
-    // serves JSON content types, so fetchAsDataUrl retries once bypassing the
-    // HTTP cache before falling back to the placeholder.)
+    // The same-origin copy is tried first; the replaced cover is then fetched
+    // from its fresh storage URL and the stale one never is.
+    expect(mock.callsTo('/api/events/7/cover/file/').length).toBeGreaterThanOrEqual(1)
     expect(mock.callsTo('fresh-cover.jpg').length).toBeGreaterThanOrEqual(1)
     expect(mock.callsTo('stale-cover.jpg')).toHaveLength(0)
     clickSpy.mockRestore()

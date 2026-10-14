@@ -25,7 +25,8 @@ export const fr = {
     requiredField: 'Ce champ est obligatoire.',
     invalidEmail: 'Saisissez une adresse e-mail valide.',
     unexpectedError: 'Une erreur est survenue. Veuillez réessayer.',
-    exportImagesMissing: 'Certaines photos n’ont pas pu être chargées et ont été retirées du PDF.',
+    exportImagesFailed:
+      'Certaines photos n’ont pas pu être chargées. Le PDF n’a pas été généré pour ne pas altérer l’invitation : vérifiez votre connexion puis réessayez.',
   },
   nav: {
     overview: "Vue d'ensemble",

@@ -14,6 +14,7 @@ from django.core.files.storage import default_storage
 from django.db import transaction
 from django.db.models import Count, Q
 from django.db.models.deletion import ProtectedError
+from django.http import HttpResponse
 from rest_framework import serializers, status, viewsets
 from rest_framework.exceptions import NotFound
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -135,6 +136,68 @@ class EventModelViewSet(viewsets.ModelViewSet):
         for image in dress_code_files:
             image.delete(save=False)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+IMAGE_FILE_TYPES = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+}
+
+
+def image_file_response(field_file) -> HttpResponse:
+    """Serve a stored picture's bytes through the API (same origin as the app).
+
+    The PDF export needs the raw pixels in the browser. Direct storage URLs are
+    presigned (they expire after an hour) and need a CORS policy on the bucket;
+    either one failing used to leave an empty photo frame in the PDF. This
+    endpoint has neither dependency: it is authenticated, organizer-scoped and
+    answers from the same origin as the application.
+    """
+    if not field_file:
+        raise NotFound("Ressource introuvable.")
+    try:
+        field_file.open("rb")
+        try:
+            content = field_file.read()
+        finally:
+            field_file.close()
+    except (FileNotFoundError, OSError) as exc:
+        raise NotFound("Ressource introuvable.") from exc
+    content_type = IMAGE_FILE_TYPES.get(
+        os.path.splitext(field_file.name)[1].lower(), "application/octet-stream"
+    )
+    response = HttpResponse(content, content_type=content_type)
+    # A replaced cover keeps its URL: never let a cache hand back the old one.
+    response["Cache-Control"] = "private, no-store"
+    return response
+
+
+class EventCoverFileView(APIView):
+    """``GET /api/events/<pk>/cover/file/`` — the cover picture's bytes."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        event = EventModel.objects.filter(pk=pk, organizer=request.user).first()
+        if event is None:
+            raise NotFound("Ressource introuvable.")
+        return image_file_response(event.cover_image)
+
+
+class EventDressCodeFileView(APIView):
+    """``GET /api/events/<pk>/dress-code/<item_pk>/file/`` — one gallery picture."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk, item_pk):
+        item = DressCodeImage.objects.filter(
+            pk=item_pk, event__pk=pk, event__organizer=request.user
+        ).first()
+        if item is None:
+            raise NotFound("Ressource introuvable.")
+        return image_file_response(item.image)
 
 
 class EventModelCoverView(APIView):

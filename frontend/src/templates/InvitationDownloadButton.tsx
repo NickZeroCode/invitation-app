@@ -9,7 +9,7 @@
 import { useState, type CSSProperties, type RefObject } from 'react'
 
 import { Button } from '../design-system/Button.tsx'
-import { exportInvitationPdf } from '../lib/exportInvitationPdf.ts'
+import { ExportImagesError, exportInvitationPdf } from '../lib/exportInvitationPdf.ts'
 import type { RefreshedImageUrls } from '../lib/pdfImages.ts'
 import { fr } from '../locales/fr.ts'
 import type { DressCodeEntry, ProgramEntry, TableEntry } from './types.ts'
@@ -31,6 +31,8 @@ interface InvitationDownloadButtonProps {
   qrText?: string
   /** Re-reads the event so expired storage URLs can be replaced (used once). */
   refresh?: () => Promise<RefreshedImageUrls | null>
+  /** Same-origin URL of the saved cover — tried before the storage URL. */
+  coverFileUrl?: string
   /** Optional button tint (e.g. the template's accent on the public page). */
   style?: CSSProperties
 }
@@ -45,11 +47,11 @@ export function InvitationDownloadButton({
   table,
   qrText,
   refresh,
+  coverFileUrl,
   style,
 }: InvitationDownloadButtonProps) {
   const [busy, setBusy] = useState(false)
   const [exportError, setExportError] = useState('')
-  const [exportWarning, setExportWarning] = useState('')
 
   async function handleDownload() {
     const node = targetRef.current
@@ -57,9 +59,8 @@ export function InvitationDownloadButton({
 
     setBusy(true)
     setExportError('')
-    setExportWarning('')
     try {
-      const result = await exportInvitationPdf({
+      await exportInvitationPdf({
         cardNode: node,
         templateKey,
         dressCode,
@@ -69,13 +70,15 @@ export function InvitationDownloadButton({
         guestName,
         qrText,
         refresh,
+        coverFileUrl,
       })
-      if (result.images.coverMissing || result.images.missingDressCode > 0) {
-        setExportWarning(fr.common.exportImagesMissing)
-      }
     } catch (error) {
       console.error('[exportInvitationPdf] failed', error)
-      setExportError('L’export du PDF a échoué. Veuillez réessayer.')
+      setExportError(
+        error instanceof ExportImagesError
+          ? fr.common.exportImagesFailed
+          : 'L’export du PDF a échoué. Veuillez réessayer.',
+      )
     } finally {
       setBusy(false)
     }
@@ -96,11 +99,6 @@ export function InvitationDownloadButton({
       {exportError ? (
         <p role="alert" className="text-sm text-red-600">
           {exportError}
-        </p>
-      ) : null}
-      {exportWarning ? (
-        <p role="status" className="text-sm text-ink-soft">
-          {exportWarning}
         </p>
       ) : null}
     </div>

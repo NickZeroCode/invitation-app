@@ -13,6 +13,10 @@ export interface MockRoute {
   url: string | ((url: string) => boolean)
   status?: number
   body?: unknown
+  /** Serve these raw bytes instead of a JSON `body` (e.g. a real image). */
+  bytes?: Uint8Array<ArrayBuffer>
+  /** Content type for `bytes`. Defaults to `image/jpeg`. */
+  contentType?: string
   /** Consume the route after the first match (for call sequencing). */
   once?: boolean
   /** Runs when the route is hit (e.g. to set cookies as Django would). */
@@ -64,6 +68,12 @@ export function mockFetch(routes: MockRoute[]): MockFetch {
     }
     if (route.once) consumed.add(route)
     route.onRequest?.()
+    if (route.bytes) {
+      return new Response(route.bytes, {
+        status: route.status ?? 200,
+        headers: { 'Content-Type': route.contentType ?? 'image/jpeg' },
+      })
+    }
     return jsonResponse(route.status ?? 200, route.body)
   })
 

@@ -116,8 +116,49 @@ describe('createImageLoader.load', () => {
   })
 })
 
+describe('same-origin file URLs', () => {
+  it('prefers the same-origin copy and never touches the storage URL', async () => {
+    const seen: string[] = []
+    const loader = loaderWith(
+      scriptedFetch(
+        { '/api/events/7/dress-code/3/file/': [response(JPEG)], 'https://storage/x.jpg': [response(HTML, 403)] },
+        (url) => seen.push(url),
+      ),
+    )
+    const result = await loader.loadDressCode([
+      { url: 'https://storage/x.jpg', fileUrl: '/api/events/7/dress-code/3/file/', caption: 'T', id: 3 },
+    ])
+    expect(result.missing).toBe(0)
+    expect(seen).toEqual(['/api/events/7/dress-code/3/file/'])
+  })
+
+  it('falls back to the storage URL when the same-origin copy fails', async () => {
+    const loader = loaderWith(
+      scriptedFetch({
+        '/api/events/7/dress-code/3/file/': [response(HTML, 404)],
+        'https://storage/x.jpg': [response(JPEG)],
+      }),
+    )
+    const result = await loader.loadDressCode([
+      { url: 'https://storage/x.jpg', fileUrl: '/api/events/7/dress-code/3/file/', caption: 'T', id: 3 },
+    ])
+    expect(result.missing).toBe(0)
+    expect(result.entries[0].url.startsWith('data:image/jpeg')).toBe(true)
+  })
+
+  it('loads the cover from its same-origin copy first', async () => {
+    const seen: string[] = []
+    const loader = loaderWith(
+      scriptedFetch({ '/api/events/7/cover/file/': [response(JPEG)] }, (url) => seen.push(url)),
+    )
+    const result = await loader.loadCardImage('https://storage/c.jpg', true, '/api/events/7/cover/file/')
+    expect(result.ok).toBe(true)
+    expect(seen).toEqual(['/api/events/7/cover/file/'])
+  })
+})
+
 describe('createImageLoader.loadDressCode', () => {
-  it('drops unloadable photos and reports how many were dropped', async () => {
+  it('reports unloadable photos instead of hiding them', async () => {
     const loader = loaderWith(
       scriptedFetch({
         good: [response(JPEG)],

@@ -44,7 +44,7 @@ import {
 } from '../design-system/index.ts'
 import { ApiError, eventsApi, invitationsApi } from '../lib/api.ts'
 import type { RefreshedImageUrls } from '../lib/pdfImages.ts'
-import { exportInvitationPdf } from '../lib/exportInvitationPdf.ts'
+import { ExportImagesError, exportInvitationPdf } from '../lib/exportInvitationPdf.ts'
 import { formatDate } from '../lib/format.ts'
 import type {
   EventModel,
@@ -431,7 +431,7 @@ function GuestRow({
       // refetch failure.
       const fresh = await eventsApi.get(event.id).catch(() => null)
       const source = fresh ?? event
-      const result = await exportInvitationPdf({
+      await exportInvitationPdf({
         templateKey: source.template,
         draft: emptyDraft({
           title: source.title,
@@ -455,6 +455,7 @@ function GuestRow({
         dressCode: source.dress_code.map((image) => ({
           id: image.id,
           url: image.url,
+          fileUrl: eventsApi.dressCodeFileUrl(source.id, image.id),
           caption: image.caption,
         })),
         program: source.program_items.map((item) => ({
@@ -469,14 +470,12 @@ function GuestRow({
         guestName: invitation.display_name,
         qrText: `${window.location.origin}/i/${invitation.token}`,
         refresh: refreshExportImages,
+        coverFileUrl: source.cover_url ? eventsApi.coverFileUrl(source.id) : undefined,
       })
-      setNotice(
-        result.images.coverMissing || result.images.missingDressCode > 0
-          ? fr.common.exportImagesMissing
-          : fr.guests.exported,
-      )
-    } catch {
-      setError(fr.guests.exportError)
+      setNotice(fr.guests.exported)
+    } catch (caught) {
+      // An incomplete invitation is never downloaded: say so precisely.
+      setError(caught instanceof ExportImagesError ? fr.common.exportImagesFailed : fr.guests.exportError)
     } finally {
       setExporting(false)
     }

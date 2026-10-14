@@ -5,8 +5,20 @@
  *
  * Why this exists: an image that failed to load used to be swapped for a blank
  * placeholder at capture time, and the export still "succeeded" — the PDF came
- * out with an empty bordered box where the dress-code photo should be. The
- * failure modes behind it, all handled here:
+ * out with an empty bordered box where the dress-code photo should be.
+ *
+ * **The contract: an invitation PDF is complete or it is not produced.** A
+ * picture the organizer set is never dropped or blanked; when one cannot be
+ * loaded the export fails loudly and the user retries.
+ *
+ * Strategy, in order:
+ *
+ * 0. **Same-origin first.** The app serves every stored picture itself
+ *    (`/api/events/<id>/cover/file/`, `.../dress-code/<id>/file/`): authenticated
+ *    by the session cookie, never expiring, no bucket CORS policy involved.
+ *    The storage URL is only the fallback.
+ *
+ * The failure modes behind the old blank frames, all handled here:
  *
  * - **Expired presigned URLs** (storage links live one hour; an editor tab
  *   left open past that exports with dead links): on a 403/404/network failure
@@ -25,10 +37,11 @@
  * - **Missing CORS configuration** is detected (a `no-cors` probe reaches the
  *   host while the CORS fetch does not) and reported instead of retried.
  *
- * Anything that still cannot be loaded is reported, never rendered as an
- * empty box: the caller drops it and tells the user.
+ * Anything that still cannot be loaded is reported (`missing`), never rendered
+ * as an empty box; the export treats it as a failure.
  */
 import type { DressCodeEntry } from '../templates/types.ts'
+import { isApiUrl } from './api.ts'
 import { canUseCanvas, loadImage, releaseCanvas, resampleToCanvas } from './pdfCompression.ts'
 
 export type ImageFailure = 'forbidden' | 'missing' | 'cors' | 'network' | 'invalid'
@@ -174,9 +187,17 @@ interface Attempt {
 export interface ImageLoader {
   /** One URL, with retries, sniffing and size bounding. Never throws. */
   load(url: string, maxEdge: number): Promise<ImageLoad>
-  /** A picture on the card; the cover may be refreshed when its URL expired. */
-  loadCardImage(url: string, isCover: boolean): Promise<ImageLoad>
-  /** The dress-code gallery: loaded images inlined, unloadable ones dropped. */
+  /**
+   * A picture on the card. `fileUrl` (the same-origin copy served by the API)
+   * is tried first; the cover may also be refreshed when its storage URL
+   * expired.
+   */
+  loadCardImage(url: string, isCover: boolean, fileUrl?: string): Promise<ImageLoad>
+  /**
+   * The dress-code gallery, every entry inlined. Entries that could not be
+   * loaded are NOT silently dropped: they are counted in `missing` and the
+   * caller must treat that as a failed export.
+   */
   loadDressCode(entries: readonly DressCodeEntry[]): Promise<{
     entries: DressCodeEntry[]
     missing: number
@@ -202,7 +223,14 @@ export function createImageLoader(options: ImageLoaderOptions = {}): ImageLoader
     const controller = new AbortController()
     const timer = window.setTimeout(() => controller.abort(), timeoutMs)
     try {
-      const response = await fetcher(url, { cache, signal: controller.signal })
+      const response = await fetcher(url, {
+        cache,
+        signal: controller.signal,
+        // The app's own file endpoints are authenticated by the session cookie;
+        // storage URLs are presigned and must NOT send credentials (a wildcard
+        // CORS policy rejects them).
+        credentials: isApiUrl(url) ? 'include' : 'same-origin',
+      })
       if (!response.ok) {
         const { status } = response
         const reason: ImageFailure =
@@ -286,11 +314,25 @@ export function createImageLoader(options: ImageLoaderOptions = {}): ImageLoader
     }
   }
 
+  /** First candidate that loads; the last failure when none does. */
+  async function loadAny(urls: ReadonlyArray<string | undefined>, maxEdge: number): Promise<ImageLoad> {
+    let last: ImageLoad = { ok: false, reason: 'missing' }
+    const seen = new Set<string>()
+    for (const url of urls) {
+      if (!url || seen.has(url)) continue
+      seen.add(url)
+      const result = await load(url, maxEdge)
+      if (result.ok) return result
+      last = result
+    }
+    return last
+  }
+
   return {
     load,
 
-    async loadCardImage(url, isCover) {
-      const first = await load(url, CARD_IMAGE_MAX_EDGE)
+    async loadCardImage(url, isCover, fileUrl) {
+      const first = await loadAny([fileUrl, url], CARD_IMAGE_MAX_EDGE)
       if (first.ok || !isCover || !isRefreshable(first.reason)) return first
       const fresh = (await refresh())?.cover
       if (!fresh || fresh === url) return first
@@ -298,7 +340,9 @@ export function createImageLoader(options: ImageLoaderOptions = {}): ImageLoader
     },
 
     async loadDressCode(entries) {
-      const loaded = await mapLimit(entries, concurrency, (entry) => load(entry.url, DRESS_CODE_MAX_EDGE))
+      const loaded = await mapLimit(entries, concurrency, (entry) =>
+        loadAny([entry.fileUrl, entry.url], DRESS_CODE_MAX_EDGE),
+      )
 
       const retry = loaded
         .map((result, index) => ({ result, index }))

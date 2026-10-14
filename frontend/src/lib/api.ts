@@ -200,7 +200,20 @@ export const templatesApi = {
     request<InvitationTemplate>('GET', `/api/templates/${encodeURIComponent(key)}/`),
 }
 
+/** True for a URL served by this application's API (session cookie applies). */
+export function isApiUrl(url: string): boolean {
+  return url.startsWith(`${API_BASE}/api/`)
+}
+
 export const eventsApi = {
+  /**
+   * Same-origin picture bytes for the PDF export. Unlike the storage URLs in
+   * `cover_url` / `dress_code[].url` these never expire and need no bucket
+   * CORS policy, so the export can always read the pixels.
+   */
+  coverFileUrl: (id: number) => `${API_BASE}/api/events/${id}/cover/file/`,
+  dressCodeFileUrl: (id: number, itemId: number) =>
+    `${API_BASE}/api/events/${id}/dress-code/${itemId}/file/`,
   list: (params: EventListParams = {}) => {
     const query = new URLSearchParams()
     if (params.q) query.set('q', params.q)

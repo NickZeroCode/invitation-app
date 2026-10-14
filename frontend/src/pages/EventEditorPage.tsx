@@ -202,7 +202,17 @@ export function EventEditorPage() {
         cover_url: coverPreview ?? (coverRemoved ? null : (eventQuery.data?.cover_url ?? null)),
         coverTitle: coverText,
         emphasis,
-        dressCode: dressRows.map((row) => ({ id: row.id, url: row.url, caption: row.caption })),
+        dressCode: dressRows.map((row) => ({
+          id: row.id,
+          url: row.url,
+          caption: row.caption,
+          // Saved pictures are read through the app's own endpoint for the PDF;
+          // pending uploads are local blob URLs and load as they are.
+          fileUrl:
+            isEdit && row.id !== undefined
+              ? eventsApi.dressCodeFileUrl(eventId as number, row.id)
+              : undefined,
+        })),
         program: programRows
           .filter((row) => row.start_time && row.description.trim())
           .map((row) => ({
@@ -230,6 +240,8 @@ export function EventEditorPage() {
       emphasis,
       dressRows,
       programRows,
+      isEdit,
+      eventId,
     ],
   )
 
@@ -1060,6 +1072,11 @@ export function EventEditorPage() {
                     }
                   : null
               }}
+              coverFileUrl={
+                isEdit && eventQuery.data?.cover_url && !coverPreview && !coverRemoved
+                  ? eventsApi.coverFileUrl(eventId as number)
+                  : undefined
+              }
               qrText={`${window.location.origin}/`}
             />
           </div>

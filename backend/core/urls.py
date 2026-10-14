@@ -1,6 +1,8 @@
 from django.urls import path
 
 from events.views import (
+    EventCoverFileView,
+    EventDressCodeFileView,
     EventDressCodeItemView,
     EventDressCodeView,
     EventModelCoverView,
@@ -54,6 +56,13 @@ urlpatterns = [
     path("events/", event_list, name="event-list"),
     path("events/<int:pk>/", event_detail, name="event-detail"),
     path("events/<int:pk>/cover/", EventModelCoverView.as_view(), name="event-cover"),
+    # Same-origin picture bytes for the PDF export (no presigned URL, no CORS).
+    path("events/<int:pk>/cover/file/", EventCoverFileView.as_view(), name="event-cover-file"),
+    path(
+        "events/<int:pk>/dress-code/<int:item_pk>/file/",
+        EventDressCodeFileView.as_view(),
+        name="event-dress-code-file",
+    ),
     # Dress-code gallery (one image per upload, with caption + ordering).
     path("events/<int:pk>/dress-code/", EventDressCodeView.as_view(), name="event-dress-code"),
     path(
