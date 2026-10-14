@@ -1,8 +1,8 @@
 /**
  * « Éternité » — art-deco black-tie luxury. Near-black paper with a warm
- * vignette, an inset double gold frame, geometric sunburst fans in the four
- * corners, champagne calligraphy names and a designed date block: the most
- * formal, "old-money" card of the wedding set.
+ * vignette, an inset double gold frame, baroque filigree scrolls in the
+ * four corners, champagne calligraphy names and a designed date block: the
+ * most formal, "old-money" card of the wedding set.
  */
 import {
   CoverHero,
@@ -17,6 +17,7 @@ import {
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
+import { FiligreeCorner } from './FiligreeCorner.tsx'
 import { GiltEdge, LuxePattern, MonogramCrest } from './luxeMotifs.tsx'
 
 const GOLD = '#D8B36A'
@@ -27,41 +28,6 @@ const PAPER_BG = 'radial-gradient(120% 90% at 50% 0%, #251C11 0%, #17120D 55%, #
 /** Champagne-gold gradient for the calligraphy names. */
 const TITLE_GOLD =
   'linear-gradient(118deg, #C9A24A 0%, #F2E3B8 35%, #D8B36A 55%, #F5E7C4 80%, #C9A24A 100%)'
-
-const FAN_CORNERS = {
-  tl: { top: '1.8em', left: '1.8em', transform: 'rotate(0deg)' },
-  tr: { top: '1.8em', right: '1.8em', transform: 'rotate(90deg)' },
-  br: { bottom: '1.8em', right: '1.8em', transform: 'rotate(180deg)' },
-  bl: { bottom: '1.8em', left: '1.8em', transform: 'rotate(270deg)' },
-} as const
-
-/** Quarter sunburst fan for a corner (rays + two arcs). */
-function DecoFan({ corner }: { corner: keyof typeof FAN_CORNERS }) {
-  const rays = Array.from({ length: 7 }, (_, i) => 6 + i * 13)
-  return (
-    <svg
-      viewBox="0 0 120 120"
-      className="pointer-events-none absolute h-[4.8em] w-[4.8em]"
-      style={FAN_CORNERS[corner]}
-      aria-hidden="true"
-      fill="none"
-    >
-      <g stroke={GOLD} strokeOpacity="0.55" strokeWidth="1.1" strokeLinecap="round">
-        {rays.map((deg) => (
-          <line
-            key={deg}
-            x1="6"
-            y1="6"
-            x2={6 + 74 * Math.cos((deg * Math.PI) / 180)}
-            y2={6 + 74 * Math.sin((deg * Math.PI) / 180)}
-          />
-        ))}
-        <path d="M6 52 A46 46 0 0 0 52 6" strokeOpacity="0.7" />
-        <path d="M6 78 A72 72 0 0 0 78 6" />
-      </g>
-    </svg>
-  )
-}
 
 /** Diamond held between two hairline rules. */
 function DecoRule({ tone = GOLD }: { tone?: string }) {
@@ -110,10 +76,10 @@ export function EterniteOr({ draft }: TemplateProps) {
         />
         <GiltEdge inset="0.6em" />
 
-        <DecoFan corner="tl" />
-        <DecoFan corner="tr" />
-        <DecoFan corner="br" />
-        <DecoFan corner="bl" />
+        <FiligreeCorner corner="tl" color={GOLD} />
+        <FiligreeCorner corner="tr" color={GOLD} />
+        <FiligreeCorner corner="br" color={GOLD} />
+        <FiligreeCorner corner="bl" color={GOLD} />
 
         {/* Inset double frame. */}
         <div className="pointer-events-none absolute inset-[1.6em]" aria-hidden="true">
