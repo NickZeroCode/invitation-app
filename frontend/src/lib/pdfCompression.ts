@@ -167,6 +167,51 @@ export function fitToBudget(page: DecodedPage, budget: number): Encoded {
   if (!smallest) throw new Error('No encoding produced')
   return smallest
 }
+
+/** The ladder rung index at which the top rung's resampled width repeats. */
+const SECOND_WIDTH_RUNG = 2
+
+/**
+ * Fit `page` to `budget`, hoisting the top rung's resample and bisect so the
+ * caller can reuse them across ladder steps and across re-fits. This is the
+ * hot path: a typical budget fits at the top (220 dpi) rung, which then costs
+ * exactly one resample and a handful of quality probes instead of re-walking
+ * the whole ladder. Falls back to the bottom rungs only when the top rung
+ * cannot fit. Never upscales: when the master is narrower than the top rung
+ * this returns null so the caller uses {@link fitToBudget} instead (its top
+ * rung is the master itself, which must not be resampled up).
+ */
+function fitTopRung(
+  page: DecodedPage,
+  budget: number,
+  resampled: ResampledPage,
+): Encoded {
+  const top = LADDER[0]
+  const result = searchQuality(resampled, top.minQuality, budget)
+  if (result.fits) return result.encoded
+
+  // Top rung cannot fit: walk the bottom rungs. Their widths differ from the
+  // top rung, so each needs its own resample (reused across its rung pair).
+  let smallest: Encoded = result.encoded
+  let current: { width: number; resampled: ResampledPage } | null = null
+  try {
+    for (let i = SECOND_WIDTH_RUNG; i < LADDER.length; i += 1) {
+      const rung = LADDER[i]
+      const width = Math.max(1, Math.min(page.width, dpiToPx(rung.dpi)))
+      if (!current || current.width !== width) {
+        current?.resampled.dispose()
+        current = null
+        current = { width, resampled: page.resample(width) }
+      }
+      const step = searchQuality(current.resampled, rung.minQuality, budget)
+      if (step.fits) return step.encoded
+      if (step.encoded.bytes < smallest.bytes) smallest = step.encoded
+    }
+  } finally {
+    current?.resampled.dispose()
+  }
+  return smallest
+}
 // ---------------------------------------------------------------------------
 // Page set compression
 // ---------------------------------------------------------------------------
@@ -189,6 +234,10 @@ export function createPageCompressor(
 ): PageCompressor {
   const sizes = pages.map((page) => dataUrlBytes(page.dataUrl))
   const decoded = new Map<number, Promise<DecodedPage | null>>()
+  // Each page's top-rung resample, created on first use and reused across the
+  // ladder walk and every re-fit (the tighten loop re-fits with a smaller
+  // budget, which only ever needs the same top-rung pixels).
+  const topResampled = new Map<number, { width: number; resampled: ResampledPage }>()
 
   const decode = (index: number): Promise<DecodedPage | null> => {
     let pending = decoded.get(index)
@@ -197,6 +246,39 @@ export function createPageCompressor(
       decoded.set(index, pending)
     }
     return pending
+  }
+
+  const release = (index: number): void => {
+    const entry = topResampled.get(index)
+    if (entry) {
+      entry.resampled.dispose()
+      topResampled.delete(index)
+    }
+  }
+
+  /**
+   * Encode one page under `share`. Uses the top-rung fast path unless that
+   * rung would upscale the master, in which case {@link fitToBudget} walks
+   * the ladder from the master's own width. The fast-path resample survives
+   * across re-fits until the page is released (when its master fits again or
+   * the compressor is disposed).
+   */
+  const fitPage = async (index: number, share: number): Promise<Encoded | null> => {
+    const source = await decode(index)
+    if (!source) return null
+    const topWidth = Math.max(1, Math.min(source.width, dpiToPx(LADDER[0].dpi)))
+    if (topWidth < dpiToPx(LADDER[0].dpi)) {
+      // Master narrower than the top rung: never upscale, use the plain walk.
+      release(index)
+      return fitToBudget(source, Math.floor(share))
+    }
+    let entry = topResampled.get(index)
+    if (!entry || entry.width !== topWidth) {
+      entry?.resampled.dispose()
+      entry = { width: topWidth, resampled: source.resample(topWidth) }
+      topResampled.set(index, entry)
+    }
+    return fitTopRung(source, Math.floor(share), entry.resampled)
   }
 
   return {
@@ -214,16 +296,22 @@ export function createPageCompressor(
 
         let used = weight
         if (weight > share) {
-          const source = await decode(index)
-          if (source) {
-            try {
-              const encoded = fitToBudget(source, Math.floor(share))
+          try {
+            const encoded = await fitPage(index, share)
+            if (encoded) {
               result[index] = { ...pages[index], dataUrl: encoded.dataUrl }
               used = encoded.bytes
-            } catch (error) {
-              console.warn('[pdfCompression] page kept at full size', error)
+            } else {
+              release(index)
             }
+          } catch (error) {
+            release(index)
+            console.warn('[pdfCompression] page kept at full size', error)
           }
+        } else {
+          // Fits without shrinking: the resample cache for this page is dead
+          // weight now, drop it.
+          release(index)
         }
         remaining = Math.max(0, remaining - used)
       }
@@ -235,6 +323,10 @@ export function createPageCompressor(
         void pending.then((page) => page?.dispose())
       }
       decoded.clear()
+      for (const entry of topResampled.values()) {
+        entry.resampled.dispose()
+      }
+      topResampled.clear()
     },
   }
 }

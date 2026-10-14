@@ -26,7 +26,7 @@ import type { ReactElement } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import QRCode from 'qrcode'
-import { toJpeg, toPng } from 'html-to-image'
+import { getFontEmbedCSS, toJpeg, toPng } from 'html-to-image'
 
 import { ExportDetailsPage } from '../templates/ExportDetailsPage.tsx'
 import { ExportQrPage } from '../templates/ExportQrPage.tsx'
@@ -504,6 +504,7 @@ async function compositeLayers(
   pixelRatio: number,
   widthPx: number,
   heightPx: number,
+  fontEmbedCSS?: string,
 ): Promise<string> {
   const canvas = document.createElement('canvas')
   canvas.width = Math.max(1, Math.round(widthPx * pixelRatio))
@@ -530,6 +531,7 @@ async function compositeLayers(
       imagePlaceholder: IMAGE_PLACEHOLDER,
       onImageErrorHandler: () => undefined,
       includeStyleProperties: styleProperties(),
+      ...(fontEmbedCSS != null ? { fontEmbedCSS } : {}),
       style: {
         position: 'absolute' as const,
         left: '0px',
@@ -574,7 +576,7 @@ async function compositeLayers(
  * composited back at their exact boxes with object-fit and border-radius
  * honoured. Other engines capture in one pass exactly as before.
  */
-async function captureRaster(node: HTMLElement): Promise<PageRaster> {
+async function captureRaster(node: HTMLElement, fontEmbedCSS?: string): Promise<PageRaster> {
   const { widthPx, heightPx } = measure(node)
   const pixelRatio = safePixelRatio(widthPx, heightPx)
   const neutralized: Array<{ image: HTMLImageElement; source: string }> = []
@@ -594,6 +596,7 @@ async function captureRaster(node: HTMLElement): Promise<PageRaster> {
       onImageErrorHandler: () => undefined,
       includeStyleProperties: styleProperties(),
       style: { position: 'static' as const, left: '0px', top: '0px' },
+      ...(fontEmbedCSS != null ? { fontEmbedCSS } : {}),
     }
     const layers = isWebKit() && canCompositeRaster() ? collectCompositeLayers(node) : []
     if (layers.length === 0) {
@@ -615,7 +618,7 @@ async function captureRaster(node: HTMLElement): Promise<PageRaster> {
     }
     try {
       return {
-        dataUrl: await compositeLayers(base, layers, pixelRatio, widthPx, heightPx),
+        dataUrl: await compositeLayers(base, layers, pixelRatio, widthPx, heightPx, fontEmbedCSS),
         widthPx,
         heightPx,
       }
@@ -669,6 +672,27 @@ function pageHeightMm(page: PageRaster): number {
 }
 
 /**
+ * Phase profiler: wraps one export stage in a `performance.measure` so the
+ * export's time budget can be read from DevTools (Performance → Timings) or
+ * `performance.getEntriesByType('measure')`. Pure observation — the stage's
+ * result and errors pass through untouched.
+ */
+async function timed<T>(phase: string, task: () => Promise<T>): Promise<T> {
+  const start = typeof performance !== 'undefined' ? performance.now() : 0
+  try {
+    return await task()
+  } finally {
+    if (typeof performance !== 'undefined' && typeof performance.measure === 'function') {
+      try {
+        performance.measure(`pdf:${phase}`, { start, end: performance.now() })
+      } catch {
+        // Profiling must never affect the export.
+      }
+    }
+  }
+}
+
+/**
  * Build and download the invitation PDF. Page 1 is the cover photo (when
  * present), page 2 the full-bleed invitation card, page 3 the dress code and
  * programme, and the last page the centered verification QR code.
@@ -707,18 +731,32 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
 
     // Load every picture the PDF needs before capturing anything, so no
     // capture ever depends on network access or expiring storage URLs.
-    const [cardImages, dressCode] = await Promise.all([
-      hydrateImages(cardNode, loader, content.coverFileUrl),
-      content.dressCode.length
-        ? loader.loadDressCode(content.dressCode)
-        : Promise.resolve({ entries: [] as DressCodeEntry[], missing: 0 }),
-    ])
+    const [cardImages, dressCode] = await timed('load-images', () =>
+      Promise.all([
+        hydrateImages(cardNode, loader, content.coverFileUrl),
+        content.dressCode.length
+          ? loader.loadDressCode(content.dressCode)
+          : Promise.resolve({ entries: [] as DressCodeEntry[], missing: 0 }),
+      ]),
+    )
 
     // All-or-nothing: never print an invitation without a picture the
     // organizer set. Failing here (before any page is rendered) lets the user
     // simply retry instead of distributing an altered file.
     if (cardImages.missing > 0 || dressCode.missing > 0) {
       throw new ExportImagesError(cardImages.coverMissing, dressCode.missing)
+    }
+
+    // Every capture draws from the same @fontsource stylesheet set, so the
+    // embedded-font CSS is computed once here and handed to each capture
+    // (html-to-image otherwise re-walks every stylesheet and re-fetches every
+    // font on each of the four page captures). On failure the captures fall
+    // back to building it themselves.
+    let fontEmbedCSS: string | undefined
+    try {
+      fontEmbedCSS = await timed('font-css', () => getFontEmbedCSS(cardNode))
+    } catch {
+      fontEmbedCSS = undefined
     }
 
     const skipped = Array.from(cardNode.querySelectorAll<HTMLElement>('[data-export-skip]'))
@@ -728,7 +766,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
     if (cover) {
       const coverImage = cover.querySelector('img')
       if (coverImage && (coverImage.getAttribute('src') ?? '').startsWith('data:')) {
-        pages.push(await captureRaster(cover))
+        pages.push(await timed('capture-cover', () => captureRaster(cover, fontEmbedCSS)))
       }
     }
 
@@ -738,7 +776,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       element.style.display = 'none'
     })
     try {
-      pages.push(await captureRaster(cardNode))
+      pages.push(await timed('capture-card', () => captureRaster(cardNode, fontEmbedCSS)))
     } finally {
       restore.forEach(({ element, display }) => {
         element.style.display = display
@@ -758,7 +796,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       )
       try {
         await decodeImages(details.node)
-        pages.push(await captureRaster(details.node))
+        pages.push(await timed('capture-details', () => captureRaster(details.node, fontEmbedCSS)))
       } catch (error) {
         console.warn('[exportInvitationPdf] details page skipped', error)
       } finally {
@@ -780,7 +818,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
         createElement(ExportQrPage, { templateKey: content.templateKey }),
       )
       try {
-        qrPage = await captureRaster(qrBackground.node)
+        qrPage = await timed('capture-qr-page', () => captureRaster(qrBackground.node, fontEmbedCSS))
       } catch (error) {
         console.warn('[exportInvitationPdf] QR page background skipped', error)
       } finally {
@@ -838,23 +876,36 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       return output instanceof Blob ? output : null
     }
 
+    // jsPDF rebuilds the whole document on every assemble; a tighten-pass
+    // re-fit that returns the same pages (a page already at its ladder floor
+    // stops changing) must not pay that cost again. Memoize on page identity.
+    let built: { key: readonly string[]; doc: ReturnType<typeof assemble>; blob: Blob | null } | null =
+      null
+    const build = (fitted: PageRaster[]): { doc: ReturnType<typeof assemble>; blob: Blob | null } => {
+      const key = fitted.map((page) => page.dataUrl)
+      if (!built || built.key.length !== key.length || built.key.some((url, i) => url !== key[i])) {
+        const doc = assemble(fitted)
+        built = { key, doc, blob: renderBlob(doc) }
+      }
+      return { doc: built.doc, blob: built.blob }
+    }
+
     const compressor = createPageCompressor(rasters, content.pageDecoder ?? canvasDecoder)
     try {
       let budget = Math.max(0, PDF_TARGET_BYTES - pdfOverheadBytes(pageCount) - qrBytes)
-      let doc = assemble(await compressor.fit(budget))
-      let blob = renderBlob(doc)
+      const fitted = await timed('compress', () => compressor.fit(budget))
+      let { doc, blob } = await timed('assemble', async () => build(fitted))
 
       // The overhead is an estimate: measure the real file and tighten the
       // image budget by the exact excess (plus a margin) until it fits.
       for (let pass = 0; blob && blob.size > PDF_MAX_BYTES && pass < MAX_TIGHTEN_PASSES; pass += 1) {
         budget = Math.max(0, budget - (blob.size - PDF_TARGET_BYTES) - TIGHTEN_MARGIN_BYTES)
-        doc = assemble(await compressor.fit(budget))
-        blob = renderBlob(doc)
+        const refit = await timed('compress-retry', () => compressor.fit(budget))
+        ;({ doc, blob } = build(refit))
       }
       // Last resort: the bottom of the ladder on every page.
       if (blob && blob.size > PDF_MAX_BYTES) {
-        doc = assemble(await compressor.fit(0))
-        blob = renderBlob(doc)
+        ;({ doc, blob } = build(await compressor.fit(0)))
         if (blob && blob.size > PDF_MAX_BYTES) {
           console.warn('[exportInvitationPdf] PDF still above the size ceiling', blob.size)
         }
