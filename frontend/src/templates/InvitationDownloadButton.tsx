@@ -27,8 +27,6 @@ interface InvitationDownloadButtonProps {
   table?: TableEntry
   /** Verification URL encoded on the PDF's final QR page. */
   qrText?: string
-  /** Organizer's note, printed after the QR code on the final page. */
-  note?: string
   /** Optional button tint (e.g. the template's accent on the public page). */
   style?: CSSProperties
 }
@@ -42,7 +40,6 @@ export function InvitationDownloadButton({
   program = [],
   table,
   qrText,
-  note,
   style,
 }: InvitationDownloadButtonProps) {
   const [busy, setBusy] = useState(false)
@@ -64,7 +61,6 @@ export function InvitationDownloadButton({
         title,
         guestName,
         qrText,
-        note,
       })
     } catch (error) {
       console.error('[exportInvitationPdf] failed', error)

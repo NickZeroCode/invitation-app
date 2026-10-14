@@ -65,8 +65,6 @@ export interface InvitationPdfContent {
   guestName?: string
   /** Verification URL encoded on the final QR page. */
   qrText?: string
-  /** Organizer's note, printed after the QR code on the final page. */
-  note?: string
 }
 
 interface PageRaster {
@@ -734,7 +732,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
         color: QR_COLORS,
       })
       const qrBackground = renderOffscreen(
-        createElement(ExportQrPage, { templateKey: content.templateKey, note: content.note }),
+        createElement(ExportQrPage, { templateKey: content.templateKey }),
       )
       try {
         qrPage = await captureRaster(qrBackground.node)

@@ -412,14 +412,13 @@ export function DressCodeSection({
 /**
  * Note section — the organizer's practical note to the guests (« Le respect
  * de l'heure est vivement souhaité »). A plain italic line, no labelled
- * title: it reads as part of the invitation, not as a section. Hidden in the
- * PDF card capture — the export prints the note after the QR code instead.
- * Renders nothing when no note is set.
+ * title: it reads as part of the invitation, not as a section. It sits at the
+ * same spot on screen and on the PDF card. Renders nothing when no note is set.
  */
 export function NoteSection({ draft, ink }: { draft: InvitationDraft; ink: string }) {
   if (!draft.note) return null
   return (
-    <section data-export-skip="" className="mt-[2.6em] w-full">
+    <section className="mt-[2.6em] w-full">
       <p
         className="mx-auto max-w-[30em] text-pretty text-[1.08em] italic leading-[1.65] break-words"
         style={{ color: ink, opacity: 0.92 }}

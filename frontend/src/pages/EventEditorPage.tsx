@@ -1047,7 +1047,6 @@ export function EventEditorPage() {
               templateKey={templateKey}
               dressCode={previewDraft.dressCode}
               program={previewDraft.program}
-              note={note}
               qrText={`${window.location.origin}/`}
             />
           </div>
