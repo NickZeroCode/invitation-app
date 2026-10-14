@@ -100,13 +100,15 @@ afterEach(() => {
 
 describe('EventVerificationPage', () => {
   it('lists the delegated links with their status', async () => {
+    const user = userEvent.setup()
     renderVerification([
       { url: '/api/events/7/verification-links/', body: LINKS },
       { url: '/api/events/7/', body: EVENT },
     ])
 
     expect(await screen.findByText('Vérificateur d’invitations')).toBeInTheDocument()
-    // findBy: the links list renders after its query resolves.
+    // The links live behind their own button; findBy waits for the query.
+    await user.click(screen.getByRole('button', { name: 'Voir les liens' }))
     expect(await screen.findByText('Équipe d’accueil')).toBeInTheDocument()
     expect(screen.getByText('Prestataire photo')).toBeInTheDocument()
     expect(screen.getByText('Actif')).toBeInTheDocument()
@@ -139,7 +141,8 @@ describe('EventVerificationPage', () => {
       CSRF_ROUTE,
     ])
 
-    await screen.findByText('Équipe d’accueil')
+    await screen.findByText('Vérificateur d’invitations')
+    await user.click(screen.getByRole('button', { name: 'Créer un lien de vérification' }))
     await user.type(screen.getByLabelText(/^Libellé/), 'Équipe d’accueil')
     fireEvent.change(document.getElementById('verify-link-expiry') as HTMLInputElement, {
       target: { value: '2026-12-01' },
@@ -166,7 +169,7 @@ describe('EventVerificationPage', () => {
       CSRF_ROUTE,
     ])
 
-    await screen.findByText('Équipe d’accueil')
+    await screen.findByText('Vérificateur d’invitations')
     await user.type(screen.getByLabelText('Code de l’invitation'), 'tok-e2e-001')
     await user.click(screen.getByRole('button', { name: 'Vérifier' }))
 
@@ -203,6 +206,8 @@ describe('EventVerificationPage', () => {
       CSRF_ROUTE,
     ])
 
+    await screen.findByText('Vérificateur d’invitations')
+    await user.click(screen.getByRole('button', { name: 'Voir les liens' }))
     await screen.findByText('Équipe d’accueil')
     await user.click(screen.getAllByRole('button', { name: 'Révoquer' })[0])
 

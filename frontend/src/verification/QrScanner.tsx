@@ -131,33 +131,77 @@ export function QrScanner({ onResult, verifying = false }: QrScannerProps) {
 
   return (
     <div className="space-y-4">
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-line bg-ink">
-        {/* Always mounted so the stream can attach the moment it is granted:
-            the ref must exist before setCameraState('live') renders the feed. */}
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className="h-full w-full object-cover"
-          aria-label={fr.verify.scanner.title}
-        />
-        {cameraState !== 'live' ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-white/80">
-            {cameraState === 'starting' ? (
-              <>
-                <Spinner className="h-6 w-6 text-white/70" />
-                <p className="text-sm">{fr.verify.scanner.starting}</p>
-              </>
-            ) : (
-              <>
-                <IconQr className="h-10 w-10 text-white/60" />
-                <p className="text-sm leading-relaxed text-white/75">{fr.verify.scanner.cameraError}</p>
-              </>
-            )}
+      {/* Phone-camera chrome: dark viewfinder, lens brackets and a scan
+          sweep — while the QR chip and hint keep the purpose obvious. */}
+      <div className="relative w-full overflow-hidden rounded-[1.5rem] border border-ink/10 bg-ink shadow-[0_18px_50px_-18px_rgba(26,24,21,0.45)]">
+        <div className="relative aspect-[4/5] w-full sm:aspect-[4/3]">
+          {/* Always mounted so the stream can attach the moment it is granted:
+              the ref must exist before setCameraState('live') renders the feed. */}
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="h-full w-full object-cover"
+            aria-label={fr.verify.scanner.title}
+          />
+          {cameraState !== 'live' ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-white/80">
+              {cameraState === 'starting' ? (
+                <>
+                  <Spinner className="h-6 w-6 text-white/70" />
+                  <p className="text-sm">{fr.verify.scanner.starting}</p>
+                </>
+              ) : (
+                <>
+                  <IconQr className="h-10 w-10 text-white/60" />
+                  <p className="text-sm leading-relaxed text-white/75">{fr.verify.scanner.cameraError}</p>
+                </>
+              )}
+            </div>
+          ) : null}
+          <div className="pointer-events-none absolute inset-0">
+            {/* Soft lens vignette. */}
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage:
+                  'radial-gradient(ellipse 78% 62% at 50% 46%, rgba(10, 9, 7, 0) 38%, rgba(10, 9, 7, 0.42) 100%)',
+              }}
+            />
+            {/* Scan frame — corner brackets like the native code scanner. */}
+            <div className="absolute bottom-[16%] left-[13%] right-[13%] top-[16%]">
+              <span className="absolute left-0 top-0 h-7 w-7 rounded-tl-[0.85rem] border-l-[3px] border-t-[3px] border-white/85" />
+              <span className="absolute right-0 top-0 h-7 w-7 rounded-tr-[0.85rem] border-r-[3px] border-t-[3px] border-white/85" />
+              <span className="absolute bottom-0 left-0 h-7 w-7 rounded-bl-[0.85rem] border-b-[3px] border-l-[3px] border-white/85" />
+              <span className="absolute bottom-0 right-0 h-7 w-7 rounded-br-[0.85rem] border-b-[3px] border-r-[3px] border-white/85" />
+              {cameraState === 'live' ? (
+                <div
+                  className="absolute left-[4%] right-[4%] h-[2px] rounded-full animate-scan-sweep motion-reduce:animate-none"
+                  style={{
+                    backgroundImage:
+                      'linear-gradient(90deg, rgba(212, 162, 75, 0) 0%, rgba(212, 162, 75, 0.95) 50%, rgba(212, 162, 75, 0) 100%)',
+                    boxShadow: '0 0 14px rgba(212, 162, 75, 0.75)',
+                  }}
+                />
+              ) : null}
+            </div>
+            {/* Identity chip — this is a QR scanner, not a photo camera. */}
+            <div className="absolute inset-x-0 top-0 flex items-center gap-2 bg-gradient-to-b from-black/55 via-black/20 to-transparent px-4 pb-7 pt-3.5">
+              <span className="inline-flex items-center gap-2 rounded-pill bg-black/45 px-3 py-1.5 text-[0.78rem] font-medium text-white/95 backdrop-blur-sm">
+                <IconQr className="h-4 w-4 text-gold" />
+                {fr.verify.scanner.chip}
+              </span>
+            </div>
+            {cameraState === 'live' ? (
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/25 to-transparent px-4 pb-3.5 pt-9">
+                <p className="text-center text-[0.82rem] font-medium text-white/95">
+                  {fr.verify.scanner.frameHint}
+                </p>
+              </div>
+            ) : null}
           </div>
-        ) : null}
-        <div className="pointer-events-none absolute inset-4 rounded-xl border border-white/25" />
+        </div>
       </div>
 
       <form onSubmit={submitManual} className="space-y-2">

@@ -13,7 +13,7 @@ import { ApiError, publicVerificationApi } from '../lib/api.ts'
 import type { VerificationScanResult } from '../lib/types.ts'
 import { fr } from '../locales/fr.ts'
 import { QrScanner } from '../verification/QrScanner.tsx'
-import { VerificationResultCard } from '../verification/VerificationResultCard.tsx'
+import { VerificationResultModal } from '../verification/VerificationResultModal.tsx'
 
 /**
  * Public, delegated door-verification page (`/verification/:token`).
@@ -175,18 +175,6 @@ export function VerificationPage() {
                   {fr.verify.landing.submit}
                 </Button>
               </form>
-            ) : result ? (
-              <div className="space-y-4">
-                <VerificationResultCard result={result} />
-                <Button
-                  variant="secondary"
-                  className="w-full"
-                  onClick={() => setResult(null)}
-                >
-                  <IconQr className="h-4 w-4" />
-                  {fr.verify.scanner.next}
-                </Button>
-              </div>
             ) : (
               <div className="space-y-4">
                 <div>
@@ -212,6 +200,9 @@ export function VerificationPage() {
             )}
           </div>
         )}
+
+        {/* The verdict appears as its own modal above the scanner. */}
+        <VerificationResultModal result={result} onClose={() => setResult(null)} />
       </div>
     </div>
   )
