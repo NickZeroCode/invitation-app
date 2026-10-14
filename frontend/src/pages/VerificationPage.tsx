@@ -30,6 +30,9 @@ export function VerificationPage() {
   const [scanError, setScanError] = useState('')
   const [sessionNote, setSessionNote] = useState('')
   const [result, setResult] = useState<VerificationScanResult | null>(null)
+  // Bumped after every scan: a decode stops the camera stream and latches the
+  // scanner, so the next scan needs a freshly mounted scanner (new stream).
+  const [scanRound, setScanRound] = useState(0)
 
   const linkQuery = useQuery({
     queryKey: ['public-verify-link', token],
@@ -70,6 +73,7 @@ export function VerificationPage() {
       setScanError(
         error instanceof ApiError ? error.message : fr.verify.scanner.verifying,
       )
+      setScanRound((round) => round + 1)
     },
   })
 
@@ -185,6 +189,7 @@ export function VerificationPage() {
                   <p className="mt-1 text-sm leading-relaxed text-ink-soft">{fr.verify.scanner.hint}</p>
                 </div>
                 <QrScanner
+                  key={scanRound}
                   verifying={scanMutation.isPending}
                   onResult={(content) => scanMutation.mutate(content)}
                 />
@@ -202,7 +207,13 @@ export function VerificationPage() {
         )}
 
         {/* The verdict appears as its own modal above the scanner. */}
-        <VerificationResultModal result={result} onClose={() => setResult(null)} />
+        <VerificationResultModal
+          result={result}
+          onClose={() => {
+            setResult(null)
+            setScanRound((round) => round + 1)
+          }}
+        />
       </div>
     </div>
   )

@@ -71,6 +71,9 @@ export function EventVerificationPage() {
   // --- Owner-side scanner ---
   const [result, setResult] = useState<VerificationScanResult | null>(null)
   const [scanError, setScanError] = useState('')
+  // Bumped after every scan: a decode stops the camera stream and latches the
+  // scanner, so the next scan needs a freshly mounted scanner (new stream).
+  const [scanRound, setScanRound] = useState(0)
 
   const scanMutation = useMutation({
     mutationFn: (content: string) => verificationApi.scanForEvent(eventId, content),
@@ -80,6 +83,7 @@ export function EventVerificationPage() {
     },
     onError: (error: unknown) => {
       setScanError(error instanceof ApiError ? error.message : fr.verify.landing.invalidLink)
+      setScanRound((round) => round + 1)
     },
   })
 
@@ -176,6 +180,7 @@ export function EventVerificationPage() {
 
           <div className="mt-4">
             <QrScanner
+              key={scanRound}
               verifying={scanMutation.isPending}
               onResult={(content) => scanMutation.mutate(content)}
             />
@@ -387,7 +392,13 @@ export function EventVerificationPage() {
       />
 
       {/* The door-side verdict appears as its own modal above the scanner. */}
-      <VerificationResultModal result={result} onClose={() => setResult(null)} />
+      <VerificationResultModal
+        result={result}
+        onClose={() => {
+          setResult(null)
+          setScanRound((round) => round + 1)
+        }}
+      />
     </div>
   )
 }

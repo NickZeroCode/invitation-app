@@ -185,6 +185,40 @@ describe('EventVerificationPage', () => {
     expect(call.body).toEqual({ content: 'tok-e2e-001' })
   })
 
+  it('restarts the camera for the next scan once the verdict is dismissed', async () => {
+    const user = userEvent.setup()
+    const getUserMedia = vi.fn().mockResolvedValue({ getTracks: () => [] })
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: { getUserMedia },
+      configurable: true,
+    })
+    const play = vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined)
+    try {
+      renderVerification([
+        { url: '/api/events/7/verification-scan/', method: 'POST', body: SCAN_VALID },
+        { url: '/api/events/7/verification-links/', body: LINKS },
+        { url: '/api/events/7/', body: EVENT },
+        CSRF_ROUTE,
+      ])
+
+      await screen.findByText('Vérificateur d’invitations')
+      await waitFor(() => expect(getUserMedia).toHaveBeenCalledTimes(1))
+
+      await user.type(screen.getByLabelText('Code de l’invitation'), 'tok-e2e-001')
+      await user.click(screen.getByRole('button', { name: 'Vérifier' }))
+      await screen.findByText('Invitation authentique et valide.')
+
+      // A decoded scan stops the stream: the next scan needs a fresh camera,
+      // otherwise the viewfinder stays black.
+      await user.click(screen.getByRole('button', { name: 'Scanner l’invitation suivante' }))
+      await waitFor(() => expect(getUserMedia).toHaveBeenCalledTimes(2))
+      expect(screen.queryByText('Invitation authentique et valide.')).not.toBeInTheDocument()
+    } finally {
+      play.mockRestore()
+      Reflect.deleteProperty(navigator, 'mediaDevices')
+    }
+  })
+
   it('revokes a link after confirmation', async () => {
     const user = userEvent.setup()
     const mock = renderVerification([
