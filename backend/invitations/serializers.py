@@ -192,7 +192,7 @@ class InvitationBulkSerializer(serializers.Serializer):
     the offending line.
     """
 
-    MAX_ITEMS = 200
+    MAX_ITEMS = 500
 
     invitations = serializers.ListField(
         allow_empty=False,

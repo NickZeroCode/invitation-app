@@ -81,8 +81,8 @@ class EventInvitationsView(APIView):
         elif state:
             raise ValidationError({"state": "Filtre d'état invalide."})
 
-        # Deterministic pagination order (alphabetical guest list).
-        queryset = queryset.order_by("guest_name", "id")
+        # Deterministic pagination order — the most recent invitations first.
+        queryset = queryset.order_by("-created_at", "-id")
 
         paginator = StandardPagination()
         page = paginator.paginate_queryset(queryset, request)

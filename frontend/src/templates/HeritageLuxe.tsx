@@ -8,6 +8,7 @@ import {
   DateBlock,
   DressCodeSection,
   InvitationPaper,
+  NoteSection,
   ProgramSection,
   TableSection,
   guestLabel,
@@ -139,6 +140,12 @@ export function HeritageLuxe({ draft }: TemplateProps) {
           </div>
         ) : null}
 
+        <NoteSection
+          draft={draft}
+          accent={GOLD}
+          ink={INK}
+          ornament={<FlourishRule className="h-[1.3em] w-full" color={GOLD} />}
+        />
         <ProgramSection
           draft={draft}
           accent={GOLD}

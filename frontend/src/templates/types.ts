@@ -41,6 +41,8 @@ export interface InvitationDraft {
   venue_name: string
   venue_address: string
   venue_details: string
+  /** Note pratique de l’organisateur (« Le respect de l’heure… ») — masquée si vide. */
+  note: string
   cover_url: string | null
   /** Texte superposé à la photo de couverture (noms des concernés). */
   coverTitle: string

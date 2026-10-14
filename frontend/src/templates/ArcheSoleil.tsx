@@ -9,6 +9,7 @@ import {
   DateBlock,
   DressCodeSection,
   InvitationPaper,
+  NoteSection,
   ProgramSection,
   TableSection,
   guestLabel,
@@ -177,6 +178,13 @@ export function ArcheSoleil({ draft }: TemplateProps) {
           </div>
         ) : null}
 
+        <NoteSection
+          draft={draft}
+          accent={TERRA}
+          ink={PLUM}
+          ornament={<DotBand />}
+          titleStyle={{ letterSpacing: '0.55em' }}
+        />
         <ProgramSection
           draft={draft}
           accent={TERRA}

@@ -103,6 +103,7 @@ def build_public_payload(invitation: Invitation, request) -> dict:
             "venue_name": event.venue_name,
             "venue_address": event.venue_address,
             "venue_details": event.venue_details,
+            "note": event.note,
             "cover_url": cover_url,
             "cover_title": event.cover_title,
             "display_config": event.display_config,

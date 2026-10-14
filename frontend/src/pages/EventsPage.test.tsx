@@ -43,6 +43,7 @@ function event(overrides: Record<string, unknown> = {}) {
     venue_name: 'Cathédrale Notre-Dame',
     venue_address: 'Avenue de la Paix, Kinshasa',
     venue_details: '',
+    note: '',
     cover_url: null,
     cover_title: '',
     display_config: { emphasis: ['title'] },

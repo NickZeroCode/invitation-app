@@ -145,7 +145,7 @@ def test_tokens_are_unique_across_invitations(auth_client, organizer):
 
 def test_list_shows_guests_and_filters(auth_client, organizer):
     event = make_event(organizer)
-    # ASCII names keep the alphabetical assertion collation-independent.
+    # ASCII names keep the assertion simple and collation-independent.
     make_invitation(event, guest_name="Ana Diomi")
     revoked = make_invitation(event, guest_name="Sarah Kabamba")
     Invitation.objects.filter(pk=revoked.pk).update(state=Invitation.State.REVOKED)
@@ -154,7 +154,8 @@ def test_list_shows_guests_and_filters(auth_client, organizer):
     assert listing.status_code == 200
     body = listing.json()
     assert body["count"] == 2
-    assert [row["guest_name"] for row in body["results"]] == ["Ana Diomi", "Sarah Kabamba"]
+    # Most recent first: Sarah was created after Ana.
+    assert [row["guest_name"] for row in body["results"]] == ["Sarah Kabamba", "Ana Diomi"]
 
     search = auth_client.get(f"{invitations_url(event)}?q=sarah")
     assert [row["guest_name"] for row in search.json()["results"]] == ["Sarah Kabamba"]
@@ -164,6 +165,15 @@ def test_list_shows_guests_and_filters(auth_client, organizer):
 
     bad_filter = auth_client.get(f"{invitations_url(event)}?state=zzz")
     assert bad_filter.status_code == 400
+
+
+def test_list_orders_invitations_from_the_most_recent(auth_client, organizer):
+    event = make_event(organizer)
+    for name in ("Premier", "Deuxième", "Troisième"):
+        make_invitation(event, guest_name=name)
+
+    rows = auth_client.get(invitations_url(event)).json()["results"]
+    assert [row["guest_name"] for row in rows] == ["Troisième", "Deuxième", "Premier"]
 
 
 def test_expired_invitation_is_reported_and_filtered_as_expired(auth_client, organizer):
@@ -465,7 +475,7 @@ def test_bulk_validates_the_payload_shape(auth_client, organizer):
     assert auth_client.post(base, {}, format="json").status_code == 400
     assert auth_client.post(base, {"invitations": []}, format="json").status_code == 400
     too_many = auth_client.post(
-        base, {"invitations": [{"guest_name": f"Invité {i}"} for i in range(201)]}, format="json"
+        base, {"invitations": [{"guest_name": f"Invité {i}"} for i in range(501)]}, format="json"
     )
     assert too_many.status_code == 400
 

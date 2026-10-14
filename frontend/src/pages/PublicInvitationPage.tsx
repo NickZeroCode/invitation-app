@@ -274,6 +274,7 @@ export function PublicInvitationPage() {
     venue_name: data.event.venue_name,
     venue_address: data.event.venue_address,
     venue_details: data.event.venue_details,
+    note: data.event.note ?? '',
     cover_url: data.event.cover_url,
     coverTitle: data.event.cover_title,
     emphasis: data.event.display_config.emphasis ?? data.event.template.config.emphasis_fields,

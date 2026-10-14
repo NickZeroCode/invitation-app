@@ -51,6 +51,9 @@ class EventModel(models.Model):
     venue_name = models.CharField("lieu", max_length=200, blank=True)
     venue_address = models.CharField("adresse", max_length=255, blank=True)
     venue_details = models.TextField("précisions sur le lieu", blank=True)
+    # Note pratique affichée sur l'invitation (ex. « Le respect de l'heure est
+    # vivement souhaité ») — facultative.
+    note = models.TextField("note", blank=True, default="")
 
     cover_image = models.ImageField("image de couverture", upload_to="covers/%Y/%m/", blank=True)
     # Texte superposé à la photo de couverture (noms des concernés) — valeur

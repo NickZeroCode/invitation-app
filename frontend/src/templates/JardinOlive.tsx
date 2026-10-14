@@ -9,6 +9,7 @@ import {
   DateBlock,
   DressCodeSection,
   InvitationPaper,
+  NoteSection,
   ProgramSection,
   TableSection,
   guestLabel,
@@ -140,6 +141,13 @@ export function JardinOlive({ draft }: TemplateProps) {
           </div>
         ) : null}
 
+        <NoteSection
+          draft={draft}
+          accent={OLIVE}
+          ink={INK}
+          ornament={<Sprig />}
+          titleStyle={{ letterSpacing: '0.52em' }}
+        />
         <ProgramSection
           draft={draft}
           accent={OLIVE}

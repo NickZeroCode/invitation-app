@@ -9,6 +9,7 @@ import {
   DateBlock,
   DressCodeSection,
   InvitationPaper,
+  NoteSection,
   ProgramSection,
   TableSection,
   guestLabel,
@@ -235,6 +236,13 @@ export function NuitCeleste({ draft }: TemplateProps) {
           </div>
         ) : null}
 
+        <NoteSection
+          draft={draft}
+          accent={GOLD}
+          ink={STAR}
+          ornament={<StarRule />}
+          titleStyle={{ letterSpacing: '0.52em' }}
+        />
         <ProgramSection
           draft={draft}
           accent={GOLD}

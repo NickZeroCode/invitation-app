@@ -408,3 +408,54 @@ export function DressCodeSection({
     </section>
   )
 }
+
+/**
+ * Note section — the organizer's practical note to the guests (« Le respect
+ * de l'heure est vivement souhaité »). Unlike the sections below, it carries
+ * no `data-export-skip`: the note belongs on the printed invitation card.
+ * Renders nothing when no note is set.
+ */
+export function NoteSection({
+  draft,
+  accent,
+  ink,
+  ornament,
+  ornamentAlign,
+  titleStyle,
+  titleClassName,
+}: {
+  draft: InvitationDraft
+  accent: string
+  ink: string
+  /** Small motif drawn under the section title (the template's own drawing). */
+  ornament?: ReactNode
+  ornamentAlign?: 'center' | 'left'
+  titleStyle?: CSSProperties
+  titleClassName?: string
+}) {
+  if (!draft.note) return null
+  return (
+    <section className="mt-[3.2em] w-full">
+      <p
+        className={`text-[1em] uppercase ${titleClassName ?? ''}`}
+        style={{ letterSpacing: '0.38em', color: accent, ...titleStyle }}
+      >
+        Note
+      </p>
+      {ornament ? (
+        <div
+          className={`mt-[1em] flex w-full ${ornamentAlign === 'left' ? 'justify-start' : 'justify-center'}`}
+          aria-hidden="true"
+        >
+          <span className="block w-[10em]">{ornament}</span>
+        </div>
+      ) : null}
+      <p
+        className="mx-auto mt-[1.5em] max-w-[30em] text-pretty text-[1.08em] italic leading-[1.65] break-words"
+        style={{ color: ink, opacity: 0.92 }}
+      >
+        {draft.note}
+      </p>
+    </section>
+  )
+}

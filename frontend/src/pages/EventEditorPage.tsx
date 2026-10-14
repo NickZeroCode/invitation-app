@@ -109,6 +109,7 @@ export function EventEditorPage() {
   const [venueName, setVenueName] = useState('')
   const [venueAddress, setVenueAddress] = useState('')
   const [venueDetails, setVenueDetails] = useState('')
+  const [note, setNote] = useState('')
   const [emphasis, setEmphasis] = useState<string[]>([])
   const [questions, setQuestions] = useState<QuestionDraft[]>([])
   const [dressRows, setDressRows] = useState<DressCodeRow[]>([])
@@ -150,6 +151,7 @@ export function EventEditorPage() {
     setVenueName(data.venue_name)
     setVenueAddress(data.venue_address)
     setVenueDetails(data.venue_details)
+    setNote(data.note)
     setCoverText(data.cover_title)
     setEmphasis(data.display_config.emphasis ?? [])
     setCoverRemoved(false)
@@ -196,6 +198,7 @@ export function EventEditorPage() {
         venue_name: venueName,
         venue_address: venueAddress,
         venue_details: venueDetails,
+        note,
         cover_url: coverPreview ?? (coverRemoved ? null : (eventQuery.data?.cover_url ?? null)),
         coverTitle: coverText,
         emphasis,
@@ -219,6 +222,7 @@ export function EventEditorPage() {
       venueName,
       venueAddress,
       venueDetails,
+      note,
       coverPreview,
       coverRemoved,
       eventQuery.data?.cover_url,
@@ -243,6 +247,7 @@ export function EventEditorPage() {
         venue_name: venueName.trim(),
         venue_address: venueAddress.trim(),
         venue_details: venueDetails.trim(),
+        note: note.trim(),
         cover_title: coverText.trim(),
         display_config: { emphasis },
         preference_questions: questions.map(
@@ -631,6 +636,21 @@ export function EventEditorPage() {
                     controlSize="sm"
                     value={venueDetails}
                     onChange={(event) => setVenueDetails(event.target.value)}
+                  />
+                </Field>
+                <Field
+                  id="event-note"
+                  label={fr.editor.noteLabel}
+                  className="col-span-full"
+                  error={fieldErrors.note?.[0]}
+                >
+                  <textarea
+                    id="event-note"
+                    rows={2}
+                    value={note}
+                    placeholder={fr.editor.notePlaceholder}
+                    className="w-full rounded-md border border-line-strong bg-surface px-2.5 py-2 text-[0.8125rem] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    onChange={(event) => setNote(event.target.value)}
                   />
                 </Field>
               </div>

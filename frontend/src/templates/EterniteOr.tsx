@@ -9,6 +9,7 @@ import {
   DateBlock,
   DressCodeSection,
   InvitationPaper,
+  NoteSection,
   ProgramSection,
   TableSection,
   guestLabel,
@@ -136,10 +137,6 @@ export function EterniteOr({ draft }: TemplateProps) {
             color: 'transparent',
           }}
         />
-        <p className="text-[1.02em] uppercase" style={{ color: GOLD, letterSpacing: '0.42em' }}>
-          Cérémonie de mariage
-        </p>
-
         <p className="mt-[2.2em] font-display text-[1.25em] italic" style={{ color: GOLD_SOFT }}>
           {guestLabel(draft)}
         </p>
@@ -198,6 +195,13 @@ export function EterniteOr({ draft }: TemplateProps) {
           </div>
         ) : null}
 
+        <NoteSection
+          draft={draft}
+          accent={GOLD}
+          ink={GOLD_SOFT}
+          ornament={<DecoRule />}
+          titleStyle={{ letterSpacing: '0.42em' }}
+        />
         <ProgramSection
           draft={draft}
           accent={GOLD}

@@ -6,6 +6,7 @@ import {
   CoverHero,
   DressCodeSection,
   InvitationPaper,
+  NoteSection,
   ProgramSection,
   TableSection,
   formatEventDate,
@@ -109,6 +110,16 @@ export function Confetti({ draft }: TemplateProps) {
           ) : null}
         </div>
 
+        <NoteSection
+          draft={draft}
+          accent={PINK}
+          ink="#312E81"
+          ornament={
+            <TemplateOrnament templateKey="confetti" color={PINK} className="block h-auto w-full" />
+          }
+          titleClassName="font-extrabold"
+          titleStyle={{ letterSpacing: '0.22em' }}
+        />
         <ProgramSection
           draft={draft}
           accent={PINK}

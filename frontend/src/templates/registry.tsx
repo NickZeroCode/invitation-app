@@ -146,6 +146,7 @@ export function emptyDraft(overrides: Partial<InvitationDraft> = {}): Invitation
     venue_name: '',
     venue_address: '',
     venue_details: '',
+    note: '',
     cover_url: null,
     coverTitle: '',
     emphasis: [],

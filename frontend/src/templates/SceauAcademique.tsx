@@ -6,6 +6,7 @@ import {
   CoverHero,
   DressCodeSection,
   InvitationPaper,
+  NoteSection,
   ProgramSection,
   TableSection,
   formatEventDate,
@@ -113,6 +114,15 @@ export function SceauAcademique({ draft }: TemplateProps) {
           </div>
         ) : null}
 
+        <NoteSection
+          draft={draft}
+          accent={GOLD}
+          ink="#F4EFE4"
+          ornament={
+            <TemplateOrnament templateKey="sceau-academique" color={GOLD} className="block h-auto w-full" />
+          }
+          titleStyle={{ letterSpacing: '0.5em' }}
+        />
         <ProgramSection
           draft={draft}
           accent={GOLD}

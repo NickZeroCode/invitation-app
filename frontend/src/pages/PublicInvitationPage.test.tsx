@@ -29,6 +29,7 @@ const PUBLIC_PAYLOAD = {
     venue_name: 'Cathédrale Notre-Dame',
     venue_address: 'Avenue de la Paix, Kinshasa',
     venue_details: 'Tenue de soirée',
+    note: '',
     cover_url: null,
     cover_title: '',
     display_config: { emphasis: ['title', 'date', 'venue'] },

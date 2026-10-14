@@ -6,6 +6,7 @@ import {
   CoverHero,
   DressCodeSection,
   InvitationPaper,
+  NoteSection,
   ProgramSection,
   TableSection,
   formatEventDate,
@@ -110,6 +111,14 @@ export function SoireeFormelle({ draft }: TemplateProps) {
           </div>
         ) : null}
 
+        <NoteSection
+          draft={draft}
+          accent={CHAMPAGNE}
+          ink={CHAMPAGNE}
+          ornament={<SparkleRule />}
+          titleClassName="font-semibold"
+          titleStyle={{ letterSpacing: '0.24em' }}
+        />
         <ProgramSection
           draft={draft}
           accent={CHAMPAGNE}

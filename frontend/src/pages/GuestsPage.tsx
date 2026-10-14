@@ -431,6 +431,7 @@ function GuestRow({
           venue_name: source.venue_name,
           venue_address: source.venue_address,
           venue_details: source.venue_details,
+          note: source.note ?? '',
           cover_url: source.cover_url,
           coverTitle: source.cover_title,
           emphasis: source.display_config.emphasis ?? [],
@@ -763,10 +764,10 @@ export function GuestsPage() {
           <>
             <Link
               to={`/evenements/${eventId}/verification`}
-              className={buttonClasses('secondary', 'md', 'flex-1 sm:flex-none')}
+              className={buttonClasses('accent', 'lg', 'flex-1 sm:flex-none')}
             >
-              <IconQr className="h-4 w-4" />
-              {fr.verify.landing.eyebrow}
+              <IconQr className="h-5 w-5" />
+              {fr.verify.scanner.title}
             </Link>
             <Link
               to={`/evenements/${eventId}/reponses`}

@@ -48,6 +48,7 @@ const CREATED = {
   venue_name: 'Le Palmier',
   venue_address: '',
   venue_details: '',
+  note: '',
   cover_url: null,
   cover_title: '',
   display_config: { emphasis: ['title'] },

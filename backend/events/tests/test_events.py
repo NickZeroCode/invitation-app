@@ -101,6 +101,23 @@ def test_create_persists_message_font(auth_client):
     event = EventModel.objects.get(pk=response.json()["id"])
     assert event.message_font == "scripte"
 
+def test_note_is_optional_and_round_trips(auth_client, organizer):
+    # Empty by default.
+    created = auth_client.post(ENDPOINT, make_payload(), format="json")
+    assert created.status_code == 201
+    assert created.json()["note"] == ""
+
+    note = "Le respect de l'heure est vivement souhaité."
+    created = auth_client.post(ENDPOINT, make_payload(note=note), format="json")
+    assert created.status_code == 201
+    assert created.json()["note"] == note
+
+    event = EventModel.objects.get(pk=created.json()["id"])
+    assert event.note == note
+
+    fetched = auth_client.get(f"{ENDPOINT}{event.pk}/")
+    assert fetched.status_code == 200
+    assert fetched.json()["note"] == note
 
 def test_create_rejects_invalid_message_font(auth_client):
     response = auth_client.post(ENDPOINT, make_payload(message_font="comic-sans"), format="json")
