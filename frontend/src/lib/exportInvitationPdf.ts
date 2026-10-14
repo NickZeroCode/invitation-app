@@ -33,6 +33,16 @@ import { ExportQrPage } from '../templates/ExportQrPage.tsx'
 import { fontScaleStyle } from '../templates/fontSizes.ts'
 import { getTemplate } from '../templates/registry.tsx'
 import type { DressCodeEntry, InvitationDraft, ProgramEntry, TableEntry } from '../templates/types.ts'
+import {
+  PDF_MAX_BYTES,
+  PDF_TARGET_BYTES,
+  canvasDecoder,
+  createPageCompressor,
+  dataUrlBytes,
+  pdfOverheadBytes,
+  type PageDecoder,
+  type PageRaster,
+} from './pdfCompression.ts'
 
 /** A4 page: fixed width everywhere, full height only for the QR page. */
 const A4_WIDTH_MM = 210
@@ -45,6 +55,10 @@ const TARGET_RASTER_PX = 2480
 const QR_SIDE_MM = 70
 /** Same palette as the on-screen QR panels. */
 const QR_COLORS = { dark: '#1a261f', light: '#ffffff' }
+/** Re-fits allowed after the first build misses the size ceiling. */
+const MAX_TIGHTEN_PASSES = 3
+/** Extra bytes shaved per tightening pass, so one pass is enough in practice. */
+const TIGHTEN_MARGIN_BYTES = 12_000
 
 export interface InvitationPdfContent {
   /** Live invitation card node (public page / editor preview). */
@@ -65,12 +79,8 @@ export interface InvitationPdfContent {
   guestName?: string
   /** Verification URL encoded on the final QR page. */
   qrText?: string
-}
-
-interface PageRaster {
-  dataUrl: string
-  widthPx: number
-  heightPx: number
+  /** Page decoder of the compression engine — injectable for tests. */
+  pageDecoder?: PageDecoder
 }
 
 function slugify(value: string): string {
@@ -101,6 +111,7 @@ export function invitationPdfFileName(title: string, guestName?: string): string
 function triggerDownload(
   doc: { output(type: 'blob'): Blob; output(type: 'datauristring'): string },
   fileName: string,
+  prebuilt?: Blob,
 ): void {
   const anchor = document.createElement('a')
   anchor.download = fileName
@@ -108,7 +119,7 @@ function triggerDownload(
   anchor.style.display = 'none'
 
   let objectUrl: string | null = null
-  const blob: unknown = doc.output('blob')
+  const blob: unknown = prebuilt ?? doc.output('blob')
   if (blob instanceof Blob && typeof URL.createObjectURL === 'function') {
     objectUrl = URL.createObjectURL(
       blob.type === 'application/pdf' ? blob : new Blob([blob], { type: 'application/pdf' }),
@@ -744,39 +755,81 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
     }
 
     const { jsPDF } = await import('jspdf')
-    const doc = new jsPDF({
-      unit: 'mm',
-      format: [A4_WIDTH_MM, pageHeightMm(pages[0] as PageRaster)],
-      orientation: 'portrait',
-      compress: true,
-    })
-    doc.setProperties({
-      title: content.title,
-      subject: 'Invitation',
-      creator: 'MalaikaEvents',
-    })
-    pages.forEach((page, index) => {
-      const height = pageHeightMm(page)
-      if (index > 0) doc.addPage([A4_WIDTH_MM, height], 'portrait')
-      doc.addImage(page.dataUrl, 'JPEG', 0, 0, A4_WIDTH_MM, height)
-    })
 
-    if (qrDataUrl) {
-      doc.addPage([A4_WIDTH_MM, A4_HEIGHT_MM], 'portrait')
-      if (qrPage) {
-        doc.addImage(qrPage.dataUrl, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM)
+    // Every page master (≈300 dpi) goes through the compression engine so the
+    // finished file never exceeds PDF_MAX_BYTES. The QR code stays a crisp,
+    // untouched PNG: its bytes are reserved from the budget instead.
+    const rasters: PageRaster[] = qrPage ? [...pages, qrPage] : [...pages]
+    const qrBytes = qrDataUrl ? dataUrlBytes(qrDataUrl) : 0
+    const pageCount = pages.length + (qrDataUrl ? 1 : 0)
+
+    const assemble = (fitted: PageRaster[]) => {
+      const doc = new jsPDF({
+        unit: 'mm',
+        format: [A4_WIDTH_MM, pageHeightMm(fitted[0])],
+        orientation: 'portrait',
+        compress: true,
+      })
+      doc.setProperties({
+        title: content.title,
+        subject: 'Invitation',
+        creator: 'MalaikaEvents',
+      })
+      fitted.slice(0, pages.length).forEach((page, index) => {
+        const height = pageHeightMm(page)
+        if (index > 0) doc.addPage([A4_WIDTH_MM, height], 'portrait')
+        doc.addImage(page.dataUrl, 'JPEG', 0, 0, A4_WIDTH_MM, height)
+      })
+
+      if (qrDataUrl) {
+        doc.addPage([A4_WIDTH_MM, A4_HEIGHT_MM], 'portrait')
+        if (qrPage) {
+          doc.addImage(fitted[pages.length].dataUrl, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM)
+        }
+        doc.addImage(
+          qrDataUrl,
+          'PNG',
+          (A4_WIDTH_MM - QR_SIDE_MM) / 2,
+          (A4_HEIGHT_MM - QR_SIDE_MM) / 2,
+          QR_SIDE_MM,
+          QR_SIDE_MM,
+        )
       }
-      doc.addImage(
-        qrDataUrl,
-        'PNG',
-        (A4_WIDTH_MM - QR_SIDE_MM) / 2,
-        (A4_HEIGHT_MM - QR_SIDE_MM) / 2,
-        QR_SIDE_MM,
-        QR_SIDE_MM,
-      )
+      return doc
     }
 
-    triggerDownload(doc, invitationPdfFileName(content.title, content.guestName))
+    /** The finished file, measured for real (null where Blob output is absent). */
+    const renderBlob = (doc: ReturnType<typeof assemble>): Blob | null => {
+      const output: unknown = doc.output('blob')
+      return output instanceof Blob ? output : null
+    }
+
+    const compressor = createPageCompressor(rasters, content.pageDecoder ?? canvasDecoder)
+    try {
+      let budget = Math.max(0, PDF_TARGET_BYTES - pdfOverheadBytes(pageCount) - qrBytes)
+      let doc = assemble(await compressor.fit(budget))
+      let blob = renderBlob(doc)
+
+      // The overhead is an estimate: measure the real file and tighten the
+      // image budget by the exact excess (plus a margin) until it fits.
+      for (let pass = 0; blob && blob.size > PDF_MAX_BYTES && pass < MAX_TIGHTEN_PASSES; pass += 1) {
+        budget = Math.max(0, budget - (blob.size - PDF_TARGET_BYTES) - TIGHTEN_MARGIN_BYTES)
+        doc = assemble(await compressor.fit(budget))
+        blob = renderBlob(doc)
+      }
+      // Last resort: the bottom of the ladder on every page.
+      if (blob && blob.size > PDF_MAX_BYTES) {
+        doc = assemble(await compressor.fit(0))
+        blob = renderBlob(doc)
+        if (blob && blob.size > PDF_MAX_BYTES) {
+          console.warn('[exportInvitationPdf] PDF still above the size ceiling', blob.size)
+        }
+      }
+
+      triggerDownload(doc, invitationPdfFileName(content.title, content.guestName), blob ?? undefined)
+    } finally {
+      compressor.dispose()
+    }
   } finally {
     offscreen?.dispose()
   }

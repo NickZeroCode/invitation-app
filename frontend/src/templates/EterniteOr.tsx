@@ -24,6 +24,8 @@ const GOLD = '#D8B36A'
 const GOLD_SOFT = '#EBD3A0'
 const IVORY = '#F3E9D7'
 const PAPER_BG = 'radial-gradient(120% 90% at 50% 0%, #251C11 0%, #17120D 55%, #0F0B07 100%)'
+/** Corner filigree strength: the card's gold, melted into the dark paper like its frame lines. */
+const FILIGREE_OPACITY = 0.5
 
 /** Champagne-gold gradient for the calligraphy names. */
 const TITLE_GOLD =
@@ -76,10 +78,10 @@ export function EterniteOr({ draft }: TemplateProps) {
         />
         <GiltEdge inset="0.6em" />
 
-        <FiligreeCorner corner="tl" color={GOLD} />
-        <FiligreeCorner corner="tr" color={GOLD} />
-        <FiligreeCorner corner="br" color={GOLD} />
-        <FiligreeCorner corner="bl" color={GOLD} />
+        <FiligreeCorner corner="tl" color={GOLD} opacity={FILIGREE_OPACITY} />
+        <FiligreeCorner corner="tr" color={GOLD} opacity={FILIGREE_OPACITY} />
+        <FiligreeCorner corner="br" color={GOLD} opacity={FILIGREE_OPACITY} />
+        <FiligreeCorner corner="bl" color={GOLD} opacity={FILIGREE_OPACITY} />
 
         {/* Inset double frame. */}
         <div className="pointer-events-none absolute inset-[1.6em]" aria-hidden="true">

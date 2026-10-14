@@ -23,19 +23,22 @@ const FILIGREE_PATH =
 export function FiligreeCorner({
   corner,
   color,
+  opacity = 1,
 }: {
   corner: keyof typeof POSITION
   /** Gold of the ornament. */
   color: string
+  /** Tone-on-tone strength, so the ornament sits inside the card's palette. */
+  opacity?: number
 }) {
   return (
     <svg
       viewBox="0 0 980 980"
-      className="pointer-events-none absolute h-[9em] w-[9em]"
+      className="pointer-events-none absolute h-[6.4em] w-[6.4em]"
       style={POSITION[corner]}
       aria-hidden="true"
     >
-      <path d={FILIGREE_PATH} fill={color} fillRule="evenodd" />
+      <path d={FILIGREE_PATH} fill={color} fillOpacity={opacity} fillRule="evenodd" />
     </svg>
   )
 }
