@@ -128,16 +128,7 @@ export function JardinFloral({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <NoteSection
-          draft={draft}
-          accent={ROSE}
-          ink="#5C3A43"
-          ornament={
-            <TemplateOrnament templateKey="jardin-floral" color={ROSE} className="block h-auto w-full" />
-          }
-          titleClassName="font-display italic"
-          titleStyle={{ letterSpacing: '0.18em', textTransform: 'none' }}
-        />
+        <NoteSection draft={draft} ink="#5C3A43" />
         <ProgramSection
           draft={draft}
           accent={ROSE}

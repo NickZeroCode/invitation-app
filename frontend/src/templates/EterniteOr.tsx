@@ -195,13 +195,7 @@ export function EterniteOr({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <NoteSection
-          draft={draft}
-          accent={GOLD}
-          ink={GOLD_SOFT}
-          ornament={<DecoRule />}
-          titleStyle={{ letterSpacing: '0.42em' }}
-        />
+        <NoteSection draft={draft} ink={GOLD_SOFT} />
         <ProgramSection
           draft={draft}
           accent={GOLD}

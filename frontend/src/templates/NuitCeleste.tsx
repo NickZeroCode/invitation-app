@@ -236,13 +236,7 @@ export function NuitCeleste({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <NoteSection
-          draft={draft}
-          accent={GOLD}
-          ink={STAR}
-          ornament={<StarRule />}
-          titleStyle={{ letterSpacing: '0.52em' }}
-        />
+        <NoteSection draft={draft} ink={STAR} />
         <ProgramSection
           draft={draft}
           accent={GOLD}

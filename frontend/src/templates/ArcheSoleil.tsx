@@ -178,13 +178,7 @@ export function ArcheSoleil({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <NoteSection
-          draft={draft}
-          accent={TERRA}
-          ink={PLUM}
-          ornament={<DotBand />}
-          titleStyle={{ letterSpacing: '0.55em' }}
-        />
+        <NoteSection draft={draft} ink={PLUM} />
         <ProgramSection
           draft={draft}
           accent={TERRA}

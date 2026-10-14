@@ -7,7 +7,8 @@
  *   - the template's flourish under it,
  *   - an elegant arrow pointing down to the page's exact center,
  *   - a soft white card at the center, where the exporter overlays the
- *     print-resolution QR code (a crisp PNG at 70 × 70 mm).
+ *     print-resolution QR code (a crisp PNG at 70 × 70 mm),
+ *   - the organizer's note, printed under the QR card (no section title).
  *
  * The QR itself is never rasterized into this page: it stays a sharp PNG
  * placed by jsPDF, so scanning is print-perfect.
@@ -42,7 +43,7 @@ function ScanArrow({ color }: { color: string }) {
   )
 }
 
-export function ExportQrPage({ templateKey }: { templateKey: string }) {
+export function ExportQrPage({ templateKey, note }: { templateKey: string; note?: string }) {
   const skin = panelSkinFor(templateKey)
 
   return (
@@ -88,6 +89,18 @@ export function ExportQrPage({ templateKey }: { templateKey: string }) {
           boxShadow: '0 24px 60px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.05)',
         }}
       />
+
+      {/* The organizer's note — printed after the QR code, without a title. */}
+      {note ? (
+        <div className="absolute inset-x-0 top-[46.5rem] px-[5.5rem] text-center">
+          <p
+            className="mx-auto max-w-[34rem] text-[1.15rem] italic leading-[1.7]"
+            style={{ color: skin.ink, opacity: 0.85 }}
+          >
+            {note}
+          </p>
+        </div>
+      ) : null}
     </div>
   )
 }

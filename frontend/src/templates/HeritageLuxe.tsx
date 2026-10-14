@@ -140,12 +140,7 @@ export function HeritageLuxe({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <NoteSection
-          draft={draft}
-          accent={GOLD}
-          ink={INK}
-          ornament={<FlourishRule className="h-[1.3em] w-full" color={GOLD} />}
-        />
+        <NoteSection draft={draft} ink={INK} />
         <ProgramSection
           draft={draft}
           accent={GOLD}
@@ -167,12 +162,6 @@ export function HeritageLuxe({ draft }: TemplateProps) {
 
         <div className="mt-auto w-full pt-[2.5em]">
           <FlourishRule className="mx-auto h-[1.4em] w-[17em]" color={GOLD} />
-          <p
-            className="mt-[1em]"
-            style={{ fontFamily: "'Great Vibes', cursive", fontSize: '1.8em', color: GOLD }}
-          >
-            Réception à suivre
-          </p>
         </div>
         </div>
       </div>

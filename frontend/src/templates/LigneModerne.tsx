@@ -108,17 +108,7 @@ export function LigneModerne({ draft }: TemplateProps) {
           </div>
         </div>
 
-        <NoteSection
-          draft={draft}
-          accent={ACCENT}
-          ink={INK}
-          ornamentAlign="left"
-          ornament={
-            <TemplateOrnament templateKey="ligne-moderne" color={ACCENT} className="block h-auto w-full" />
-          }
-          titleClassName="font-semibold"
-          titleStyle={{ letterSpacing: '0.42em' }}
-        />
+        <NoteSection draft={draft} ink={INK} />
         <ProgramSection
           draft={draft}
           accent={ACCENT}

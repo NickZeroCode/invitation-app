@@ -451,6 +451,7 @@ function GuestRow({
         title: source.title,
         guestName: invitation.display_name,
         qrText: `${window.location.origin}/i/${invitation.token}`,
+        note: source.note ?? '',
       })
       setNotice(fr.guests.exported)
     } catch {

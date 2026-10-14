@@ -87,13 +87,7 @@ export function Memoire({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <NoteSection
-          draft={draft}
-          accent={SAGE}
-          ink={STONE}
-          ornament={<DiamondRule />}
-          titleStyle={{ letterSpacing: '0.5em' }}
-        />
+        <NoteSection draft={draft} ink={STONE} />
         <ProgramSection
           draft={draft}
           accent={SAGE}

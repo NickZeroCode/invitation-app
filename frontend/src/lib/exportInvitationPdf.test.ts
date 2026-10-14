@@ -292,4 +292,33 @@ describe('exportInvitationPdf', () => {
     expect(text).toContain('5')
     restore()
   })
+
+  it('prints the note after the QR code on the final page', async () => {
+    const card = document.createElement('div')
+    Object.defineProperty(card, 'offsetWidth', { value: 794 })
+    Object.defineProperty(card, 'offsetHeight', { value: 1122 })
+    card.textContent = 'Invitation'
+    document.body.appendChild(card)
+    const { restore } = captureDownloads()
+
+    await exportInvitationPdf({
+      cardNode: card,
+      templateKey: 'heritage-luxe',
+      dressCode: [],
+      program: [],
+      title: 'Gala',
+      qrText: 'https://nickevents.cd/i/tok-999',
+      note: 'Le respect de l’heure est vivement souhaité.',
+    })
+
+    const doc = pdfState.instances.at(-1) as FakePdfRecord
+    expect(doc.pages).toHaveLength(2)
+    // Captures: card (0), QR page background (1). The note lives under the QR
+    // code on that final page — never on the card, never with a section title.
+    const note = 'Le respect de l’heure est vivement souhaité.'
+    expect(captureState.capturedText[1] ?? '').toContain(note)
+    expect(captureState.capturedText[1] ?? '').toContain('Scannez pour confirmer la présence')
+    expect(captureState.capturedText[0] ?? '').not.toContain(note)
+    restore()
+  })
 })

@@ -141,13 +141,7 @@ export function JardinOlive({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <NoteSection
-          draft={draft}
-          accent={OLIVE}
-          ink={INK}
-          ornament={<Sprig />}
-          titleStyle={{ letterSpacing: '0.52em' }}
-        />
+        <NoteSection draft={draft} ink={INK} />
         <ProgramSection
           draft={draft}
           accent={OLIVE}
