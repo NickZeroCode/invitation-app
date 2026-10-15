@@ -345,9 +345,11 @@ export const fr = {
     bulkGuestName: "Nom de l'invité",
     bulkSubmit: 'Générer les invitations',
     bulkEmpty: 'Ajoutez au moins un nom.',
+    bulkLineError: 'Ligne {line} :',
     bulkSuccess: 'Invitations générées.',
     exportProgress: 'Export du PDF…',
     exportProgressGuest: 'Invitation {current} sur {total}',
+    exportProgressRunning: 'Export en cours…',
     exportProgressDone: 'Export terminé.',
     listTitle: 'Liste des invités',
     civility: {

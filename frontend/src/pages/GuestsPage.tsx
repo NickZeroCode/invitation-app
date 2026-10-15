@@ -118,6 +118,16 @@ function errorMessage(err: unknown): string {
   if (err instanceof ApiError) {
     // Field-level detail first (e.g. the expiry-date rejection reason) — the
     // generic envelope message alone hides which field was rejected.
+    const entries = Object.entries(err.fields ?? {})
+    // A bulk row rejection arrives under a dotted path like
+    // `invitations.2.guest_name`: surface the 1-based line number so the
+    // organizer can jump straight to the offending row.
+    const bulk = entries.find(([key]) => /^invitations\.\d+\./.test(key))
+    if (bulk) {
+      const line = Number(bulk[0].split('.')[1]) + 1
+      const detail = bulk[1].find((message) => message.length > 0)
+      if (detail) return `${fr.guests.bulkLineError.replace('{line}', String(line))} ${detail}`
+    }
     const fieldDetail = Object.values(err.fields ?? {})
       .flat()
       .find((message) => message.length > 0)
@@ -351,17 +361,21 @@ function AddGuestForm({
 
   const mutation = useMutation({
     mutationFn: (payload: InvitationPayload) => invitationsApi.create(eventId, payload),
-    onSuccess: (invitation) => {
+    onSuccess: async (invitation) => {
       reset()
       setError(null)
       setSuccess(true)
-      onSuccess?.()
       void queryClient.invalidateQueries({ queryKey: ['invitations'] })
       void queryClient.invalidateQueries({ queryKey: ['event'] })
+      // Auto-export runs BEFORE the modal closes: awaiting it here keeps the
+      // modal (and its progress bar) mounted for the whole download, so the
+      // export can't be torn down and re-triggered by the close — the cause
+      // of the double download. Without auto-export, close immediately.
       if (autoExport && event) {
         onExportStart?.()
-        void exportOneInvitation(event, invitation)
+        await exportOneInvitation(event, invitation).catch(() => undefined)
       }
+      onSuccess?.()
     },
     onError: (err: unknown) => {
       setSuccess(false)
@@ -805,6 +819,9 @@ function GuestRow({
       await exportOneInvitation(event, invitation, (filePercent) =>
         setExportProgress({ percent: filePercent, current: 1, total: 1, filePercent }),
       )
+      // The export is done — drop the bar before the success notice so the
+      // two never read as still-in-progress.
+      setExportProgress(null)
       setNotice(fr.guests.exported)
     } catch (caught) {
       // An incomplete invitation is never downloaded: say so precisely.
@@ -990,7 +1007,11 @@ function GuestRow({
             <ProgressBar
               value={exportProgress.percent}
               label={fr.guests.exportProgress}
-              caption={fr.guests.exportProgressDone}
+              caption={
+                exportProgress.percent >= 100
+                  ? fr.guests.exportProgressDone
+                  : fr.guests.exportProgressRunning
+              }
             />
           ) : null}
           {notice ? (

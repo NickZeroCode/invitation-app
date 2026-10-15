@@ -755,6 +755,13 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
     capturesDone += 1
     report('capture', weights.capture / Math.max(1, totalCaptures))
   }
+  // `totalCaptures` counts pages that *could* exist; when one is absent (no
+  // cover photo, no details page, no QR) its slice of the capture weight is
+  // re-credited here so the cumulative total still sums to 100 instead of
+  // stalling part-way (a no-cover/no-details invitation used to cap at 60%).
+  const skipCapture = () => {
+    report('capture', weights.capture / Math.max(1, totalCaptures))
+  }
 
   try {
     if (document.fonts?.ready) {
@@ -825,7 +832,11 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
         pages.push(await timed('capture-cover', () => captureRaster(cover, fontEmbedCSS)))
         reportCapture()
         await yieldToBrowser()
+      } else {
+        skipCapture()
       }
+    } else {
+      skipCapture()
     }
 
     // Page 2 — the card alone, one page, with cover and sections stripped.
@@ -864,6 +875,8 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       }
       reportCapture()
       await yieldToBrowser()
+    } else {
+      skipCapture()
     }
 
     // Page 4 — the styled verification page (template tone + title + arrow),
@@ -888,6 +901,8 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       }
       reportCapture()
       await yieldToBrowser()
+    } else {
+      skipCapture()
     }
 
     const { jsPDF } = await import('jspdf')

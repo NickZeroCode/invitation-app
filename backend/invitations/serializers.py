@@ -207,8 +207,14 @@ class InvitationSerializer(serializers.ModelSerializer):
                     guest_identity(name, civ) == target
                     for name, civ in clashes.values_list("guest_name", "civility")
                 ):
+                    # Name the guest so the organizer knows exactly which
+                    # invitation collided — crucial when the error surfaces
+                    # from a bulk row rather than the single-add form.
+                    label = Invitation.display_name_for(guest_name, civility)
                     raise serializers.ValidationError(
-                        {"guest_name": "Cet invité a déjà une invitation pour cet événement."}
+                        {
+                            "guest_name": f"« {label} » a déjà une invitation pour cet événement."
+                        }
                     )
         return attrs
 
@@ -254,7 +260,10 @@ class InvitationBulkSerializer(serializers.Serializer):
             row_data = row_serializer.validated_data
             name = guest_identity(row_data["guest_name"], row_data.get("civility", Invitation.Civility.NONE))
             if name in seen:
-                errors[index] = {"guest_name": ["Ce nom apparaît plusieurs fois dans la liste."]}
+                label = Invitation.display_name_for(
+                    row_data["guest_name"], row_data.get("civility", Invitation.Civility.NONE)
+                )
+                errors[index] = {"guest_name": [f"« {label} » apparaît plusieurs fois dans la liste."]}
                 continue
             seen[name] = index
             cleaned.append(row_data)
