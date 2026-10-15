@@ -66,6 +66,8 @@ export {
 export { PageHeader, Pagination, SectionTitle, Toolbar } from './layout.tsx'
 export { BrandLockup, LogoArtwork, LogoMark } from './Logo.tsx'
 export { ConfirmDialog, Modal } from './Modal.tsx'
+export { ProgressBar, type ProgressBarProps } from './ProgressBar.tsx'
 export { Spinner } from './Spinner.tsx'
 export { EmptyState, ErrorState, LoadingState, SkeletonRows } from './states.tsx'
+export { Toggle, type ToggleProps } from './Toggle.tsx'
 export { MetricCard, Stat, type MetricCardProps, type StatProps } from './Stat.tsx'

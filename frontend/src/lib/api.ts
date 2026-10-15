@@ -19,6 +19,8 @@ import type {
   EventModel,
   EventPayload,
   EventResponsesPage,
+  EventTable,
+  EventTablePayload,
   Invitation,
   InvitationBulkResult,
   InvitationListParams,
@@ -253,6 +255,14 @@ export const eventsApi = {
     ),
   removeDressCode: (id: number, itemId: number) =>
     request<void>('DELETE', `/api/events/${id}/dress-code/${itemId}/`),
+  // Seating registry ("ajouter une table"): named tables for quick assignment.
+  listTables: (id: number) => request<EventTable[]>('GET', `/api/events/${id}/tables/`),
+  createTable: (id: number, payload: EventTablePayload) =>
+    request<EventTable>('POST', `/api/events/${id}/tables/`, payload),
+  updateTable: (id: number, tableId: number, payload: Partial<EventTablePayload>) =>
+    request<EventTable>('PATCH', `/api/events/${id}/tables/${tableId}/`, payload),
+  removeTable: (id: number, tableId: number) =>
+    request<void>('DELETE', `/api/events/${id}/tables/${tableId}/`),
   responses: (id: number, params: { page?: number } = {}) => {
     const query = new URLSearchParams()
     if (params.page && params.page > 1) query.set('page', String(params.page))

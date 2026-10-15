@@ -7,6 +7,8 @@ from events.views import (
     EventDressCodeView,
     EventModelCoverView,
     EventModelViewSet,
+    EventTableItemView,
+    EventTablesView,
 )
 from invitations.public import (
     PublicConfirmPresenceView,
@@ -80,6 +82,13 @@ urlpatterns = [
         "events/<int:pk>/invitations/bulk/",
         InvitationBulkGenerateView.as_view(),
         name="event-invitations-bulk",
+    ),
+    # Seating registry ("ajouter une table"): named tables for quick assignment.
+    path("events/<int:pk>/tables/", EventTablesView.as_view(), name="event-tables"),
+    path(
+        "events/<int:pk>/tables/<int:table_pk>/",
+        EventTableItemView.as_view(),
+        name="event-table-item",
     ),
     path("invitations/<int:pk>/", InvitationDetailView.as_view(), name="invitation-detail"),
     path("invitations/<int:pk>/revoke/", InvitationRevokeView.as_view(), name="invitation-revoke"),

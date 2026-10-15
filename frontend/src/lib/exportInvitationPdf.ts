@@ -61,6 +61,17 @@ const MAX_TIGHTEN_PASSES = 3
 /** Extra bytes shaved per tightening pass, so one pass is enough in practice. */
 const TIGHTEN_MARGIN_BYTES = 12_000
 
+/**
+ * Truthful export progress, reported from the real pipeline stages. `percent`
+ * is cumulative (0–100) across one invitation's export; `phase` names the
+ * stage that just completed. Never fabricated: the bar only moves when a
+ * stage actually finishes.
+ */
+export interface ExportProgress {
+  phase: 'load' | 'capture' | 'compress' | 'assemble' | 'done'
+  percent: number
+}
+
 export interface InvitationPdfContent {
   /** Live invitation card node (public page / editor preview). */
   cardNode?: HTMLElement | null
@@ -86,6 +97,8 @@ export interface InvitationPdfContent {
   refresh?: () => Promise<RefreshedImageUrls | null>
   /** Same-origin URL of the cover picture — tried before the storage URL. */
   coverFileUrl?: string
+  /** Truthful progress callback — fired as each real pipeline stage finishes. */
+  onProgress?: (progress: ExportProgress) => void
 }
 
 /**
@@ -701,6 +714,30 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
   const pages: PageRaster[] = []
   let offscreen: { node: HTMLElement; dispose: () => void } | null = null
 
+  // Truthful, monotonic progress: the bar only ever moves forward, and only
+  // when a real pipeline stage finishes. Phase weights reflect the measured
+  // export budget (load ≈15%, captures ≈45%, compress ≈30%, assemble ≈10%).
+  const weights = { load: 15, capture: 45, compress: 30, assemble: 10 } as const
+  let completed = 0
+  const totalCaptures =
+    (content.cardNode || content.draft ? 1 : 0) +
+    1 +
+    (content.dressCode.length || content.program.length || content.table?.number ? 1 : 0) +
+    (content.qrText ? 1 : 0)
+  let capturesDone = 0
+  const report = (phase: ExportProgress['phase'], advance: number) => {
+    completed = Math.min(100, completed + advance)
+    try {
+      content.onProgress?.({ phase, percent: completed })
+    } catch {
+      // A faulty progress listener must never break the export.
+    }
+  }
+  const reportCapture = () => {
+    capturesDone += 1
+    report('capture', weights.capture / Math.max(1, totalCaptures))
+  }
+
   try {
     if (document.fonts?.ready) {
       await document.fonts.ready.catch(() => undefined)
@@ -739,6 +776,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
           : Promise.resolve({ entries: [] as DressCodeEntry[], missing: 0 }),
       ]),
     )
+    report('load', weights.load)
 
     // All-or-nothing: never print an invitation without a picture the
     // organizer set. Failing here (before any page is rendered) lets the user
@@ -767,6 +805,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       const coverImage = cover.querySelector('img')
       if (coverImage && (coverImage.getAttribute('src') ?? '').startsWith('data:')) {
         pages.push(await timed('capture-cover', () => captureRaster(cover, fontEmbedCSS)))
+        reportCapture()
       }
     }
 
@@ -782,6 +821,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
         element.style.display = display
       })
     }
+    reportCapture()
 
     // Page 3 — dress code, programme and table on the template's paper tone.
     // Photos that could not be loaded are already dropped from `dressCode`.
@@ -802,6 +842,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       } finally {
         details.dispose()
       }
+      reportCapture()
     }
 
     // Page 4 — the styled verification page (template tone + title + arrow),
@@ -824,6 +865,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       } finally {
         qrBackground.dispose()
       }
+      reportCapture()
     }
 
     const { jsPDF } = await import('jspdf')
@@ -894,6 +936,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
     try {
       let budget = Math.max(0, PDF_TARGET_BYTES - pdfOverheadBytes(pageCount) - qrBytes)
       const fitted = await timed('compress', () => compressor.fit(budget))
+      report('compress', weights.compress)
       let { doc, blob } = await timed('assemble', async () => build(fitted))
 
       // The overhead is an estimate: measure the real file and tighten the
@@ -910,8 +953,11 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
           console.warn('[exportInvitationPdf] PDF still above the size ceiling', blob.size)
         }
       }
+      report('assemble', weights.assemble)
 
       triggerDownload(doc, invitationPdfFileName(content.title, content.guestName), blob ?? undefined)
+      // Snap to 100 regardless of rounding drift so the bar always completes.
+      report('done', 100 - completed)
     } finally {
       compressor.dispose()
     }

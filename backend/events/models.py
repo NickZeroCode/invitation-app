@@ -106,6 +106,31 @@ class DressCodeImage(models.Model):
         return self.caption or f"Code vestimentaire — événement {self.event_id}"
 
 
+class EventTable(models.Model):
+    """A named table for one event (seating registry, "ajouter une table").
+
+    The registry lets the organizer quick-assign a table when issuing an
+    invitation instead of re-typing it. Selecting a table copies its `number`
+    and `text` onto the invitation; the invitation keeps those plain strings
+    (and an optional FK back to the registry row) so existing textual tables
+    and the public/PDF rendering are untouched.
+    """
+
+    event = models.ForeignKey(EventModel, on_delete=models.CASCADE, related_name="tables")
+    number = models.CharField("numéro de table", max_length=32)
+    text = models.CharField("texte de table", max_length=255, blank=True, default="")
+    order = models.PositiveIntegerField("ordre", default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "table"
+        verbose_name_plural = "tables"
+        ordering = ("order", "id")
+
+    def __str__(self) -> str:
+        return f"Table {self.number} — événement {self.event_id}"
+
+
 class ProgramItem(models.Model):
     """One programme step: a time (or time range) and what happens then.
 

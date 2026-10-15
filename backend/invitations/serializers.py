@@ -18,6 +18,7 @@ from django.utils.timezone import now as timezone_now
 from rest_framework import serializers
 
 from core.exceptions import DomainValidationError
+from events.models import EventTable
 from invitations.models import Invitation, VerificationLink
 from preferences.models import GuestResponse
 
@@ -70,6 +71,19 @@ class InvitationSerializer(serializers.ModelSerializer):
         max_length=255,
         error_messages={"max_length": "Le texte de table ne doit pas dépasser 255 caractères."},
     )
+    # Seating-registry pick: passing a registry id copies the table's number
+    # and text onto the invitation and links the FK. The plain string fields
+    # stay accepted directly (backward compatible — textual tables keep
+    # working); an explicit id takes precedence over the strings.
+    table = serializers.PrimaryKeyRelatedField(
+        queryset=EventTable.objects.all(),
+        required=False,
+        allow_null=True,
+        error_messages={
+            "does_not_exist": "Cette table n'existe pas.",
+            "incorrect_type": "Table invalide.",
+        },
+    )
     expires_at = serializers.DateTimeField(
         required=False,
         allow_null=True,
@@ -86,6 +100,7 @@ class InvitationSerializer(serializers.ModelSerializer):
             "civility",
             "table_number",
             "table_text",
+            "table",
             "display_name",
             "token",
             "issued_at",
@@ -152,9 +167,25 @@ class InvitationSerializer(serializers.ModelSerializer):
             civility = attrs.get("civility", Invitation.Civility.NONE)
             previous_identity = None
         else:
+            event = self.instance.event_model
             guest_name = attrs.get("guest_name", self.instance.guest_name)
             civility = attrs.get("civility", self.instance.civility)
             previous_identity = guest_identity(self.instance.guest_name, self.instance.civility)
+
+        # Seating-registry pick: a provided `table` id must belong to this
+        # event (IDOR-safe), then its number/text are copied onto the
+        # invitation so the plain strings stay the rendering source of truth.
+        # An explicit `null` clears the link without touching the strings;
+        # omitting `table` leaves both link and strings as provided/default.
+        if "table" in attrs:
+            picked = attrs["table"]
+            if picked is not None:
+                if event is not None and picked.event_id != event.pk:
+                    raise serializers.ValidationError(
+                        {"table": "Cette table n'appartient pas à cet événement."}
+                    )
+                attrs["table_number"] = picked.number
+                attrs["table_text"] = picked.text
 
         # A guest keeps at most one live (active or expired) invitation per
         # event; re-issuing a link for the same guest goes through the

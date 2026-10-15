@@ -481,6 +481,7 @@ function createBackend(initialFixtures: Record<string, PublicFixture> = {}): Bac
           event_title: event.title,
           guest_name: payload.guest_name,
           civility,
+          table: null,
           table_number: payload.table_number ?? '',
           table_text: payload.table_text ?? '',
           display_name: displayName,

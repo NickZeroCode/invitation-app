@@ -45,6 +45,19 @@ class Invitation(models.Model):
     # the dress-code and programme sections).
     table_number = models.CharField("numéro de table", max_length=32, blank=True, default="")
     table_text = models.CharField("texte de table", max_length=255, blank=True, default="")
+    # Optional link to the event's seating registry. The plain strings above
+    # stay the source of truth for rendering (so a deleted registry row never
+    # breaks an existing invitation); the FK only records which registry row
+    # was picked. SET_NULL keeps the invitation intact when the table is
+    # removed from the registry.
+    table = models.ForeignKey(
+        "events.EventTable",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="invitations",
+        verbose_name="table",
+    )
 
     token = models.CharField(
         "jeton public", max_length=64, unique=True, default=generate_invitation_token, editable=False

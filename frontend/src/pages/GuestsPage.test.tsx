@@ -113,7 +113,10 @@ function byId(id: string): HTMLElement {
 }
 
 function renderGuests(routes: MockRoute[]): MockFetch {
-  const mock = mockFetch(routes)
+  // Provide an empty seating registry by default so tests that don't care
+  // about tables still resolve the new `event-tables` query (longer URL first).
+  const withTables: MockRoute[] = [{ url: '/api/events/7/tables/', body: [] }, ...routes]
+  const mock = mockFetch(withTables)
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })
@@ -202,8 +205,9 @@ describe('GuestsPage', () => {
     ])
 
     await user.click(await screen.findByRole('button', { name: 'Ajouter un invité' }))
-    await screen.findByRole('button', { name: 'Générer les invitations' })
+    // Paste the names into the seed textarea, then build the editable rows.
     await user.type(byId('guest-bulk'), 'Éric Mukendi{enter}Sarah Kabamba')
+    await user.click(screen.getByRole('button', { name: 'Pré-remplir le tableau' }))
     await user.click(screen.getByRole('button', { name: 'Générer les invitations' }))
 
     expect(await screen.findByText('Invitations générées.')).toBeInTheDocument()
@@ -363,10 +367,14 @@ describe('GuestsPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Modifier' }))
     await screen.findByRole('dialog')
-    await user.clear(byId('guest-41-table-number'))
-    await user.type(byId('guest-41-table-number'), '7')
-    await user.clear(byId('guest-41-table-text'))
-    await user.type(byId('guest-41-table-text'), 'Près de la piste')
+    // The table picker is set to "Saisie manuelle" (the invitation already has
+    // a free-text table), so the number/text inputs appear — wait for them.
+    const tableNumberInput = await waitFor(() => byId('guest-41-table-number'))
+    await user.clear(tableNumberInput)
+    await user.type(tableNumberInput, '7')
+    const tableTextInput = await waitFor(() => byId('guest-41-table-text'))
+    await user.clear(tableTextInput)
+    await user.type(tableTextInput, 'Près de la piste')
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
 
     await waitFor(() => expect(mock.callsTo('/api/invitations/41/', 'PATCH')).toHaveLength(1))

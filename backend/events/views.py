@@ -25,7 +25,7 @@ from rest_framework.views import APIView
 from core.exceptions import EventHasInvitationsError, EventHasResponsesError
 from core.imaging import ImageRejected, optimize_image
 from core.pagination import StandardPagination
-from events.models import DressCodeImage, EventModel
+from events.models import DressCodeImage, EventModel, EventTable
 from events.serializers import EventModelSerializer
 from invitations.models import Invitation
 from templates_app.models import InvitationTemplate
@@ -67,6 +67,42 @@ class DressCodeUploadSerializer(serializers.Serializer):
 class DressCodePatchSerializer(serializers.Serializer):
     caption = serializers.CharField(required=False, allow_blank=True, max_length=255)
     order = serializers.IntegerField(required=False, min_value=0)
+
+
+class EventTableSerializer(serializers.Serializer):
+    """Read shape for one seating-registry table."""
+
+    id = serializers.IntegerField(read_only=True)
+    number = serializers.CharField(read_only=True)
+    text = serializers.CharField(read_only=True)
+    order = serializers.IntegerField(read_only=True)
+
+
+class EventTableWriteSerializer(serializers.Serializer):
+    """Create/patch a seating-registry table (organizer input, French messages)."""
+
+    number = serializers.CharField(
+        max_length=32,
+        error_messages={
+            "required": "Le numéro de table est obligatoire.",
+            "blank": "Le numéro de table est obligatoire.",
+            "max_length": "Le numéro de table ne doit pas dépasser 32 caractères.",
+        },
+    )
+    text = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=255,
+        default="",
+        error_messages={"max_length": "Le texte de table ne doit pas dépasser 255 caractères."},
+    )
+    order = serializers.IntegerField(required=False, min_value=0)
+
+    def validate_number(self, value: str) -> str:
+        return value.strip()
+
+    def validate_text(self, value: str) -> str:
+        return value.strip()
 
 
 class EventModelViewSet(viewsets.ModelViewSet):
@@ -347,4 +383,79 @@ class EventDressCodeItemView(APIView):
         with transaction.atomic():
             item.image.delete(save=False)
             item.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def _get_owned_event(request, pk) -> EventModel:
+    """Organizer-scoped event lookup shared by the nested table endpoints."""
+    event = EventModel.objects.filter(pk=pk, organizer=request.user).first()
+    if event is None:
+        raise NotFound("Ressource introuvable.")
+    return event
+
+
+class EventTablesView(APIView):
+    """``GET/POST /api/events/<pk>/tables/`` — the event's seating registry.
+
+    The registry is a convenience for quick table assignment when issuing
+    invitations; it never rewrites existing invitations (each invitation
+    keeps its own copied table strings).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        event = _get_owned_event(request, pk)
+        tables = event.tables.all()
+        return Response(EventTableSerializer(tables, many=True).data)
+
+    def post(self, request, pk):
+        event = _get_owned_event(request, pk)
+        serializer = EventTableWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        order = serializer.validated_data.get("order")
+        if order is None:
+            last = event.tables.order_by("-order", "-id").first()
+            order = (last.order + 1) if last else 0
+
+        table = EventTable.objects.create(
+            event=event,
+            number=serializer.validated_data["number"],
+            text=serializer.validated_data.get("text", ""),
+            order=order,
+        )
+        return Response(EventTableSerializer(table).data, status=status.HTTP_201_CREATED)
+
+
+class EventTableItemView(APIView):
+    """``PATCH/DELETE /api/events/<pk>/tables/<table_pk>/`` — rename/reorder/remove."""
+
+    permission_classes = [IsAuthenticated]
+
+    def _get_table(self, request, pk, table_pk) -> EventTable:
+        table = EventTable.objects.filter(
+            pk=table_pk, event__pk=pk, event__organizer=request.user
+        ).first()
+        if table is None:
+            raise NotFound("Ressource introuvable.")
+        return table
+
+    def patch(self, request, pk, table_pk):
+        table = self._get_table(request, pk, table_pk)
+        serializer = EventTableWriteSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        if "number" in serializer.validated_data:
+            table.number = serializer.validated_data["number"]
+        if "text" in serializer.validated_data:
+            table.text = serializer.validated_data["text"]
+        if "order" in serializer.validated_data:
+            table.order = serializer.validated_data["order"]
+        table.save()
+        return Response(EventTableSerializer(table).data)
+
+    def delete(self, request, pk, table_pk):
+        table = self._get_table(request, pk, table_pk)
+        # SET_NULL on Invitation.table keeps existing invitations intact.
+        table.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

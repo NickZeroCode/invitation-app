@@ -34,10 +34,12 @@ import {
   Modal,
   PageHeader,
   Pagination,
+  ProgressBar,
   Select,
   SkeletonRows,
   Spinner,
   Textarea,
+  Toggle,
   Toolbar,
   buttonClasses,
   type BadgeTone,
@@ -48,6 +50,8 @@ import { ExportImagesError, exportInvitationPdf } from '../lib/exportInvitationP
 import { formatDate } from '../lib/format.ts'
 import type {
   EventModel,
+  EventTable,
+  EventTablePayload,
   Invitation,
   InvitationCivility,
   InvitationPayload,
@@ -128,29 +132,207 @@ function guestInitials(name: string): string {
     .join('')
 }
 
-function AddGuestForm({ eventId, onSuccess }: { eventId: number; onSuccess?: () => void }) {
+/**
+ * Pick a table from the event's seating registry, or keep a free-text entry.
+ * The value is the registry id as a string, `''` for "no table", or
+ * `'custom'` to fall back to the manual number/text inputs (which keep any
+ * existing textual table working untouched).
+ */
+const TABLE_CUSTOM = 'custom'
+
+function tableSelectValue(tables: EventTable[], tableId: number | null, tableNumber: string): string {
+  if (tableId != null && tables.some((table) => table.id === tableId)) return String(tableId)
+  return tableNumber ? TABLE_CUSTOM : ''
+}
+
+function TableSelect({
+  id,
+  tables,
+  value,
+  onChange,
+}: {
+  id: string
+  tables: EventTable[]
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <Select id={id} value={value} onChange={(event) => onChange(event.target.value)}>
+      <option value="">{fr.guests.tableSelectNone}</option>
+      {tables.map((table) => (
+        <option key={table.id} value={String(table.id)}>
+          {table.text ? `${table.number} — ${table.text}` : `${fr.guests.tableBadge.replace('{number}', table.number)}`}
+        </option>
+      ))}
+      <option value={TABLE_CUSTOM}>{fr.guests.tableSelectCustom}</option>
+    </Select>
+  )
+}
+
+/** One row of the rich bulk editor: name + formule d'appel + table. */
+interface BulkRow {
+  guest_name: string
+  civility: InvitationCivility
+  table: string // registry id as string, '' = none, TABLE_CUSTOM = manual
+  table_number: string
+  table_text: string
+}
+
+function emptyBulkRow(): BulkRow {
+  return { guest_name: '', civility: 'none', table: '', table_number: '', table_text: '' }
+}
+
+/** Truthful progress of one PDF export batch (single or bulk). */
+interface ExportProgressState {
+  /** Overall percent across the whole batch (0–100). */
+  percent: number
+  current: number
+  total: number
+  /** Per-file percent of the invitation currently exporting (0–100). */
+  filePercent: number
+}
+
+/**
+ * Compose and download one invitation's PDF from FRESH server data (the
+ * cached event can carry expired presigned image URLs). `onFileProgress`
+ * receives the truthful 0–100 percent for this single file.
+ */
+async function exportOneInvitation(
+  event: EventModel,
+  invitation: Invitation,
+  onFileProgress?: (percent: number) => void,
+): Promise<void> {
+  const fresh = await eventsApi.get(event.id).catch(() => null)
+  const source = fresh ?? event
+  const refreshExportImages = async (): Promise<RefreshedImageUrls | null> => {
+    const latest = await eventsApi.get(event.id).catch(() => null)
+    return latest
+      ? {
+          cover: latest.cover_url,
+          dressCode: latest.dress_code.map((image) => ({ id: image.id, url: image.url })),
+        }
+      : null
+  }
+  await exportInvitationPdf({
+    templateKey: source.template,
+    draft: emptyDraft({
+      title: source.title,
+      message: source.message,
+      messageFont: source.message_font,
+      fontSize: source.font_size,
+      event_date: source.event_date,
+      event_time: source.event_time,
+      timezone: source.timezone,
+      venue_name: source.venue_name,
+      venue_address: source.venue_address,
+      venue_details: source.venue_details,
+      note: source.note ?? '',
+      cover_url: source.cover_url,
+      coverTitle: source.cover_title,
+      emphasis: source.display_config.emphasis ?? [],
+      guestName: invitation.display_name,
+      dressCode: [],
+      program: [],
+    }),
+    dressCode: source.dress_code.map((image) => ({
+      id: image.id,
+      url: image.url,
+      fileUrl: eventsApi.dressCodeFileUrl(source.id, image.id),
+      caption: image.caption,
+    })),
+    program: source.program_items.map((item) => ({
+      start_time: item.start_time,
+      end_time: item.end_time,
+      description: item.description,
+    })),
+    table: invitation.table_number
+      ? { number: invitation.table_number, text: invitation.table_text }
+      : undefined,
+    title: source.title,
+    guestName: invitation.display_name,
+    qrText: `${window.location.origin}/i/${invitation.token}`,
+    refresh: refreshExportImages,
+    coverFileUrl: source.cover_url ? eventsApi.coverFileUrl(source.id) : undefined,
+    onProgress: onFileProgress
+      ? (progress) => onFileProgress(progress.percent)
+      : undefined,
+  })
+}
+
+/**
+ * Export a batch of invitations sequentially (one PDF download per guest),
+ * reporting truthful overall progress: each invitation is an equal slice of
+ * the bar, advanced by its own real per-file percent.
+ */
+async function exportInvitationsBatch(
+  event: EventModel,
+  invitations: Invitation[],
+  onProgress: (state: ExportProgressState) => void,
+): Promise<void> {
+  const total = invitations.length
+  for (let index = 0; index < total; index += 1) {
+    const base = (index / total) * 100
+    const slice = 100 / total
+    await exportOneInvitation(event, invitations[index], (filePercent) => {
+      onProgress({
+        percent: base + (filePercent / 100) * slice,
+        current: index + 1,
+        total,
+        filePercent,
+      })
+    })
+  }
+}
+
+function AddGuestForm({
+  eventId,
+  event,
+  tables,
+  autoExport,
+  onExportStart,
+  onSuccess,
+}: {
+  eventId: number
+  /** Event model — needed to export the PDF when auto-export is on. */
+  event: EventModel | undefined
+  /** Seating registry for the quick table picker. */
+  tables: EventTable[]
+  autoExport: boolean
+  onExportStart?: () => void
+  onSuccess?: () => void
+}) {
   const [name, setName] = useState('')
   const [civility, setCivility] = useState<InvitationCivility>('none')
   const [expiry, setExpiry] = useState('')
+  const [tableChoice, setTableChoice] = useState('')
   const [tableNumber, setTableNumber] = useState('')
   const [tableText, setTableText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const queryClient = useQueryClient()
 
+  function reset() {
+    setName('')
+    setCivility('none')
+    setExpiry('')
+    setTableChoice('')
+    setTableNumber('')
+    setTableText('')
+  }
+
   const mutation = useMutation({
     mutationFn: (payload: InvitationPayload) => invitationsApi.create(eventId, payload),
-    onSuccess: () => {
-      setName('')
-      setCivility('none')
-      setExpiry('')
-      setTableNumber('')
-      setTableText('')
+    onSuccess: (invitation) => {
+      reset()
       setError(null)
       setSuccess(true)
       onSuccess?.()
       void queryClient.invalidateQueries({ queryKey: ['invitations'] })
       void queryClient.invalidateQueries({ queryKey: ['event'] })
+      if (autoExport && event) {
+        onExportStart?.()
+        void exportOneInvitation(event, invitation)
+      }
     },
     onError: (err: unknown) => {
       setSuccess(false)
@@ -167,13 +349,18 @@ function AddGuestForm({ eventId, onSuccess }: { eventId: number; onSuccess?: () 
       return
     }
     setError(null)
-    mutation.mutate({
+    const payload: InvitationPayload = {
       guest_name: trimmed,
       civility,
       expires_at: expiryPayload(expiry),
-      table_number: tableNumber.trim(),
-      table_text: tableText.trim(),
-    })
+    }
+    if (tableChoice === TABLE_CUSTOM) {
+      payload.table_number = tableNumber.trim()
+      payload.table_text = tableText.trim()
+    } else if (tableChoice !== '') {
+      payload.table = Number(tableChoice)
+    }
+    mutation.mutate(payload)
   }
 
   return (
@@ -212,22 +399,29 @@ function AddGuestForm({ eventId, onSuccess }: { eventId: number; onSuccess?: () 
             onChange={(event) => setExpiry(event.target.value)}
           />
         </Field>
-        <Field id="guest-table-number" label={fr.guests.tableNumberLabel} hint={fr.guests.tableNumberHint}>
-          <Input
-            id="guest-table-number"
-            placeholder={fr.guests.tableNumberPlaceholder}
-            value={tableNumber}
-            onChange={(event) => setTableNumber(event.target.value)}
-          />
+        <Field id="guest-table-select" label={fr.guests.tableSelectLabel} hint={fr.guests.tableNumberHint}>
+          <TableSelect id="guest-table-select" tables={tables} value={tableChoice} onChange={setTableChoice} />
         </Field>
-        <Field id="guest-table-text" label={fr.guests.tableTextLabel}>
-          <Input
-            id="guest-table-text"
-            placeholder={fr.guests.tableTextPlaceholder}
-            value={tableText}
-            onChange={(event) => setTableText(event.target.value)}
-          />
-        </Field>
+        {tableChoice === TABLE_CUSTOM ? (
+          <>
+            <Field id="guest-table-number" label={fr.guests.tableNumberLabel}>
+              <Input
+                id="guest-table-number"
+                placeholder={fr.guests.tableNumberPlaceholder}
+                value={tableNumber}
+                onChange={(event) => setTableNumber(event.target.value)}
+              />
+            </Field>
+            <Field id="guest-table-text" label={fr.guests.tableTextLabel}>
+              <Input
+                id="guest-table-text"
+                placeholder={fr.guests.tableTextPlaceholder}
+                value={tableText}
+                onChange={(event) => setTableText(event.target.value)}
+              />
+            </Field>
+          </>
+        ) : null}
         <div className="flex items-start sm:pt-[1.625rem]">
           <Button type="submit" loading={mutation.isPending} className="w-full">
             {fr.guests.addSubmit}
@@ -248,21 +442,52 @@ function AddGuestForm({ eventId, onSuccess }: { eventId: number; onSuccess?: () 
   )
 }
 
-function BulkAddForm({ eventId, onSuccess }: { eventId: number; onSuccess?: () => void }) {
+function BulkAddForm({
+  eventId,
+  event,
+  tables,
+  autoExport,
+  onExportStart,
+  onExportProgress,
+  onSuccess,
+}: {
+  eventId: number
+  /** Event model — needed to export the PDFs when auto-export is on. */
+  event: EventModel | undefined
+  /** Seating registry for the per-row table picker. */
+  tables: EventTable[]
+  autoExport: boolean
+  onExportStart?: () => void
+  onExportProgress?: (state: ExportProgressState) => void
+  onSuccess?: () => void
+}) {
   const [lines, setLines] = useState('')
+  const [rows, setRows] = useState<BulkRow[]>([])
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
     mutationFn: (invitations: InvitationPayload[]) => invitationsApi.bulkCreate(eventId, invitations),
-    onSuccess: () => {
+    onSuccess: async (result) => {
       setLines('')
+      setRows([])
       setError(null)
       setSuccess(true)
-      onSuccess?.()
       void queryClient.invalidateQueries({ queryKey: ['invitations'] })
       void queryClient.invalidateQueries({ queryKey: ['event'] })
+      const created = result.invitations ?? []
+      if (autoExport && event && created.length > 0) {
+        setExporting(true)
+        onExportStart?.()
+        try {
+          await exportInvitationsBatch(event, created, (state) => onExportProgress?.(state))
+        } finally {
+          setExporting(false)
+        }
+      }
+      onSuccess?.()
     },
     onError: (err: unknown) => {
       setSuccess(false)
@@ -270,22 +495,54 @@ function BulkAddForm({ eventId, onSuccess }: { eventId: number; onSuccess?: () =
     },
   })
 
-  const count = lines.split('\n').filter((line) => line.trim()).length
+  function seedRows() {
+    const seeded = lines
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .map((guest_name) => ({ ...emptyBulkRow(), guest_name }))
+    setRows(seeded)
+  }
+
+  function updateRow(index: number, patch: Partial<BulkRow>) {
+    setRows((current) => current.map((row, position) => (position === index ? { ...row, ...patch } : row)))
+  }
+
+  function removeRow(index: number) {
+    setRows((current) => current.filter((_, position) => position !== index))
+  }
+
+  const count = rows.length
 
   function submit(event: FormEvent) {
     event.preventDefault()
     setSuccess(false)
-    const names = lines
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0)
-    if (names.length === 0) {
+    if (rows.length === 0) {
+      setError(fr.guests.bulkEmpty)
+      return
+    }
+    const blank = rows.findIndex((row) => !row.guest_name.trim())
+    if (blank >= 0) {
       setError(fr.guests.bulkEmpty)
       return
     }
     setError(null)
-    mutation.mutate(names.map((guest_name) => ({ guest_name })))
+    mutation.mutate(
+      rows.map((row) => {
+        const payload: InvitationPayload = { guest_name: row.guest_name.trim() }
+        if (row.civility !== 'none') payload.civility = row.civility
+        if (row.table === TABLE_CUSTOM) {
+          if (row.table_number.trim()) payload.table_number = row.table_number.trim()
+          if (row.table_text.trim()) payload.table_text = row.table_text.trim()
+        } else if (row.table !== '') {
+          payload.table = Number(row.table)
+        }
+        return payload
+      }),
+    )
   }
+
+  const busy = mutation.isPending || exporting
 
   return (
     <section aria-labelledby="bulk-guest-title">
@@ -300,18 +557,111 @@ function BulkAddForm({ eventId, onSuccess }: { eventId: number; onSuccess?: () =
         ) : null}
       </div>
       <form className="mt-3 space-y-3" onSubmit={submit}>
-        <Field id="guest-bulk" label={fr.guests.bulkLabel} hint={fr.guests.bulkHint}>
-          <Textarea
-            id="guest-bulk"
-            rows={5}
-            placeholder={fr.guests.bulkPlaceholder}
-            value={lines}
-            onChange={(event) => setLines(event.target.value)}
-          />
-        </Field>
-        <Button type="submit" variant="secondary" loading={mutation.isPending}>
-          {fr.guests.bulkSubmit}
-        </Button>
+        {rows.length === 0 ? (
+          <Field id="guest-bulk" label={fr.guests.bulkLabel} hint={fr.guests.bulkHint}>
+            <Textarea
+              id="guest-bulk"
+              rows={5}
+              placeholder={fr.guests.bulkPlaceholder}
+              value={lines}
+              onChange={(event) => setLines(event.target.value)}
+            />
+          </Field>
+        ) : null}
+
+        {rows.length === 0 ? (
+          <Button type="button" variant="secondary" onClick={seedRows} disabled={!lines.trim()}>
+            {fr.guests.bulkSeedRows}
+          </Button>
+        ) : null}
+
+        {rows.length > 0 ? (
+          <div className="space-y-2">
+            <ul className="space-y-2">
+              {rows.map((row, index) => (
+                <li
+                  key={index}
+                  className="grid grid-cols-1 items-end gap-2 rounded-card bg-surface-muted/60 p-3 ring-1 ring-inset ring-line sm:grid-cols-[minmax(0,1.4fr)_10rem_minmax(0,1fr)_auto]"
+                >
+                  <Field id={`bulk-row-${index}-name`} label={fr.guests.bulkGuestName} required>
+                    <Input
+                      id={`bulk-row-${index}-name`}
+                      placeholder={fr.guests.addNamePlaceholder}
+                      value={row.guest_name}
+                      onChange={(event) => updateRow(index, { guest_name: event.target.value })}
+                    />
+                  </Field>
+                  <Field id={`bulk-row-${index}-civility`} label={fr.guests.addCivilityLabel}>
+                    <Select
+                      id={`bulk-row-${index}-civility`}
+                      value={row.civility}
+                      onChange={(event) =>
+                        updateRow(index, { civility: event.target.value as InvitationCivility })
+                      }
+                    >
+                      {CIVILITIES.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                  <Field id={`bulk-row-${index}-table`} label={fr.guests.tableSelectLabel}>
+                    <TableSelect
+                      id={`bulk-row-${index}-table`}
+                      tables={tables}
+                      value={row.table}
+                      onChange={(value) => updateRow(index, { table: value })}
+                    />
+                  </Field>
+                  <div className="flex justify-end">
+                    <RowAction
+                      label={fr.guests.bulkRemoveRow}
+                      icon={<IconTrash className="h-4 w-4" />}
+                      tone="danger"
+                      onClick={() => removeRow(index)}
+                    />
+                  </div>
+                  {row.table === TABLE_CUSTOM ? (
+                    <div className="grid grid-cols-1 gap-2 sm:col-span-4 sm:grid-cols-2">
+                      <Field id={`bulk-row-${index}-table-number`} label={fr.guests.tableNumberLabel}>
+                        <Input
+                          id={`bulk-row-${index}-table-number`}
+                          placeholder={fr.guests.tableNumberPlaceholder}
+                          value={row.table_number}
+                          onChange={(event) => updateRow(index, { table_number: event.target.value })}
+                        />
+                      </Field>
+                      <Field id={`bulk-row-${index}-table-text`} label={fr.guests.tableTextLabel}>
+                        <Input
+                          id={`bulk-row-${index}-table-text`}
+                          placeholder={fr.guests.tableTextPlaceholder}
+                          value={row.table_text}
+                          onChange={(event) => updateRow(index, { table_text: event.target.value })}
+                        />
+                      </Field>
+                    </div>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setRows((current) => [...current, emptyBulkRow()])}
+            >
+              <IconPlus className="h-4 w-4" />
+              {fr.guests.bulkAddRow}
+            </Button>
+          </div>
+        ) : null}
+
+        {rows.length > 0 ? (
+          <Button type="submit" variant="secondary" loading={busy}>
+            {fr.guests.bulkSubmit}
+          </Button>
+        ) : null}
       </form>
       {error ? (
         <p role="alert" className="mt-3 text-sm text-danger">
@@ -365,10 +715,13 @@ function RowAction({
 function GuestRow({
   invitation,
   event,
+  tables,
 }: {
   invitation: Invitation
   /** Event model — supplies the artwork for the PDF export. */
   event: EventModel | undefined
+  /** Seating registry for the table picker. */
+  tables: EventTable[]
 }) {
   const [editing, setEditing] = useState(false)
   const [confirmingRevoke, setConfirmingRevoke] = useState(false)
@@ -381,6 +734,12 @@ function GuestRow({
   const [expiry, setExpiry] = useState(expiryInputValue(invitation.expires_at))
   const [tableNumber, setTableNumber] = useState(invitation.table_number)
   const [tableText, setTableText] = useState(invitation.table_text)
+  const [tableId, setTableId] = useState<number | null>(invitation.table)
+  // Explicit select state ('' none / registry id / TABLE_CUSTOM) — NOT derived
+  // from tableNumber, so clearing the manual number input can't flip the mode.
+  const [tableMode, setTableMode] = useState<string>(() =>
+    tableSelectValue(tables, invitation.table, invitation.table_number),
+  )
   const queryClient = useQueryClient()
 
   function invalidate() {
@@ -405,79 +764,25 @@ function GuestRow({
   })
 
   const [exporting, setExporting] = useState(false)
-
-  /** Fresh storage URLs for a photo whose presigned link died mid-export. */
-  async function refreshExportImages(): Promise<RefreshedImageUrls | null> {
-    if (!event) return null
-    const latest = await eventsApi.get(event.id).catch(() => null)
-    return latest
-      ? {
-          cover: latest.cover_url,
-          dressCode: latest.dress_code.map((image) => ({ id: image.id, url: image.url })),
-        }
-      : null
-  }
+  const [exportProgress, setExportProgress] = useState<ExportProgressState | null>(null)
 
   async function exportPdf() {
     if (!event || exporting) return
     setExporting(true)
+    setExportProgress({ percent: 0, current: 1, total: 1, filePercent: 0 })
     setNotice(null)
     setError(null)
     try {
-      // Always compose the PDF from FRESH server data: the cached event can
-      // carry stale presigned image URLs (cover/dress-code URLs expire hourly
-      // and a replaced cover deletes its old object), which silently left the
-      // exported pictures blank. The cache is only a fallback for a transient
-      // refetch failure.
-      const fresh = await eventsApi.get(event.id).catch(() => null)
-      const source = fresh ?? event
-      await exportInvitationPdf({
-        templateKey: source.template,
-        draft: emptyDraft({
-          title: source.title,
-          message: source.message,
-          messageFont: source.message_font,
-          fontSize: source.font_size,
-          event_date: source.event_date,
-          event_time: source.event_time,
-          timezone: source.timezone,
-          venue_name: source.venue_name,
-          venue_address: source.venue_address,
-          venue_details: source.venue_details,
-          note: source.note ?? '',
-          cover_url: source.cover_url,
-          coverTitle: source.cover_title,
-          emphasis: source.display_config.emphasis ?? [],
-          guestName: invitation.display_name,
-          dressCode: [],
-          program: [],
-        }),
-        dressCode: source.dress_code.map((image) => ({
-          id: image.id,
-          url: image.url,
-          fileUrl: eventsApi.dressCodeFileUrl(source.id, image.id),
-          caption: image.caption,
-        })),
-        program: source.program_items.map((item) => ({
-          start_time: item.start_time,
-          end_time: item.end_time,
-          description: item.description,
-        })),
-        table: invitation.table_number
-          ? { number: invitation.table_number, text: invitation.table_text }
-          : undefined,
-        title: source.title,
-        guestName: invitation.display_name,
-        qrText: `${window.location.origin}/i/${invitation.token}`,
-        refresh: refreshExportImages,
-        coverFileUrl: source.cover_url ? eventsApi.coverFileUrl(source.id) : undefined,
-      })
+      await exportOneInvitation(event, invitation, (filePercent) =>
+        setExportProgress({ percent: filePercent, current: 1, total: 1, filePercent }),
+      )
       setNotice(fr.guests.exported)
     } catch (caught) {
       // An incomplete invitation is never downloaded: say so precisely.
       setError(caught instanceof ExportImagesError ? fr.common.exportImagesFailed : fr.guests.exportError)
     } finally {
       setExporting(false)
+      setExportProgress(null)
     }
   }
 
@@ -536,10 +841,36 @@ function GuestRow({
       table_number: tableNumber.trim(),
       table_text: tableText.trim(),
     }
+    // The table picker is authoritative for the link: a registry id copies
+    // that table's values server-side; `null` clears the link; leaving the
+    // field untouched keeps the existing strings (free text preserved).
+    if (tableId !== invitation.table) {
+      payload.table = tableId
+    }
     if (expiry !== expiryInputValue(invitation.expires_at)) {
       payload.expires_at = expiryPayload(expiry)
     }
     updateMutation.mutate(payload)
+  }
+
+  function onEditTableSelect(value: string) {
+    setTableMode(value)
+    if (value === TABLE_CUSTOM) {
+      setTableId(null)
+      return
+    }
+    if (value === '') {
+      setTableId(null)
+      setTableNumber('')
+      setTableText('')
+      return
+    }
+    const picked = tables.find((table) => String(table.id) === value)
+    if (picked) {
+      setTableId(picked.id)
+      setTableNumber(picked.number)
+      setTableText(picked.text)
+    }
   }
 
   return (
@@ -624,8 +955,15 @@ function GuestRow({
 
       {/* While the edit dialog is open its own alert carries the message —
           keeping this one hidden avoids duplicate role="alert" announcements. */}
-      {!editing && (notice || error) ? (
-        <div className="px-4 pb-3 sm:pl-[4.25rem] sm:pr-5">
+      {!editing && (notice || error || exportProgress) ? (
+        <div className="space-y-2 px-4 pb-3 sm:pl-[4.25rem] sm:pr-5">
+          {exportProgress ? (
+            <ProgressBar
+              value={exportProgress.percent}
+              label={fr.guests.exportProgress}
+              caption={fr.guests.exportProgressDone}
+            />
+          ) : null}
           {notice ? (
             <p role="status" className="text-xs text-ink-soft">
               {notice}
@@ -682,25 +1020,41 @@ function GuestRow({
             />
           </Field>
           <Field
-            id={`guest-${invitation.id}-table-number`}
-            label={fr.guests.tableNumberLabel}
+            id={`guest-${invitation.id}-table-select`}
+            label={fr.guests.tableSelectLabel}
             hint={fr.guests.tableNumberHint}
+            className="sm:col-span-2"
           >
-            <Input
-              id={`guest-${invitation.id}-table-number`}
-              placeholder={fr.guests.tableNumberPlaceholder}
-              value={tableNumber}
-              onChange={(event) => setTableNumber(event.target.value)}
+            <TableSelect
+              id={`guest-${invitation.id}-table-select`}
+              tables={tables}
+              value={tableMode}
+              onChange={onEditTableSelect}
             />
           </Field>
-          <Field id={`guest-${invitation.id}-table-text`} label={fr.guests.tableTextLabel}>
-            <Input
-              id={`guest-${invitation.id}-table-text`}
-              placeholder={fr.guests.tableTextPlaceholder}
-              value={tableText}
-              onChange={(event) => setTableText(event.target.value)}
-            />
-          </Field>
+          {tableMode === TABLE_CUSTOM ? (
+            <>
+              <Field
+                id={`guest-${invitation.id}-table-number`}
+                label={fr.guests.tableNumberLabel}
+              >
+                <Input
+                  id={`guest-${invitation.id}-table-number`}
+                  placeholder={fr.guests.tableNumberPlaceholder}
+                  value={tableNumber}
+                  onChange={(event) => setTableNumber(event.target.value)}
+                />
+              </Field>
+              <Field id={`guest-${invitation.id}-table-text`} label={fr.guests.tableTextLabel}>
+                <Input
+                  id={`guest-${invitation.id}-table-text`}
+                  placeholder={fr.guests.tableTextPlaceholder}
+                  value={tableText}
+                  onChange={(event) => setTableText(event.target.value)}
+                />
+              </Field>
+            </>
+          ) : null}
           <div className="flex flex-col-reverse gap-2 pt-1 sm:col-span-2 sm:flex-row sm:justify-end">
             <Button type="button" variant="secondary" onClick={() => setEditing(false)}>
               {fr.common.cancel}
@@ -739,12 +1093,134 @@ function GuestRow({
   )
 }
 
+/** "Gérer les tables" — the seating registry (ajouter / supprimer une table). */
+function TablesManager({ eventId }: { eventId: number }) {
+  const [open, setOpen] = useState(false)
+  const [number, setNumber] = useState('')
+  const [text, setText] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
+
+  const tablesQuery = useQuery({
+    queryKey: ['event-tables', eventId],
+    queryFn: () => eventsApi.listTables(eventId),
+    enabled: Number.isFinite(eventId) && open,
+  })
+
+  const createMutation = useMutation({
+    mutationFn: (payload: EventTablePayload) => eventsApi.createTable(eventId, payload),
+    onSuccess: () => {
+      setNumber('')
+      setText('')
+      setError(null)
+      void queryClient.invalidateQueries({ queryKey: ['event-tables', eventId] })
+    },
+    onError: (err: unknown) => setError(errorMessage(err)),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (tableId: number) => eventsApi.removeTable(eventId, tableId),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['event-tables', eventId] }),
+  })
+
+  const tables = tablesQuery.data ?? []
+
+  function submit(event: FormEvent) {
+    event.preventDefault()
+    setError(null)
+    const trimmed = number.trim()
+    if (!trimmed) {
+      setError(fr.common.requiredField)
+      return
+    }
+    createMutation.mutate({ number: trimmed, text: text.trim() })
+  }
+
+  return (
+    <section aria-labelledby="tables-title">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 id="tables-title" className="text-sm font-semibold text-ink">
+            {fr.guests.tablesTitle}
+          </h3>
+          <p className="mt-1 text-xs text-ink-faint">{fr.guests.tablesHint}</p>
+        </div>
+        <Button type="button" variant="secondary" size="sm" onClick={() => setOpen((value) => !value)}>
+          {open ? fr.common.close : fr.guests.manageTables}
+        </Button>
+      </div>
+
+      {open ? (
+        <div className="mt-4 space-y-4">
+          <form className="flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={submit}>
+            <div className="flex-1">
+              <Field id="table-number" label={fr.guests.tablesNumberLabel} required>
+                <Input
+                  id="table-number"
+                  placeholder={fr.guests.tablesNumberPlaceholder}
+                  value={number}
+                  onChange={(event) => setNumber(event.target.value)}
+                />
+              </Field>
+            </div>
+            <div className="flex-1">
+              <Field id="table-text" label={fr.guests.tableTextLabel}>
+                <Input
+                  id="table-text"
+                  placeholder={fr.guests.tableTextPlaceholder}
+                  value={text}
+                  onChange={(event) => setText(event.target.value)}
+                />
+              </Field>
+            </div>
+            <Button type="submit" loading={createMutation.isPending}>
+              {fr.guests.tablesAddSubmit}
+            </Button>
+          </form>
+          {error ? (
+            <p role="alert" className="text-sm text-danger">
+              {error}
+            </p>
+          ) : null}
+          {tablesQuery.isPending ? <SkeletonRows rows={3} /> : null}
+          {tablesQuery.isSuccess && tables.length === 0 ? (
+            <p className="text-sm text-ink-faint">{fr.guests.tablesEmpty}</p>
+          ) : null}
+          {tables.length > 0 ? (
+            <ul className="divide-y divide-line rounded-card ring-1 ring-inset ring-line">
+              {tables.map((table) => (
+                <li key={table.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
+                  <div className="min-w-0">
+                    <span className="text-sm font-semibold text-ink">
+                      {fr.guests.tableBadge.replace('{number}', table.number)}
+                    </span>
+                    {table.text ? <span className="ml-2 text-xs text-ink-faint">{table.text}</span> : null}
+                  </div>
+                  <RowAction
+                    label={fr.guests.tablesDelete}
+                    icon={<IconTrash className="h-4 w-4" />}
+                    tone="danger"
+                    loading={deleteMutation.isPending}
+                    onClick={() => deleteMutation.mutate(table.id)}
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
 export function GuestsPage() {
   const { id } = useParams()
   const eventId = Number(id)
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '')
   const [addOpen, setAddOpen] = useState(false)
+  const [autoExport, setAutoExport] = useState(false)
+  const [exportProgress, setExportProgress] = useState<ExportProgressState | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
   const q = searchParams.get('q') ?? ''
@@ -754,6 +1230,12 @@ export function GuestsPage() {
   const eventQuery = useQuery({
     queryKey: ['event', eventId],
     queryFn: () => eventsApi.get(eventId),
+    enabled: Number.isFinite(eventId),
+  })
+
+  const tablesQuery = useQuery({
+    queryKey: ['event-tables', eventId],
+    queryFn: () => eventsApi.listTables(eventId),
     enabled: Number.isFinite(eventId),
   })
 
@@ -772,7 +1254,13 @@ export function GuestsPage() {
   }
 
   const results = query.data?.results ?? []
+  const tables = tablesQuery.data ?? []
   const totalPages = query.data ? Math.max(1, Math.ceil(query.data.count / 25)) : 1
+
+  function closeModal() {
+    setAddOpen(false)
+    setExportProgress(null)
+  }
 
   return (
     <div className="space-y-6">
@@ -817,28 +1305,53 @@ export function GuestsPage() {
 
       <Modal
         open={addOpen}
-        onClose={() => setAddOpen(false)}
+        onClose={closeModal}
         ariaLabel={fr.guests.addTitle}
         title={fr.guests.addTitle}
         description={fr.guests.addModalHint}
         size="lg"
       >
         <div className="space-y-6">
+          <Toggle
+            id="auto-export"
+            checked={autoExport}
+            onChange={setAutoExport}
+            label={fr.guests.autoExportLabel}
+          />
+          {exportProgress ? (
+            <ProgressBar
+              value={exportProgress.percent}
+              label={fr.guests.exportProgress}
+              caption={fr.guests.exportProgressGuest
+                .replace('{current}', String(exportProgress.current))
+                .replace('{total}', String(exportProgress.total))}
+            />
+          ) : null}
           <AddGuestForm
             eventId={eventId}
+            event={eventQuery.data}
+            tables={tables}
+            autoExport={autoExport}
             onSuccess={() => {
-              setAddOpen(false)
+              closeModal()
               setNotice(fr.guests.addSuccess)
             }}
           />
           <div className="h-px bg-line" />
           <BulkAddForm
             eventId={eventId}
+            event={eventQuery.data}
+            tables={tables}
+            autoExport={autoExport}
+            onExportStart={() => setExportProgress({ percent: 0, current: 1, total: 1, filePercent: 0 })}
+            onExportProgress={setExportProgress}
             onSuccess={() => {
-              setAddOpen(false)
+              closeModal()
               setNotice(fr.guests.bulkSuccess)
             }}
           />
+          <div className="h-px bg-line" />
+          <TablesManager eventId={eventId} />
         </div>
       </Modal>
 
@@ -910,7 +1423,7 @@ export function GuestsPage() {
           <Card className="overflow-hidden">
             <ul className="divide-y divide-line">
               {results.map((invitation) => (
-                <GuestRow key={invitation.id} invitation={invitation} event={eventQuery.data} />
+                <GuestRow key={invitation.id} invitation={invitation} event={eventQuery.data} tables={tables} />
               ))}
             </ul>
           </Card>

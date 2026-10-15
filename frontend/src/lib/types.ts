@@ -238,6 +238,8 @@ export interface Invitation {
   table_number: string
   /** Optional free text shown with the table number. */
   table_text: string
+  /** Seating-registry table id this invitation was assigned from (null = none). */
+  table: number | null
   display_name: string
   token: string
   issued_at: string
@@ -259,7 +261,24 @@ export interface InvitationPayload {
   civility?: InvitationCivility
   table_number?: string
   table_text?: string
+  /** Seating-registry table id to copy onto this invitation (null = clear link). */
+  table?: number | null
   expires_at?: string | null
+}
+
+/** One named table in an event's seating registry ("ajouter une table"). */
+export interface EventTable {
+  id: number
+  number: string
+  text: string
+  order: number
+}
+
+/** Create/patch body for a registry table. */
+export interface EventTablePayload {
+  number: string
+  text?: string
+  order?: number
 }
 
 export interface InvitationListPage {
