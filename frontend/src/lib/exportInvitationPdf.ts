@@ -62,6 +62,24 @@ const MAX_TIGHTEN_PASSES = 3
 const TIGHTEN_MARGIN_BYTES = 12_000
 
 /**
+ * Yield to the browser so it can paint, fire timers and stay responsive.
+ * Rasterising several invitations back-to-back runs long synchronous DOM /
+ * canvas work; without a periodic yield the tab freezes (and downloads queue
+ * up). A double `requestAnimationFrame` hands the main thread back for a full
+ * frame — far kinder than a microtask — and falls back to a 0ms timeout where
+ * rAF is unavailable (tests, background tabs throttle rAF but still run it).
+ */
+export function yieldToBrowser(): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+    } else {
+      setTimeout(resolve, 0)
+    }
+  })
+}
+
+/**
  * Truthful export progress, reported from the real pipeline stages. `percent`
  * is cumulative (0–100) across one invitation's export; `phase` names the
  * stage that just completed. Never fabricated: the bar only moves when a
@@ -806,6 +824,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       if (coverImage && (coverImage.getAttribute('src') ?? '').startsWith('data:')) {
         pages.push(await timed('capture-cover', () => captureRaster(cover, fontEmbedCSS)))
         reportCapture()
+        await yieldToBrowser()
       }
     }
 
@@ -822,6 +841,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       })
     }
     reportCapture()
+    await yieldToBrowser()
 
     // Page 3 — dress code, programme and table on the template's paper tone.
     // Photos that could not be loaded are already dropped from `dressCode`.
@@ -843,6 +863,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
         details.dispose()
       }
       reportCapture()
+      await yieldToBrowser()
     }
 
     // Page 4 — the styled verification page (template tone + title + arrow),
@@ -866,6 +887,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
         qrBackground.dispose()
       }
       reportCapture()
+      await yieldToBrowser()
     }
 
     const { jsPDF } = await import('jspdf')
@@ -958,6 +980,8 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       triggerDownload(doc, invitationPdfFileName(content.title, content.guestName), blob ?? undefined)
       // Snap to 100 regardless of rounding drift so the bar always completes.
       report('done', 100 - completed)
+      // Let the browser start the download (and paint) before any next export.
+      await yieldToBrowser()
     } finally {
       compressor.dispose()
     }

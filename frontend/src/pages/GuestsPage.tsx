@@ -46,7 +46,7 @@ import {
 } from '../design-system/index.ts'
 import { ApiError, eventsApi, invitationsApi } from '../lib/api.ts'
 import type { RefreshedImageUrls } from '../lib/pdfImages.ts'
-import { ExportImagesError, exportInvitationPdf } from '../lib/exportInvitationPdf.ts'
+import { ExportImagesError, exportInvitationPdf, yieldToBrowser } from '../lib/exportInvitationPdf.ts'
 import { formatDate } from '../lib/format.ts'
 import type {
   EventModel,
@@ -196,13 +196,17 @@ interface ExportProgressState {
  * Compose and download one invitation's PDF from FRESH server data (the
  * cached event can carry expired presigned image URLs). `onFileProgress`
  * receives the truthful 0–100 percent for this single file.
+ *
+ * `sourceOverride` lets a batch supply the event it already fetched once, so
+ * N guests don't trigger N identical `GET /events/:id` round-trips.
  */
 async function exportOneInvitation(
   event: EventModel,
   invitation: Invitation,
   onFileProgress?: (percent: number) => void,
+  sourceOverride?: EventModel,
 ): Promise<void> {
-  const fresh = await eventsApi.get(event.id).catch(() => null)
+  const fresh = sourceOverride ?? (await eventsApi.get(event.id).catch(() => null))
   const source = fresh ?? event
   const refreshExportImages = async (): Promise<RefreshedImageUrls | null> => {
     const latest = await eventsApi.get(event.id).catch(() => null)
@@ -263,6 +267,13 @@ async function exportOneInvitation(
  * Export a batch of invitations sequentially (one PDF download per guest),
  * reporting truthful overall progress: each invitation is an equal slice of
  * the bar, advanced by its own real per-file percent.
+ *
+ * Kept strictly sequential and deliberately paced — never parallel. Each PDF
+ * runs long synchronous DOM/canvas rasterization on the main thread, so the
+ * batch (1) fetches the event once instead of per guest, (2) yields a full
+ * frame to the browser between files so the tab keeps painting and the
+ * progress bar stays alive, and (3) leaves a short gap after each download so
+ * the browser doesn't stall on a burst of simultaneous file downloads.
  */
 async function exportInvitationsBatch(
   event: EventModel,
@@ -270,17 +281,31 @@ async function exportInvitationsBatch(
   onProgress: (state: ExportProgressState) => void,
 ): Promise<void> {
   const total = invitations.length
+  // One fetch for the whole batch — fresh presigned image URLs, no N× round-trip.
+  const fresh = await eventsApi.get(event.id).catch(() => null)
+  const source = fresh ?? event
   for (let index = 0; index < total; index += 1) {
     const base = (index / total) * 100
     const slice = 100 / total
-    await exportOneInvitation(event, invitations[index], (filePercent) => {
-      onProgress({
-        percent: base + (filePercent / 100) * slice,
-        current: index + 1,
-        total,
-        filePercent,
-      })
-    })
+    await exportOneInvitation(
+      event,
+      invitations[index],
+      (filePercent) => {
+        onProgress({
+          percent: base + (filePercent / 100) * slice,
+          current: index + 1,
+          total,
+          filePercent,
+        })
+      },
+      source,
+    )
+    // Breathe between files: paint the UI, then a beat so the browser starts
+    // the previous download before the next one is requested.
+    if (index < total - 1) {
+      await yieldToBrowser()
+      await new Promise<void>((resolve) => setTimeout(resolve, 350))
+    }
   }
 }
 
@@ -1350,10 +1375,12 @@ export function GuestsPage() {
               setNotice(fr.guests.bulkSuccess)
             }}
           />
-          <div className="h-px bg-line" />
-          <TablesManager eventId={eventId} />
         </div>
       </Modal>
+
+      <Card>
+        <TablesManager eventId={eventId} />
+      </Card>
 
       <Toolbar>
         <form
