@@ -15,6 +15,8 @@ import {
   Badge,
   Button,
   Card,
+  CardBody,
+  CardHeader,
   ConfirmDialog,
   EmptyState,
   ErrorState,
@@ -22,6 +24,8 @@ import {
   IconBan,
   IconChart,
   IconCheck,
+  IconChevronDown,
+  IconChevronUp,
   IconDownload,
   IconEdit,
   IconLink,
@@ -1163,42 +1167,48 @@ function TablesManager({ eventId }: { eventId: number }) {
 
   return (
     <section aria-labelledby="tables-title">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h3 id="tables-title" className="text-sm font-semibold text-ink">
-            {fr.guests.tablesTitle}
-          </h3>
-          <p className="mt-1 text-xs text-ink-faint">{fr.guests.tablesHint}</p>
-        </div>
-        <Button type="button" variant="secondary" size="sm" onClick={() => setOpen((value) => !value)}>
-          {open ? fr.common.close : fr.guests.manageTables}
-        </Button>
-      </div>
+      <CardHeader
+        title={fr.guests.tablesTitle}
+        description={fr.guests.tablesHint}
+        action={
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+          >
+            {open ? (
+              <IconChevronUp className="h-4 w-4" />
+            ) : (
+              <IconChevronDown className="h-4 w-4" />
+            )}
+            {open ? fr.common.close : fr.guests.manageTables}
+          </Button>
+        }
+      />
 
       {open ? (
-        <div className="mt-4 space-y-4">
-          <form className="flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={submit}>
-            <div className="flex-1">
-              <Field id="table-number" label={fr.guests.tablesNumberLabel} required>
-                <Input
-                  id="table-number"
-                  placeholder={fr.guests.tablesNumberPlaceholder}
-                  value={number}
-                  onChange={(event) => setNumber(event.target.value)}
-                />
-              </Field>
-            </div>
-            <div className="flex-1">
-              <Field id="table-text" label={fr.guests.tableTextLabel}>
-                <Input
-                  id="table-text"
-                  placeholder={fr.guests.tableTextPlaceholder}
-                  value={text}
-                  onChange={(event) => setText(event.target.value)}
-                />
-              </Field>
-            </div>
+        <CardBody className="space-y-5">
+          <form className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end" onSubmit={submit}>
+            <Field id="table-number" label={fr.guests.tablesNumberLabel} required>
+              <Input
+                id="table-number"
+                placeholder={fr.guests.tablesNumberPlaceholder}
+                value={number}
+                onChange={(event) => setNumber(event.target.value)}
+              />
+            </Field>
+            <Field id="table-text" label={fr.guests.tableTextLabel}>
+              <Input
+                id="table-text"
+                placeholder={fr.guests.tableTextPlaceholder}
+                value={text}
+                onChange={(event) => setText(event.target.value)}
+              />
+            </Field>
             <Button type="submit" loading={createMutation.isPending}>
+              <IconPlus className="h-4 w-4" />
               {fr.guests.tablesAddSubmit}
             </Button>
           </form>
@@ -1212,7 +1222,7 @@ function TablesManager({ eventId }: { eventId: number }) {
             <p className="text-sm text-ink-faint">{fr.guests.tablesEmpty}</p>
           ) : null}
           {tables.length > 0 ? (
-            <ul className="divide-y divide-line rounded-card ring-1 ring-inset ring-line">
+            <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line">
               {tables.map((table) => (
                 <li key={table.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
                   <div className="min-w-0">
@@ -1232,7 +1242,7 @@ function TablesManager({ eventId }: { eventId: number }) {
               ))}
             </ul>
           ) : null}
-        </div>
+        </CardBody>
       ) : null}
     </section>
   )

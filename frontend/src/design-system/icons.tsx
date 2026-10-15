@@ -85,6 +85,22 @@ export function IconChevronLeft({ className = 'h-5 w-5' }: IconProps) {
   )
 }
 
+export function IconChevronDown({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  )
+}
+
+export function IconChevronUp({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="m18 15-6-6-6 6" />
+    </svg>
+  )
+}
+
 export function IconMenu({ className = 'h-5 w-5' }: IconProps) {
   return (
     <svg {...base(className)}>
