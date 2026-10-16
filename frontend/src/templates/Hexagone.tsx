@@ -7,9 +7,11 @@
  * « NOVEMBRE | 14 | 18:00 » date row.
  */
 import { WatercolorSpray } from './florals.tsx'
+import { LuxePattern, VellumHalo } from './luxeMotifs.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
 import {
+  CoverHero,
   DressCodeSection,
   InvitationPaper,
   NoteSection,
@@ -76,6 +78,22 @@ export function Hexagone({ draft }: TemplateProps) {
   const names = splitNames(draft.title)
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: INK }}>
+      <LuxePattern templateKey="hexagone" />
+      <VellumHalo color={PAPER} />
+
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(43,32,24,0.6)"
+        edgeColor="rgba(216,178,106,0.85)"
+        eyebrow="Célébrons ensemble"
+        titleStyle={{
+          fontFamily: SCRIPT_FONT,
+          fontSize: titleEm ? '4.4em' : '3.5em',
+          color: '#F7EEDD',
+          textShadow: '0 0.05em 0.3em rgba(30,20,12,0.5)',
+        }}
+      />
+
       <HexOutline color={GOLD} />
 
       {/* Muted floral corners with red berries */}

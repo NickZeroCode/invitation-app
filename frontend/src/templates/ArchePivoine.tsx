@@ -7,9 +7,11 @@
  * date row.
  */
 import { ArchFrame } from './florals.tsx'
+import { LuxePattern, VellumHalo } from './luxeMotifs.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
 import {
+  CoverHero,
   DressCodeSection,
   InvitationPaper,
   NoteSection,
@@ -44,6 +46,22 @@ export function ArchePivoine({ draft }: TemplateProps) {
   const names = splitNames(draft.title)
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: INK }}>
+      <LuxePattern templateKey="arche-pivoine" />
+      <VellumHalo color={PAPER} />
+
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(38,50,80,0.6)"
+        edgeColor="rgba(194,154,78,0.9)"
+        eyebrow="Avec leurs familles"
+        titleStyle={{
+          fontFamily: SCRIPT_FONT,
+          fontSize: titleEm ? '4.6em' : '3.7em',
+          color: '#F4F1E8',
+          textShadow: '0 0.05em 0.3em rgba(24,32,54,0.55)',
+        }}
+      />
+
       {/* Double gold arch, open at the bottom like the reference */}
       <ArchFrame
         color={GOLD}

@@ -132,12 +132,114 @@ interface PatternSpec {
   opacity: number
 }
 
+/** Botanical scatter: curling stems with buds and fine leaves (garden set). */
+function botanicalTile(c: string): string {
+  const stem = (x: number, y: number, r: number, s: number) =>
+    `<g transform='translate(${x} ${y}) rotate(${r}) scale(${s})' fill='none' stroke='${c}' stroke-width='0.7' stroke-linecap='round'>` +
+    `<path d='M0 26 C 4 16 12 10 22 8'/>` +
+    `<path d='M4 20 C 8 18 13 18 17 20'/><path d='M8 14 C 12 12 17 12 21 13'/>` +
+    `</g><g fill='${c}' transform='translate(${x} ${y}) rotate(${r}) scale(${s})'>` +
+    `<circle cx='22' cy='8' r='1.7'/><circle cx='25' cy='5' r='1.1'/></g>`
+  return (
+    `<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'>` +
+    stem(14, 20, -14, 1) +
+    stem(72, 66, 152, 0.9) +
+    stem(70, 12, 36, 0.8) +
+    stem(8, 92, -64, 0.85) +
+    `<g fill='${c}'><circle cx='52' cy='46' r='0.9'/><circle cx='104' cy='40' r='0.8'/>` +
+    `<circle cx='34' cy='112' r='0.8'/><circle cx='110' cy='100' r='0.9'/></g>` +
+    `</svg>`
+  )
+}
+
+/** Vine lattice: diagonal crossed stems with leaf nodes (peony/arch set). */
+function vineTile(c: string): string {
+  return (
+    `<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'>` +
+    `<g fill='none' stroke='${c}' stroke-width='0.65' stroke-linecap='round'>` +
+    `<path d='M0 0 C 18 18 54 18 72 0'/><path d='M0 72 C 18 54 54 54 72 72'/>` +
+    `<path d='M0 0 C 18 18 18 54 0 72'/><path d='M72 0 C 54 18 54 54 72 72'/>` +
+    `</g><g fill='${c}'>` +
+    `<path d='M36 30 C 40 34 40 38 36 42 C 32 38 32 34 36 30 Z' opacity='0.8'/>` +
+    `<circle cx='36' cy='36' r='1.2'/>` +
+    `<circle cx='0' cy='0' r='1.3'/><circle cx='72' cy='0' r='1.3'/>` +
+    `<circle cx='0' cy='72' r='1.3'/><circle cx='72' cy='72' r='1.3'/>` +
+    `</g></svg>`
+  )
+}
+
+/** Lattice trellis: fine diamond grid with stud nodes (geometric set). */
+function latticeTile(c: string): string {
+  return (
+    `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'>` +
+    `<g fill='none' stroke='${c}' stroke-width='0.55'>` +
+    `<path d='M20 0 L40 20 L20 40 L0 20 Z'/><path d='M20 8 L32 20 L20 32 L8 20 Z'/>` +
+    `</g><g fill='${c}'><circle cx='20' cy='20' r='1.1'/>` +
+    `<circle cx='20' cy='0' r='1'/><circle cx='20' cy='40' r='1'/>` +
+    `<circle cx='0' cy='20' r='1'/><circle cx='40' cy='20' r='1'/>` +
+    `<circle cx='0' cy='0' r='0.9'/><circle cx='40' cy='0' r='0.9'/>` +
+    `<circle cx='0' cy='40' r='0.9'/><circle cx='40' cy='40' r='0.9'/></g>` +
+    `</svg>`
+  )
+}
+
+/** Scattered petals and gold dust (celebration / ribbon set). */
+function petalsTile(c: string): string {
+  const petal = (x: number, y: number, r: number, s: number) =>
+    `<path d='M0 0 C ${4 * s} ${-5 * s} ${10 * s} ${-5 * s} ${13 * s} 0 C ${10 * s} ${5 * s} ${4 * s} ${5 * s} 0 0 Z' ` +
+    `fill='${c}' transform='translate(${x} ${y}) rotate(${r})' opacity='0.8'/>`
+  return (
+    `<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90'>` +
+    petal(16, 18, -24, 1) +
+    petal(62, 12, 40, 0.85) +
+    petal(70, 58, -58, 1) +
+    petal(20, 66, 18, 0.9) +
+    petal(44, 42, 70, 0.7) +
+    `<g fill='${c}'><circle cx='40' cy='16' r='0.9'/><circle cx='80' cy='34' r='0.8'/>` +
+    `<circle cx='12' cy='44' r='0.8'/><circle cx='54' cy='80' r='0.9'/><circle cx='86' cy='82' r='0.7'/>` +
+    `</g></svg>`
+  )
+}
+
+/** Clématite sprigs: five-petal blooms with seed dots (lilac set). */
+function clematisTile(c: string): string {
+  const bloom = (x: number, y: number, r: number, s: number) =>
+    `<g transform='translate(${x} ${y}) rotate(${r}) scale(${s})' fill='${c}' opacity='0.8'>` +
+    [0, 72, 144, 216, 288]
+      .map(
+        (a) =>
+          `<ellipse cx='0' cy='-4.6' rx='2.4' ry='4.6' transform='rotate(${a})'/>`,
+      )
+      .join('') +
+    `<circle r='1.5'/></g>`
+  return (
+    `<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'>` +
+    bloom(20, 22, -12, 1) +
+    bloom(70, 18, 30, 0.8) +
+    bloom(74, 70, -40, 0.9) +
+    bloom(24, 74, 22, 0.85) +
+    `<g fill='${c}'><circle cx='48' cy='46' r='0.9'/><circle cx='90' cy='46' r='0.8'/>` +
+    `<circle cx='8' cy='48' r='0.8'/><circle cx='48' cy='90' r='0.8'/></g>` +
+    `</svg>`
+  )
+}
+
 const PATTERNS: Record<string, PatternSpec> = {
   'heritage-luxe': { svg: damaskTile('#A67C3D'), w: 6.4, h: 9.6, opacity: 0.13 },
   'eternite-or': { svg: decoTile('#D8B36A'), w: 4.2, h: 4.2, opacity: 0.11 },
   'jardin-olive': { svg: oliveTile('#5B6B4B'), w: 10, h: 10, opacity: 0.1 },
   'arche-soleil': { svg: zelligeTile('#BE5330'), w: 4, h: 4, opacity: 0.1 },
   'nuit-celeste': { svg: constellationTile('#E2C27C'), w: 12, h: 12, opacity: 0.3 },
+  // Reference reproductions — original tone-on-tone prints for a premium sheet.
+  floraison: { svg: botanicalTile('#8FA0C9'), w: 11, h: 11, opacity: 0.09 },
+  'arche-pivoine': { svg: vineTile('#9DB2D6'), w: 8.6, h: 8.6, opacity: 0.09 },
+  'brume-bleue': { svg: botanicalTile('#9FB2CC'), w: 11.5, h: 11.5, opacity: 0.09 },
+  'ruban-dor': { svg: petalsTile('#C9A24A'), w: 10.5, h: 10.5, opacity: 0.09 },
+  hexagone: { svg: latticeTile('#B58A6E'), w: 5.2, h: 5.2, opacity: 0.1 },
+  'roses-dor': { svg: vineTile('#C2A87A'), w: 8.8, h: 8.8, opacity: 0.09 },
+  lilas: { svg: clematisTile('#A78FD0'), w: 10, h: 10, opacity: 0.1 },
+  romance: { svg: petalsTile('#7D9BC9'), w: 10.5, h: 10.5, opacity: 0.09 },
+  grenat: { svg: vineTile('#B98A93'), w: 9, h: 9, opacity: 0.08 },
 }
 
 export const LUXE_PATTERN_KEYS = new Set(Object.keys(PATTERNS))

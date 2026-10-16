@@ -6,9 +6,11 @@
  * an ornamental ampersand, a rule-divided « SAM | 28 | AOÛT » date row and a
  * script « réception à suivre » sign-off.
  */
+import { LuxePattern, VellumHalo } from './luxeMotifs.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
 import {
+  CoverHero,
   DressCodeSection,
   InvitationPaper,
   NoteSection,
@@ -40,6 +42,22 @@ export function BrumeBleue({ draft }: TemplateProps) {
   const names = splitNames(draft.title)
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: INK }}>
+      <LuxePattern templateKey="brume-bleue" />
+      <VellumHalo color={PAPER} />
+
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(48,62,92,0.58)"
+        edgeColor="rgba(194,154,78,0.9)"
+        eyebrow="Joignez-vous à nous"
+        titleStyle={{
+          fontFamily: SCRIPT_FONT,
+          fontSize: titleEm ? '4.3em' : '3.4em',
+          color: '#F4F2EA',
+          textShadow: '0 0.05em 0.3em rgba(30,40,64,0.55)',
+        }}
+      />
+
       {/* Dusty-blue foliage: spill from the top, cluster at bottom-left */}
       <FoliageCascade
         className="pointer-events-none absolute -top-[5.4em] right-[0.5em] h-[19.5em] w-[15.5em]"

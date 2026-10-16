@@ -7,9 +7,11 @@
  * script and a bold serif date line.
  */
 import { PaperGrain, WatercolorSpray } from './florals.tsx'
+import { LuxePattern, VellumHalo } from './luxeMotifs.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
 import {
+  CoverHero,
   DressCodeSection,
   InvitationPaper,
   NoteSection,
@@ -38,6 +40,22 @@ export function RubanDor({ draft }: TemplateProps) {
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: INK }}>
       <PaperGrain opacity={0.05} />
+      <LuxePattern templateKey="ruban-dor" />
+      <VellumHalo color={PAPER} />
+
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(46,38,26,0.6)"
+        edgeColor="rgba(201,162,74,0.9)"
+        eyebrow="Fiançailles"
+        titleStyle={{
+          fontFamily: SCRIPT_FONT,
+          fontSize: titleEm ? '4.6em' : '3.7em',
+          color: '#F8F1E2',
+          textShadow: '0 0.05em 0.3em rgba(34,26,16,0.55)',
+        }}
+      />
+
       {/* Gold ribbon brushstrokes run down the centre of the sheet */}
       <RibbonField
         className="pointer-events-none absolute inset-0 h-full w-full"

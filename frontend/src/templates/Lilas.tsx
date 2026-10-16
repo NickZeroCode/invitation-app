@@ -7,9 +7,11 @@
  * « SAMEDI —— 29 —— » date row and caps venue lines.
  */
 import { PaperGrain } from './florals.tsx'
+import { LuxePattern, VellumHalo } from './luxeMotifs.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
 import {
+  CoverHero,
   DressCodeSection,
   InvitationPaper,
   NoteSection,
@@ -54,6 +56,21 @@ export function Lilas({ draft }: TemplateProps) {
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: INK }}>
       <PaperGrain opacity={0.045} />
+      <LuxePattern templateKey="lilas" />
+      <VellumHalo color={PAPER} />
+
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(38,34,48,0.6)"
+        edgeColor="rgba(201,180,228,0.9)"
+        eyebrow="Joyeux anniversaire"
+        titleStyle={{
+          fontFamily: SCRIPT_FONT,
+          fontSize: titleEm ? '4.8em' : '3.9em',
+          color: '#F6F2FB',
+          textShadow: '0 0.05em 0.3em rgba(28,24,40,0.55)',
+        }}
+      />
 
       {/* Purple clematis wreaths wrapping the diagonal */}
       <FloralWreath

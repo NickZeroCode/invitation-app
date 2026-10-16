@@ -7,9 +7,11 @@
  * calligraphy names around a gold ampersand and a rule-divided date row.
  */
 import { PaperGrain } from './florals.tsx'
+import { LuxePattern, VellumHalo } from './luxeMotifs.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
 import {
+  CoverHero,
   DressCodeSection,
   InvitationPaper,
   NoteSection,
@@ -81,6 +83,22 @@ export function Grenat({ draft }: TemplateProps) {
       }}
     >
       <PaperGrain opacity={0.04} />
+      <LuxePattern templateKey="grenat" />
+      <VellumHalo color={PAPER} />
+
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(70,18,32,0.6)"
+        edgeColor="rgba(217,181,104,0.9)"
+        eyebrow="Réservez la date"
+        titleStyle={{
+          fontFamily: SCRIPT_FONT,
+          fontSize: titleEm ? '4.5em' : '3.6em',
+          color: '#FBEFE4',
+          textShadow: '0 0.05em 0.3em rgba(50,10,20,0.55)',
+        }}
+      />
+
       {/* thin gold frame */}
       <div
         className="pointer-events-none absolute inset-[0.9em] rounded-[0.3em] border"

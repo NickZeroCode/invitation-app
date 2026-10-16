@@ -8,6 +8,7 @@
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
 import {
+  CoverHero,
   DressCodeSection,
   InvitationPaper,
   NoteSection,
@@ -48,6 +49,21 @@ export function Mandala({ draft }: TemplateProps) {
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: CREAM }}>
       <DamaskPattern color={GOLD} opacity={0.14} />
+
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(70,10,16,0.62)"
+        edgeColor="rgba(232,192,106,0.9)"
+        eyebrow="Avec la bénédiction des familles"
+        titleStyle={{
+          fontFamily: "'Cormorant Garamond', ui-serif, serif",
+          fontWeight: 600,
+          fontSize: titleEm ? '3.4em' : '2.7em',
+          color: '#F5E6C8',
+          letterSpacing: '0.02em',
+          textShadow: '0 0.05em 0.3em rgba(40,4,8,0.6)',
+        }}
+      />
 
       {/* Gold toran along the top edge */}
       <HangingOrnaments

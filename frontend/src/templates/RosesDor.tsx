@@ -11,6 +11,7 @@ import { FiligreeCorner } from './FiligreeCorner.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
 import {
+  CoverHero,
   DressCodeSection,
   InvitationPaper,
   NoteSection,
@@ -28,6 +29,7 @@ import {
   formatYearOnly,
   splitNames,
 } from './referenceMotifs.tsx'
+import { LuxePattern, VellumHalo } from './luxeMotifs.tsx'
 import type { CSSProperties } from 'react'
 import type { TemplateProps } from './types.ts'
 
@@ -51,6 +53,21 @@ export function RosesDor({ draft }: TemplateProps) {
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: INK }}>
       <PaperGrain opacity={0.05} blend="multiply" />
+      <LuxePattern templateKey="roses-dor" />
+      <VellumHalo color={PAPER} />
+
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(52,42,32,0.6)"
+        edgeColor="rgba(226,194,124,0.85)"
+        eyebrow="Réservez la date"
+        titleStyle={{
+          fontFamily: SCRIPT_FONT,
+          fontSize: titleEm ? '4.6em' : '3.7em',
+          color: '#F8EFDD',
+          textShadow: '0 0.05em 0.3em rgba(40,30,20,0.55)',
+        }}
+      />
 
       {/* Engraved gold roses + filigree corner with hanging charm */}
       <GoldRoseCorner

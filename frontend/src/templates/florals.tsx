@@ -47,6 +47,20 @@ export const ROSE: SprayPalette = {
   accent: '#D9B25E',
 }
 
+/**
+ * Premium blue bloom palette — a deeper sapphire with an icy petal-light and
+ * a cool eucalyptus leaf. Richer and more jewel-like than AZURE (which stays
+ * unchanged for backwards compatibility with the reference reproductions).
+ */
+export const PREMIUM_AZURE: SprayPalette = {
+  petal: '#5D7FBE',
+  petalDeep: '#2C4178',
+  petalLight: '#E3EBFA',
+  leaf: '#7C9084',
+  leafDeep: '#4E5F55',
+  accent: '#CBA24E',
+}
+
 /** Gold foil gradient stops, shared by the line-art ornaments. */
 const GOLD_STOPS: Array<[number, string]> = [
   [0, '#B0873C'],
@@ -113,16 +127,19 @@ export function GoldRoseCorner({
         strokeLinejoin="round"
       >
         <path d={rosePath(78, 74, 30, 5)} />
-        <path d={rosePath(78, 74, 18, 5, -Math.PI / 2 + 0.5)} />
-        <path d="M 75 74 a 3 3 0 1 1 -3 3" />
+        <path d={rosePath(78, 74, 21, 5, -Math.PI / 2 + 0.5)} />
+        <path d={rosePath(78, 74, 13, 5, -Math.PI / 2 + 1.1)} />
+        <path d="M 75 74 a 4.5 4.5 0 1 1 -4.5 4.5 a 2.6 2.6 0 1 0 2.6 -2.6" />
         <path d={rosePath(168, 46, 18, 5)} />
-        <path d={rosePath(168, 46, 10.5, 5, -Math.PI / 2 + 0.5)} />
-        <path d="M 166 46 a 2 2 0 1 1 -2 2" />
+        <path d={rosePath(168, 46, 12, 5, -Math.PI / 2 + 0.5)} />
+        <path d={rosePath(168, 46, 7, 5, -Math.PI / 2 + 1)} />
+        <path d="M 166 46 a 3 3 0 1 1 -3 3 a 1.7 1.7 0 1 0 1.7 -1.7" />
         <path d={rosePath(150, 132, 13, 5)} />
-        <path d="M 148 132 a 1.8 1.8 0 1 1 -1.8 1.8" />
+        <path d={rosePath(150, 132, 7.5, 5, -Math.PI / 2 + 0.6)} />
+        <path d="M 148 132 a 2.4 2.4 0 1 1 -2.4 2.4 a 1.3 1.3 0 1 0 1.3 -1.3" />
         <path d={rosePath(46, 34, 13, 5, -1)} />
         <path d={rosePath(46, 34, 7.5, 5, -0.5)} />
-        <path d="M 44 34 a 1.6 1.6 0 1 1 -1.6 1.6" />
+        <path d="M 44 34 a 2.2 2.2 0 1 1 -2.2 2.2 a 1.2 1.2 0 1 0 1.2 -1.2" />
         {/* leaves */}
         <path d="M 108 92 C 124 78 146 76 158 86 C 142 98 122 100 108 92 Z" />
         <path d="M 112 90 C 126 86 142 86 154 87" strokeWidth={strokeWidth * 0.7} />
@@ -234,7 +251,7 @@ export function WatercolorSpray({
         ))}
       </g>
 
-      {/* blooms */}
+      {/* blooms — outer + inner petal rings read as layered, real blossoms */}
       <g>
         {(
           [
@@ -252,16 +269,32 @@ export function WatercolorSpray({
                   key={angle}
                   cx={0}
                   cy={-r * 0.62}
-                  rx={r * 0.42}
-                  ry={r * 0.72}
+                  rx={r * 0.44}
+                  ry={r * 0.74}
                   fill={`url(#${petal})`}
-                  opacity={0.62 + ((k + phase) % 3) * 0.11}
+                  opacity={0.6 + ((k + phase) % 3) * 0.11}
                   transform={`translate(${cx} ${cy}) rotate(${angle})`}
                 />
               )
             })}
-            <circle cx={cx} cy={cy} r={r * 0.24} fill={palette.accent} opacity="0.9" />
-            <circle cx={cx - r * 0.1} cy={cy - r * 0.12} r={r * 0.08} fill={palette.petalDeep} opacity="0.7" />
+            {Array.from({ length: petals }, (_, k) => {
+              const angle = phase + 180 / petals + (k * 360) / petals
+              return (
+                <ellipse
+                  key={`in-${angle}`}
+                  cx={0}
+                  cy={-r * 0.34}
+                  rx={r * 0.26}
+                  ry={r * 0.44}
+                  fill={palette.petalDeep}
+                  opacity={0.5 + (k % 2) * 0.14}
+                  transform={`translate(${cx} ${cy}) rotate(${angle})`}
+                />
+              )
+            })}
+            <circle cx={cx} cy={cy} r={r * 0.22} fill={palette.accent} opacity="0.92" />
+            <circle cx={cx - r * 0.1} cy={cy - r * 0.12} r={r * 0.09} fill={palette.petalDeep} opacity="0.75" />
+            <circle cx={cx + r * 0.09} cy={cy + r * 0.06} r={r * 0.045} fill="#FFFDF7" opacity="0.85" />
           </g>
         ))}
       </g>

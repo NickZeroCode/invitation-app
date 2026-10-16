@@ -175,11 +175,15 @@ export function isEmphasized(draft: InvitationDraft, field: string): boolean {
 }
 
 /**
- * Cover hero: the opening page of the invitation — full-bleed photo with the
- * celebrated names in calligraphy over a translucent band (LAC MUNKAMBA
- * reference, p.1). Only templates with `supportsCover` render it, and only
- * when a cover photo exists. Excluded from image export like every cover
- * placement (`data-export-skip`).
+ * Cover page: the opening page of the invitation — a full-bleed photo with a
+ * refined, editorial text zone over a translucent gradient band. Only
+ * templates with `supportsCover` render it, and only when a cover photo
+ * exists. The exporter lifts the whole `[data-export-skip="cover"]` element
+ * to a full-bleed first page and strips it from the interior card.
+ *
+ * The text zone is deliberately stylish: a small letterspaced eyebrow line,
+ * a delicate rule, then the celebrated names in large calligraphy — far more
+ * premium than a bare caption on a photo.
  */
 export function CoverHero({
   draft,
@@ -187,6 +191,7 @@ export function CoverHero({
   titleStyle,
   titleClassName,
   edgeColor,
+  eyebrow,
 }: {
   draft: InvitationDraft
   /** Scrim colour with alpha, e.g. 'rgba(43,38,32,0.55)'. */
@@ -197,6 +202,8 @@ export function CoverHero({
   titleClassName?: string
   /** Hairline accent drawn above the band, e.g. 'rgba(166,124,61,0.8)'. */
   edgeColor?: string
+  /** Small caps line above the names (defaults to a neutral invitation word). */
+  eyebrow?: string
 }) {
   if (!draft.cover_url) return null
   // The cover always celebrates something: the chosen names or, when the
@@ -206,23 +213,50 @@ export function CoverHero({
     <div
       data-export-skip="cover"
       className="relative w-full shrink-0 overflow-hidden"
-      style={{ aspectRatio: '4 / 5' }}
+      // A4 portrait so the exported first page is a true full-bleed cover.
+      style={{ aspectRatio: '210 / 297' }}
     >
       <img src={draft.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      {/* Soft top-to-bottom vignette so any photo sits in a premium frame. */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(to bottom, rgba(20,16,12,0.22), transparent 30%, transparent 55%, transparent)',
+        }}
+        aria-hidden="true"
+      />
       {names ? (
         <div
-          className="absolute inset-x-0 bottom-0 flex flex-col items-center px-[1.6em] pb-[1.8em] pt-[5em]"
-          style={{ background: `linear-gradient(to bottom, transparent, ${bandColor})` }}
+          className="absolute inset-x-0 bottom-0 flex flex-col items-center px-[1.7em] pb-[2.1em] pt-[6em] text-center"
+          style={{ background: `linear-gradient(to bottom, transparent, ${bandColor} 78%)` }}
         >
-          {edgeColor ? (
+          <p
+            className="uppercase"
+            style={{
+              fontSize: '0.82em',
+              letterSpacing: '0.5em',
+              color: '#F5EDE0',
+              opacity: 0.92,
+              fontFamily: "'Montserrat', 'Inter', sans-serif",
+              fontWeight: 500,
+            }}
+          >
+            {eyebrow ?? 'Invitation'}
+          </p>
+          <span
+            className="mt-[1.05em] flex items-center gap-[0.9em]"
+            aria-hidden="true"
+          >
+            <span className="h-px w-[3.4em]" style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.85)' }} />
             <span
-              className="mb-[1.1em] h-px w-[9em]"
-              style={{ backgroundColor: edgeColor }}
-              aria-hidden="true"
+              className="inline-block h-[0.42em] w-[0.42em] rotate-45"
+              style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.9)' }}
             />
-          ) : null}
+            <span className="h-px w-[3.4em]" style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.85)' }} />
+          </span>
           <h2
-            className={`w-full break-words text-center leading-[1.16] ${titleClassName ?? ''}`}
+            className={`mt-[1.15em] w-full break-words text-balance leading-[1.08] ${titleClassName ?? ''}`}
             style={titleStyle}
           >
             {names}

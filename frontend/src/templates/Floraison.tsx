@@ -12,6 +12,7 @@ import { FiligreeCorner } from './FiligreeCorner.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
 import {
+  CoverHero,
   DressCodeSection,
   InvitationPaper,
   NoteSection,
@@ -47,6 +48,19 @@ export function Floraison({ draft }: TemplateProps) {
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: INK }}>
       <PaperGrain opacity={0.045} />
+
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(35,46,66,0.6)"
+        edgeColor="rgba(201,168,118,0.9)"
+        eyebrow="Réservez la date"
+        titleStyle={{
+          fontFamily: SCRIPT_FONT,
+          fontSize: titleEm ? '4.7em' : '3.8em',
+          color: '#F6F2EA',
+          textShadow: '0 0.05em 0.3em rgba(24,32,48,0.55)',
+        }}
+      />
 
       {/* Gold double border + filigree corners */}
       <div

@@ -7,9 +7,11 @@
  * « MAR | 10 | À 09:00 » date row with the year beneath.
  */
 import { WatercolorSpray } from './florals.tsx'
+import { LuxePattern, VellumHalo } from './luxeMotifs.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
 import {
+  CoverHero,
   DressCodeSection,
   InvitationPaper,
   NoteSection,
@@ -42,6 +44,22 @@ export function Romance({ draft }: TemplateProps) {
   const names = splitNames(draft.title)
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: INK }}>
+      <LuxePattern templateKey="romance" />
+      <VellumHalo color={PAPER} />
+
+      <CoverHero
+        draft={draft}
+        bandColor="rgba(30,42,66,0.6)"
+        edgeColor="rgba(194,154,78,0.9)"
+        eyebrow="Nous nous marions"
+        titleStyle={{
+          fontFamily: SCRIPT_FONT,
+          fontSize: titleEm ? '4.4em' : '3.5em',
+          color: '#F5F1E6',
+          textShadow: '0 0.05em 0.3em rgba(20,28,46,0.55)',
+        }}
+      />
+
       {/* Blue clusters + gold sprigs: top-left (largest), top-right and bottom-right */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <WatercolorSpray
