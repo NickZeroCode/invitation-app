@@ -7,6 +7,7 @@
 import type { CSSProperties } from 'react'
 
 import { FlourishRule } from './florals.tsx'
+import { TinyHeart } from './referenceMotifs.tsx'
 
 type OrnamentProps = {
   color?: string
@@ -208,6 +209,20 @@ const ORNAMENTS: Record<string, (props: OrnamentProps) => React.ReactElement> = 
   'sceau-academique': LaurelRule,
   'soiree-formelle': FleuronRule,
   memoire: QuietRule,
+  floraison: TinyHeart,
+  'arche-pivoine': HeartRule,
+  'brume-bleue': QuietRule,
+  'ruban-dor': ({ color, className, style }) => (
+    <FlourishRule color={color ?? '#C29A4E'} className={className} style={style} />
+  ),
+  hexagone: QuietRule,
+  'roses-dor': FleuronRule,
+  mandala: FleuronRule,
+  lilas: BloomRule,
+  romance: ({ color, className, style }) => (
+    <FlourishRule color={color ?? '#C29A4E'} className={className} style={style} />
+  ),
+  grenat: QuietRule,
 }
 
 /** The template's ornamental rule, drawn in its accent colour. */

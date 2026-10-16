@@ -17,6 +17,16 @@ import { Memoire } from './Memoire.tsx'
 import { NuitCeleste } from './NuitCeleste.tsx'
 import { SceauAcademique } from './SceauAcademique.tsx'
 import { SoireeFormelle } from './SoireeFormelle.tsx'
+import { ArchePivoine } from './ArchePivoine.tsx'
+import { BrumeBleue } from './BrumeBleue.tsx'
+import { Floraison } from './Floraison.tsx'
+import { Grenat } from './Grenat.tsx'
+import { Hexagone } from './Hexagone.tsx'
+import { Lilas } from './Lilas.tsx'
+import { Mandala } from './Mandala.tsx'
+import { Romance } from './Romance.tsx'
+import { RosesDor } from './RosesDor.tsx'
+import { RubanDor } from './RubanDor.tsx'
 import type { InvitationDraft, TemplateDefinition } from './types.ts'
 
 export const TEMPLATES: TemplateDefinition[] = [
@@ -130,6 +140,106 @@ export const TEMPLATES: TemplateDefinition[] = [
     emphasisFields: ['title', 'date'],
     Component: Memoire,
   },
+  {
+    key: 'floraison',
+    name: 'Floraison',
+    category: 'wedding',
+    categoryLabel: 'Mariage',
+    description: 'Papier ivoire, double cadre doré à coins ajourés et bouquets aquarelle aux quatre coins.',
+    supportsCover: true,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: Floraison,
+  },
+  {
+    key: 'arche-pivoine',
+    name: 'Arche Pivoine',
+    category: 'wedding',
+    categoryLabel: 'Mariage',
+    description: 'Double arche dorée ouverte en bas, pivoines bleues aux coins et jour en cœur.',
+    supportsCover: false,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: ArchePivoine,
+  },
+  {
+    key: 'brume-bleue',
+    name: 'Brume Bleue',
+    category: 'wedding',
+    categoryLabel: 'Mariage',
+    description: 'Eucalyptus aquarelle bleu poussière, prénoms calligraphiés sur une ligne et date à trois volets.',
+    supportsCover: false,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: BrumeBleue,
+  },
+  {
+    key: 'ruban-dor',
+    name: 'Ruban d’Or',
+    category: 'other',
+    categoryLabel: 'Autre célébration',
+    description: 'Rubans d’or ondulés sur papier crème, grand mot calligraphié et compositions bleues.',
+    supportsCover: false,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: RubanDor,
+  },
+  {
+    key: 'hexagone',
+    name: 'Hexagone',
+    category: 'wedding',
+    categoryLabel: 'Mariage',
+    description: 'Hexagone d’or ouvert aux intersections fleuries, roses taupe aux quatre coins.',
+    supportsCover: false,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: Hexagone,
+  },
+  {
+    key: 'roses-dor',
+    name: 'Roses d’Or',
+    category: 'wedding',
+    categoryLabel: 'Mariage',
+    description: 'Roses gravées dorées, prénoms en dégradé d’or devant un grand chevalier fantôme.',
+    supportsCover: false,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: RosesDor,
+  },
+  {
+    key: 'mandala',
+    name: 'Mandala',
+    category: 'other',
+    categoryLabel: 'Autre célébration',
+    description: 'Rouge damassé, guirlande dorée suspendue, rosaces dorées et berceau cérémoniel.',
+    supportsCover: false,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: Mandala,
+  },
+  {
+    key: 'lilas',
+    name: 'Lilas',
+    category: 'birthday',
+    categoryLabel: 'Anniversaire',
+    description: 'Couronnes de clématites violettes, grand prénom calligraphié et long ruban plumé.',
+    supportsCover: false,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: Lilas,
+  },
+  {
+    key: 'romance',
+    name: 'Romance',
+    category: 'wedding',
+    categoryLabel: 'Mariage',
+    description: 'Aquarelles bleues, illustration de couple naïve et prénoms empilés autour du esperluette dorée.',
+    supportsCover: false,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: Romance,
+  },
+  {
+    key: 'grenat',
+    name: 'Grenat',
+    category: 'wedding',
+    categoryLabel: 'Mariage',
+    description: 'Dégradé blush, roses grenat aux coins supérieurs et pétales de lotus dorés en pied.',
+    supportsCover: false,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: Grenat,
+  },
 ]
 
 export function getTemplate(key: string): TemplateDefinition | undefined {
@@ -235,6 +345,76 @@ const SAMPLES: Record<string, Partial<InvitationDraft>> = {
     venue_name: 'Salle des Cèdres',
     venue_address: 'Avenue de la Montagne, Kinshasa',
     venue_details: 'Un moment de recueillement',
+  },
+  floraison: {
+    title: 'Daniel & Maria',
+    message: 'Nous vous invitons à célébrer notre union entourés de nos familles.',
+    venue_name: 'Pavillon des Fleurs',
+    venue_address: 'Avenue des Palmiers, Kinshasa',
+    venue_details: 'Cérémonie en plein air',
+  },
+  'arche-pivoine': {
+    title: 'Jacinta & Imre',
+    message: 'Nous serions touchés de vous avoir à nos côtés pour cette journée.',
+    venue_name: 'Domaine des Pivoines',
+    venue_address: 'Route de la Vallée, Kinshasa',
+    venue_details: 'Vin d’honneur',
+  },
+  'brume-bleue': {
+    title: 'Amelia & Michael',
+    message: 'Joignez-nous pour célébrer notre mariage dans la douceur du soir.',
+    venue_name: 'Salon Bleu',
+    venue_address: 'Avenue du Lac, Kinshasa',
+    venue_details: 'Dîner dansant',
+  },
+  'ruban-dor': {
+    title: 'Léa & Adam',
+    message: 'Une fête joyeuse pour sceller nos fiançailles avec vous.',
+    venue_name: 'Le Ruban',
+    venue_address: 'Boulevard du 30 Juin, Kinshasa',
+    venue_details: 'Cocktail et musique',
+  },
+  hexagone: {
+    title: 'Sacha & Phyllis',
+    message: 'Venez fêter avec nous le début de notre nouvelle vie.',
+    venue_name: 'Pavillon Hexagone',
+    venue_address: 'Avenue du Fleuve, Kinshasa',
+    venue_details: 'Dîner et danse',
+  },
+  'roses-dor': {
+    title: 'John & Emilia',
+    message: 'Entourez-nous de votre présence pour cette célébration dorée.',
+    venue_name: 'Hôtel des Roses',
+    venue_address: 'Avenue Kasa-Vubu, Kinshasa',
+    venue_details: 'Cérémonie et dîner',
+  },
+  mandala: {
+    title: 'Shaurya & Aarya',
+    message: 'Bénissez notre enfant de vos vœux lors de sa cérémonie de naissance.',
+    venue_name: 'Salle du Mandala',
+    venue_address: 'Avenue de la Montagne, Kinshasa',
+    venue_details: 'Réception familiale',
+  },
+  lilas: {
+    title: 'Madeline',
+    message: 'Une fête au jardin pour célébrer son anniversaire.',
+    venue_name: 'Grande Salle du Jardin',
+    venue_address: 'Avenue des Lilas, Kinshasa',
+    venue_details: 'Buffet et animations',
+  },
+  romance: {
+    title: 'Richard Sanchez & Olivia Wilson',
+    message: 'Nous vous invitons à partager la joie de notre mariage.',
+    venue_name: 'Chapelle de la Romance',
+    venue_address: 'Avenue de la Paix, Kinshasa',
+    venue_details: 'Cérémonie en petit comité',
+  },
+  grenat: {
+    title: 'Sophia & James',
+    message: 'Réservez la date pour célébrer notre union.',
+    venue_name: 'Villa Grenat',
+    venue_address: 'Avenue du Colonel Ebeya, Kinshasa',
+    venue_details: 'Dîner de gala',
   },
 }
 

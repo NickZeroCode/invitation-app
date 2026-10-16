@@ -120,6 +120,9 @@ export function GoldRoseCorner({
         <path d="M 166 46 a 2 2 0 1 1 -2 2" />
         <path d={rosePath(150, 132, 13, 5)} />
         <path d="M 148 132 a 1.8 1.8 0 1 1 -1.8 1.8" />
+        <path d={rosePath(46, 34, 13, 5, -1)} />
+        <path d={rosePath(46, 34, 7.5, 5, -0.5)} />
+        <path d="M 44 34 a 1.6 1.6 0 1 1 -1.6 1.6" />
         {/* leaves */}
         <path d="M 108 92 C 124 78 146 76 158 86 C 142 98 122 100 108 92 Z" />
         <path d="M 112 90 C 126 86 142 86 154 87" strokeWidth={strokeWidth * 0.7} />
@@ -127,6 +130,10 @@ export function GoldRoseCorner({
         <path d="M 60 116 C 58 130 58 146 59 158" strokeWidth={strokeWidth * 0.7} />
         <path d="M 186 74 C 196 92 194 114 182 126 C 176 108 176 90 186 74 Z" />
         <path d="M 185 78 C 188 94 187 110 183 122" strokeWidth={strokeWidth * 0.7} />
+        <path d="M 66 42 C 76 26 96 16 112 18 C 106 36 88 48 66 42 Z" />
+        <path d="M 72 40 C 86 32 100 24 110 20" strokeWidth={strokeWidth * 0.7} />
+        <path d="M 22 68 C 12 84 10 108 20 122 C 30 104 32 84 22 68 Z" />
+        <path d="M 21 74 C 19 90 19 106 20 118" strokeWidth={strokeWidth * 0.7} />
         <path d="M 40 158 C 28 168 22 186 28 196" />
         <path d="M 118 44 C 132 30 152 26 166 32" />
         <path d="M 96 118 C 110 132 118 152 114 170" />
@@ -207,6 +214,8 @@ export function WatercolorSpray({
             [186, 92, -20, 0.88],
             [64, 128, -142, 0.72],
             [128, 152, 14, 0.82],
+            [212, 66, -40, 0.7],
+            [166, 138, 30, 0.72],
           ] as Array<[number, number, number, number]>
         ).map(([x, y, rot, s], index) => (
           <g key={`${x}-${y}`} transform={`translate(${x} ${y}) rotate(${rot}) scale(${s})`} opacity={0.6 + (index % 3) * 0.12}>
@@ -229,9 +238,10 @@ export function WatercolorSpray({
       <g>
         {(
           [
-            [108, 112, 26, 6, 0],
-            [170, 88, 20, 6, 14],
-            [66, 152, 15, 5, 28],
+            [108, 112, 30, 6, 0],
+            [170, 88, 23, 6, 14],
+            [66, 152, 17, 5, 28],
+            [214, 56, 13, 5, 40],
           ] as Array<[number, number, number, number, number]>
         ).map(([cx, cy, r, petals, phase]) => (
           <g key={`f-${cx}`}>

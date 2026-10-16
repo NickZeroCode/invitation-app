@@ -28,6 +28,16 @@ def test_seeded_catalog_lists_all_templates_with_capabilities(auth_client):
         "sceau-academique",
         "soiree-formelle",
         "memoire",
+        "floraison",
+        "arche-pivoine",
+        "brume-bleue",
+        "ruban-dor",
+        "hexagone",
+        "roses-dor",
+        "mandala",
+        "lilas",
+        "romance",
+        "grenat",
     }
 
     heritage = next(item for item in templates if item["key"] == "heritage-luxe")
@@ -47,6 +57,22 @@ def test_seeded_catalog_lists_all_templates_with_capabilities(auth_client):
     moderne = next(item for item in templates if item["key"] == "ligne-moderne")
     assert moderne["supports_cover"] is False
     assert "cover" not in moderne["config"]["sections"]
+
+    floraison = next(item for item in templates if item["key"] == "floraison")
+    assert floraison["category"] == "wedding"
+    assert floraison["category_label"] == "Mariage"
+    assert floraison["supports_cover"] is True
+    assert "cover" in floraison["config"]["sections"]
+    assert floraison["config"]["emphasis_fields"] == ["title", "date", "venue"]
+
+    mandala = next(item for item in templates if item["key"] == "mandala")
+    assert mandala["category"] == "other"
+    assert mandala["supports_cover"] is False
+    assert "cover" not in mandala["config"]["sections"]
+
+    lilas = next(item for item in templates if item["key"] == "lilas")
+    assert lilas["category"] == "birthday"
+    assert lilas["category_label"] == "Anniversaire"
 
 
 def test_inactive_templates_are_hidden(auth_client):
