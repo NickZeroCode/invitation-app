@@ -4,22 +4,20 @@
  *
  * Composition (A4 width, 210 mm, on every page):
  *
- *   1. Cover page — the template's own cover hero (photo + names in the
- *      template's tone), spanning the page edge to edge. Omitted when the
- *      event has no cover photo.
- *   2. Invitation card — exactly one page, full bleed with no decorative
- *      white margins: the rendered card with its cover and dress-code /
- *      programme blocks removed (`data-export-skip`), so the card never
- *      duplicates pages 1/3 and never splits across two pages.
- *   3. Dress code + programme — a dedicated page in the template's palette
+ *   1. Invitation sheet — exactly one continuous page, full bleed with no
+ *      decorative white margins: the template's cover hero (photo + names)
+ *      melting into the rendered card, with the dress-code / programme
+ *      blocks removed (`data-export-skip`) so they never duplicate the
+ *      details page and the sheet never splits across two pages.
+ *   2. Dress code + programme — a dedicated page in the template's palette
  *      (LAC MUNKAMBA reference, p.3): dress-code gallery and a symmetric
  *      two-column programme with mirrored badge bullets.
- *   4. Verification QR page — the template's own paper tone and ornaments,
+ *   3. Verification QR page — the template's own paper tone and ornaments,
  *      a stylish « Scannez pour confirmer la présence » title with an arrow
  *      pointing to the QR code, overlaid print-sharp at the page's center.
  *
  * Page heights follow the content (only the width is the A4 width), so the
- * invitation card lands on a single page whatever its length.
+ * invitation lands on a single page whatever its length.
  */
 import { createElement } from 'react'
 import type { ReactElement } from 'react'
@@ -724,9 +722,9 @@ async function timed<T>(phase: string, task: () => Promise<T>): Promise<T> {
 }
 
 /**
- * Build and download the invitation PDF. Page 1 is the cover photo (when
- * present), page 2 the full-bleed invitation card, page 3 the dress code and
- * programme, and the last page the centered verification QR code.
+ * Build and download the invitation PDF. Page 1 is the continuous invitation
+ * sheet — the cover hero melting into the card — then the dress code and
+ * programme when set, and the last page the centered verification QR code.
  */
 export async function exportInvitationPdf(content: InvitationPdfContent): Promise<void> {
   const pages: PageRaster[] = []
@@ -738,7 +736,6 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
   const weights = { load: 15, capture: 45, compress: 30, assemble: 10 } as const
   let completed = 0
   const totalCaptures =
-    (content.cardNode || content.draft ? 1 : 0) +
     1 +
     (content.dressCode.length || content.program.length || content.table?.number ? 1 : 0) +
     (content.qrText ? 1 : 0)
@@ -756,9 +753,9 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
     report('capture', weights.capture / Math.max(1, totalCaptures))
   }
   // `totalCaptures` counts pages that *could* exist; when one is absent (no
-  // cover photo, no details page, no QR) its slice of the capture weight is
-  // re-credited here so the cumulative total still sums to 100 instead of
-  // stalling part-way (a no-cover/no-details invitation used to cap at 60%).
+  // details page, no QR) its slice of the capture weight is re-credited
+  // here so the cumulative total still sums to 100 instead of stalling
+  // part-way (a no-details invitation used to cap at 60%).
   const skipCapture = () => {
     report('capture', weights.capture / Math.max(1, totalCaptures))
   }
@@ -822,30 +819,17 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       fontEmbedCSS = undefined
     }
 
-    const skipped = Array.from(cardNode.querySelectorAll<HTMLElement>('[data-export-skip]'))
-
-    // Page 1 — the template's cover hero, full bleed (needs an inlined photo).
-    const cover = cardNode.querySelector<HTMLElement>('[data-export-skip="cover"]')
-    if (cover) {
-      const coverImage = cover.querySelector('img')
-      if (coverImage && (coverImage.getAttribute('src') ?? '').startsWith('data:')) {
-        pages.push(await timed('capture-cover', () => captureRaster(cover, fontEmbedCSS)))
-        reportCapture()
-        await yieldToBrowser()
-      } else {
-        skipCapture()
-      }
-    } else {
-      skipCapture()
-    }
-
-    // Page 2 — the card alone, one page, with cover and sections stripped.
+    // The invitation sheet — one continuous page. The cover hero stays on
+    // the card and melts into it through its paper wash, so cover and card
+    // join seamlessly; only the blocks destined for the details page are
+    // stripped from this capture.
+    const skipped = Array.from(cardNode.querySelectorAll<HTMLElement>('[data-export-skip=""]'))
     const restore = skipped.map((element) => ({ element, display: element.style.display }))
     restore.forEach(({ element }) => {
       element.style.display = 'none'
     })
     try {
-      pages.push(await timed('capture-card', () => captureRaster(cardNode, fontEmbedCSS)))
+      pages.push(await timed('capture-sheet', () => captureRaster(cardNode, fontEmbedCSS)))
     } finally {
       restore.forEach(({ element, display }) => {
         element.style.display = display
@@ -854,7 +838,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
     reportCapture()
     await yieldToBrowser()
 
-    // Page 3 — dress code, programme and table on the template's paper tone.
+    // Details page — dress code, programme and table on the template's paper tone.
     // Photos that could not be loaded are already dropped from `dressCode`.
     if (dressCode.entries.length || content.program.length || content.table?.number) {
       const details = renderOffscreen(
@@ -879,7 +863,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       skipCapture()
     }
 
-    // Page 4 — the styled verification page (template tone + title + arrow),
+    // The styled verification page (template tone + title + arrow),
     // with the QR generated at print resolution and overlaid as a crisp PNG.
     let qrPage: PageRaster | null = null
     let qrDataUrl = ''

@@ -54,6 +54,8 @@ export function JardinOlive({ draft }: TemplateProps) {
       <CoverHero
         draft={draft}
         bandColor="rgba(248,244,234,0.78)"
+        paperColor="#F8F4EA"
+        eyebrowColor={SCRIPT_INK}
         edgeColor="rgba(91,107,75,0.6)"
         titleStyle={{
           fontFamily: "'Great Vibes', cursive",

@@ -53,6 +53,7 @@ export function EterniteOr({ draft }: TemplateProps) {
       <CoverHero
         draft={draft}
         bandColor="rgba(15,11,7,0.6)"
+        paperColor="#251C11"
         edgeColor="rgba(216,179,106,0.85)"
         titleStyle={{
           fontFamily: "'Great Vibes', cursive",

@@ -127,49 +127,6 @@ export function CoverSheen({
   )
 }
 
-/**
- * A torn/deckled paper edge that peels the bottom of the photo cover into
- * the next (paper) page, so the transition reads as a crafted sheet being
- * turned rather than a hard image cut. The wave is filled with the paper
- * colour and feathered upward into the photo by a soft gradient.
- */
-export function CoverDeckle({
-  color = '#FFFFFF',
-  className,
-  style,
-}: {
-  color?: string
-  className?: string
-  style?: CSSProperties
-}) {
-  const id = useId().replace(/[^a-zA-Z0-9-]/g, '')
-  // Gentle, organic scalloped bottom edge (the deckle): paper peels up from
-  // the bottom ~12% of the sheet, feathering into the photo above.
-  const edge =
-    'M 0 297 L 0 262 C 18 255 34 266 52 260 C 70 254 84 265 102 260 C 120 255 134 266 152 261 C 168 257 182 267 210 262 L 210 297 Z'
-  return (
-    <svg
-      viewBox="0 0 210 297"
-      preserveAspectRatio="none"
-      className={className}
-      style={style}
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id={`cd-${id}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor={color} stopOpacity="0" />
-          <stop offset="0.45" stopColor={color} stopOpacity="0.35" />
-          <stop offset="1" stopColor={color} stopOpacity="0.75" />
-        </linearGradient>
-      </defs>
-      {/* feathered blend rising above the crest */}
-      <rect x="0" y="238" width="210" height="59" fill={`url(#cd-${id})`} />
-      {/* crisp deckle silhouette in the paper colour */}
-      <path d={edge} fill={color} />
-    </svg>
-  )
-}
-
 /** Scalloped rose outline: `bumps` petal arcs around (cx, cy). */
 function rosePath(cx: number, cy: number, r: number, bumps = 5, phase = -Math.PI / 2): string {
   const parts: string[] = []

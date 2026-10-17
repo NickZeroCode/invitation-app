@@ -12,7 +12,7 @@
 /* oxlint-disable react/only-export-components -- pure helpers + one primitive component */
 import type { CSSProperties, ReactNode } from 'react'
 
-import { CoverDeckle, CoverSheen } from './florals.tsx'
+import { CoverSheen } from './florals.tsx'
 import { LuxuryTable } from './tableScene.tsx'
 import type { InvitationDraft } from './types.ts'
 
@@ -175,12 +175,28 @@ export function isEmphasized(draft: InvitationDraft, field: string): boolean {
   return draft.emphasis.includes(field)
 }
 
+/** `#RGB`/`#RRGGBB` plus alpha as `rgba(...)`; non-hex colours pass through. */
+function withAlpha(color: string, alpha: number): string {
+  const match = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(color.trim())
+  if (!match) return color
+  const digits =
+    match[1].length === 3
+      ? match[1]
+          .split('')
+          .map((digit) => digit + digit)
+          .join('')
+      : match[1]
+  const value = Number.parseInt(digits, 16)
+  return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`
+}
+
 /**
  * Cover page: the opening page of the invitation — a full-bleed photo with a
  * refined, editorial text zone over a translucent gradient band. Only
  * templates with `supportsCover` render it, and only when a cover photo
- * exists. The exporter lifts the whole `[data-export-skip="cover"]` element
- * to a full-bleed first page and strips it from the interior card.
+ * exists. The exporter keeps `[data-export-skip="cover"]` on the invitation
+ * sheet: the cover melts into the card through its paper wash, so both are
+ * captured as one continuous page.
  *
  * The text zone is deliberately stylish: a small letterspaced eyebrow line,
  * a delicate rule, then the celebrated names in large calligraphy — far more
@@ -193,11 +209,16 @@ export function CoverHero({
   titleClassName,
   edgeColor,
   eyebrow,
+  eyebrowColor,
   paperColor = '#FFFFFF',
   motifColor,
 }: {
   draft: InvitationDraft
-  /** Scrim colour with alpha, e.g. 'rgba(43,38,32,0.55)'. */
+  /** Scrim colour with alpha, e.g. 'rgba(43,38,32,0.55)'. BELONGS TO THE
+   * CARD'S PALETTE: the card's own accent darkened (gold card → gold-brown,
+   * crimson card → crimson-black), or a light veil for dark names. A foreign
+   * dark hue (navy on a cream card) drags the melt through grey as it fades
+   * over the wash — the melt must glide along the card's colour line. */
   bandColor: string
   /** Per-template calligraphy for the names. */
   titleStyle?: CSSProperties
@@ -207,7 +228,11 @@ export function CoverHero({
   edgeColor?: string
   /** Small caps line above the names (defaults to a neutral invitation word). */
   eyebrow?: string
-  /** The interior paper colour — used to deckle the cover into page 2. */
+  /** Eyebrow ink — the light-veiled templates pass their dark ink; cream by
+   * default so it reads on the smoky scrim. */
+  eyebrowColor?: string
+  /** The interior paper colour — the cover's photo melts into it, so the
+   * cover and the card below read as one continuous page. */
   paperColor?: string
   /** Accent for the cover's own subtle trellis motif (defaults to warm gold). */
   motifColor?: string
@@ -244,19 +269,37 @@ export function CoverHero({
         }}
         aria-hidden="true"
       />
-      {/* Names band — lifted above the deckle strip so the paper's wavy
-          crest closes the page beneath the names. */}
+      {/* The card's paper colour rises from the page below up into the cover,
+          painted beneath the names veil: one single, very long melt (lower 55%
+          of the cover) with a smoothstep ramp — barely a tint far up, then an
+          almost imperceptible rise until the photo has become the card's own
+          paper. No concentrated band, no separation: cover and card read as one
+          continuous sheet of the same expensive paper. */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%]"
+        style={{
+          background: `linear-gradient(to bottom, ${withAlpha(paperColor, 0)} 0%, ${withAlpha(paperColor, 0.028)} 10%, ${withAlpha(paperColor, 0.104)} 20%, ${withAlpha(paperColor, 0.216)} 30%, ${withAlpha(paperColor, 0.352)} 40%, ${withAlpha(paperColor, 0.5)} 50%, ${withAlpha(paperColor, 0.648)} 60%, ${withAlpha(paperColor, 0.784)} 70%, ${withAlpha(paperColor, 0.896)} 80%, ${withAlpha(paperColor, 0.972)} 90%, ${withAlpha(paperColor, 1)} 100%)`,
+        }}
+        aria-hidden="true"
+      />
+      {/* Names band — a smoky veil gathered around the names, feathering away
+          above and below over very long fades (the tail runs ~52mm and lands on
+          nearly-solid paper wash) so the smoke blends into the melt with no
+          visible edge anywhere. The names stay crisp on top while the card's
+          colour takes over the transition. */}
       {names ? (
         <div
-          className="absolute inset-x-0 bottom-[5.4em] flex flex-col items-center px-[1.7em] pb-[2.8em] pt-[6em] text-center"
-          style={{ background: `linear-gradient(to bottom, transparent, ${bandColor} 78%)` }}
+          className="absolute inset-x-0 bottom-[2.5em] flex flex-col items-center px-[1.7em] pb-[10.8em] pt-[5.4em] text-center"
+          style={{
+            background: `linear-gradient(to bottom, transparent 0%, ${bandColor} 30%, ${bandColor} 65%, transparent 100%)`,
+          }}
         >
           <p
             className="uppercase"
             style={{
               fontSize: '0.82em',
               letterSpacing: '0.5em',
-              color: '#F5EDE0',
+              color: eyebrowColor ?? '#F5EDE0',
               opacity: 0.92,
               fontFamily: "'Montserrat', 'Inter', sans-serif",
               fontWeight: 500,
@@ -283,13 +326,6 @@ export function CoverHero({
           </h2>
         </div>
       ) : null}
-      {/* Smooth deckled paper transition into the next (interior) page —
-          painted last so the wavy paper crest masks the scrim's straight
-          bottom edge and the feathered blend softens dark band → paper. */}
-      <CoverDeckle
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-full w-full"
-        color={paperColor}
-      />
     </div>
   )
 }

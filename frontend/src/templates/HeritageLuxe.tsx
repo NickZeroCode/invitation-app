@@ -38,6 +38,7 @@ export function HeritageLuxe({ draft }: TemplateProps) {
       <CoverHero
         draft={draft}
         bandColor="rgba(43,38,32,0.55)"
+        paperColor="#FBF5EA"
         edgeColor="rgba(166,124,61,0.8)"
         titleStyle={{
           fontFamily: "'Great Vibes', cursive",

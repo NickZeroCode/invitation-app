@@ -41,6 +41,7 @@ export function SceauAcademique({ draft }: TemplateProps) {
       <CoverHero
         draft={draft}
         bandColor="rgba(13,23,41,0.62)"
+        paperColor={NAVY}
         edgeColor="rgba(201,162,39,0.85)"
         titleClassName="font-display"
         titleStyle={{

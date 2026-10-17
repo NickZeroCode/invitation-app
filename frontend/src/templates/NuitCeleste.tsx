@@ -125,6 +125,7 @@ export function NuitCeleste({ draft }: TemplateProps) {
       <CoverHero
         draft={draft}
         bandColor="rgba(11,18,40,0.6)"
+        paperColor="#0D1530"
         edgeColor="rgba(226,194,124,0.85)"
         titleStyle={{
           fontFamily: "'Great Vibes', cursive",

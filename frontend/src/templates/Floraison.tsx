@@ -51,7 +51,7 @@ export function Floraison({ draft }: TemplateProps) {
 
       <CoverHero
         draft={draft}
-        bandColor="rgba(35,46,66,0.6)"
+        bandColor="rgba(58,48,34,0.62)"
         edgeColor="rgba(201,168,118,0.9)"
         eyebrow="Réservez la date"
         paperColor={PAPER}
@@ -59,7 +59,7 @@ export function Floraison({ draft }: TemplateProps) {
           fontFamily: SCRIPT_FONT,
           fontSize: titleEm ? '4.7em' : '3.8em',
           color: '#F6F2EA',
-          textShadow: '0 0.05em 0.3em rgba(24,32,48,0.55)',
+          textShadow: '0 0.05em 0.3em rgba(30,22,12,0.5)',
         }}
       />
 

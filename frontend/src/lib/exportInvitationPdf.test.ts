@@ -128,7 +128,7 @@ describe('invitationPdfFileName', () => {
 })
 
 describe('exportInvitationPdf', () => {
-  it('composes the cover, card, details and centred QR pages', async () => {
+  it('composes the continuous sheet, details and centred QR pages', async () => {
     const card = buildCard()
     const { downloads, restore } = captureDownloads()
 
@@ -143,28 +143,24 @@ describe('exportInvitationPdf', () => {
     })
 
     const doc = pdfState.instances.at(-1) as FakePdfRecord
-    expect(doc.pages).toHaveLength(4)
+    expect(doc.pages).toHaveLength(3)
 
-    // Page 1: the cover fallback ratio (A4); page 2: the measured card
-    // (794x1000px → 210mm × 210*1000/794 mm); page 3: the details page; page
-    // 4: the full A4 QR page.
+    // Page 1: the measured continuous sheet (794x1000px → 210mm ×
+    // 210*1000/794 mm); page 2: the details page; page 3: the full A4 QR page.
     expect(doc.pages[0][0]).toBe(210)
-    expect(doc.pages[0][1]).toBeCloseTo(297, 1)
-    expect(doc.pages[1][0]).toBe(210)
-    expect(doc.pages[1][1]).toBeCloseTo((210 * 1000) / 794, 1)
-    expect(doc.pages[2][1]).toBeCloseTo(297, 1)
-    expect(doc.pages[3]).toEqual([210, 297])
+    expect(doc.pages[0][1]).toBeCloseTo((210 * 1000) / 794, 1)
+    expect(doc.pages[1][1]).toBeCloseTo(297, 1)
+    expect(doc.pages[2]).toEqual([210, 297])
 
-    expect(doc.images).toHaveLength(5)
-    // Cover and card span the full page width with zero margin.
+    expect(doc.images).toHaveLength(4)
+    // Sheet and details span the full page width with zero margin.
     expect(doc.images[0]).toMatchObject({ format: 'JPEG', x: 0, y: 0, w: 210, page: 0 })
     expect(doc.images[1]).toMatchObject({ format: 'JPEG', x: 0, y: 0, w: 210, page: 1 })
-    expect(doc.images[2]).toMatchObject({ format: 'JPEG', x: 0, y: 0, w: 210, page: 2 })
     // The styled QR page fills its A4 page, and the QR code is 70x70mm
     // exactly centred on top of it.
-    expect(doc.images[3]).toMatchObject({ format: 'JPEG', x: 0, y: 0, w: 210, h: 297, page: 3 })
-    expect(doc.images[4]).toMatchObject({ format: 'PNG', x: 70, y: 113.5, w: 70, h: 70, page: 3 })
-    expect(doc.images[4]?.dataUrl).toBe('data:image/png;base64,QRDATA')
+    expect(doc.images[2]).toMatchObject({ format: 'JPEG', x: 0, y: 0, w: 210, h: 297, page: 2 })
+    expect(doc.images[3]).toMatchObject({ format: 'PNG', x: 70, y: 113.5, w: 70, h: 70, page: 2 })
+    expect(doc.images[3]?.dataUrl).toBe('data:image/png;base64,QRDATA')
 
     expect(doc.props).toEqual({
       title: 'Mariage de Grâce et Éric',
@@ -178,8 +174,8 @@ describe('exportInvitationPdf', () => {
       color: { dark: '#1a261f', light: '#ffffff' },
     })
 
-    // The on-page sections are hidden while the card is captured, then restored.
-    expect(captureState.skipDisplayDuringCapture[1]).toBe('none')
+    // The on-page sections are hidden while the sheet is captured, then restored.
+    expect(captureState.skipDisplayDuringCapture[0]).toBe('none')
     expect(card.querySelector<HTMLElement>('[data-export-skip=""]')?.style.display).toBe('')
 
     expect(downloads).toHaveLength(1)
@@ -283,7 +279,7 @@ describe('exportInvitationPdf', () => {
 
     const doc = pdfState.instances.at(-1) as FakePdfRecord
     expect(doc.pages).toHaveLength(3)
-    // Captures: card (0), details (1), QR page background (2). The text is
+    // Captures: sheet (0), details (1), QR page background (2). The text is
     // snapshotted at capture time — the details tree is unmounted afterwards.
     const text = captureState.capturedText[1] ?? ''
     expect(text.indexOf('Programme')).toBeGreaterThan(-1)
@@ -310,8 +306,8 @@ describe('exportInvitationPdf', () => {
       qrText: 'https://nickevents.cd/i/tok-999',
     })
 
-    // Captures: card (0), QR page background (1). The note rides on the card
-    // at its template position and is never duplicated on the QR page.
+    // Captures: sheet (0), QR page background (1). The note rides on the
+    // sheet at its template position and is never duplicated on the QR page.
     const note = 'Le respect de l’heure est vivement souhaité.'
     expect(captureState.capturedText[0] ?? '').toContain(note)
     expect(captureState.capturedText[1] ?? '').not.toContain(note)

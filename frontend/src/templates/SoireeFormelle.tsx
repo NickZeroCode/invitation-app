@@ -42,6 +42,7 @@ export function SoireeFormelle({ draft }: TemplateProps) {
       <CoverHero
         draft={draft}
         bandColor="rgba(14,42,34,0.6)"
+        paperColor={EMERALD}
         edgeColor="rgba(199,169,107,0.85)"
         titleStyle={{
           fontSize: titleEm ? '2.9em' : '2.15em',

@@ -62,6 +62,8 @@ export function JardinFloral({ draft }: TemplateProps) {
       <CoverHero
         draft={draft}
         bandColor="rgba(252,243,241,0.82)"
+        paperColor="#FCF3F1"
+        eyebrowColor="#5C3A43"
         edgeColor="rgba(180,99,111,0.7)"
         titleClassName="font-display italic"
         titleStyle={{

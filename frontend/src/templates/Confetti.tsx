@@ -50,6 +50,7 @@ export function Confetti({ draft }: TemplateProps) {
       <CoverHero
         draft={draft}
         bandColor="rgba(49,46,129,0.58)"
+        paperColor="#FFF8E7"
         edgeColor="#F59E0B"
         titleClassName="font-extrabold"
         titleStyle={{

@@ -81,6 +81,7 @@ export function ArcheSoleil({ draft }: TemplateProps) {
       <CoverHero
         draft={draft}
         bandColor="rgba(71,40,43,0.52)"
+        paperColor="#F7EAD8"
         edgeColor="rgba(216,154,82,0.85)"
         titleStyle={{
           fontFamily: "'Great Vibes', cursive",
