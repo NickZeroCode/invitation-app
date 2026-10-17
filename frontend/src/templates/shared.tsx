@@ -190,6 +190,52 @@ function withAlpha(color: string, alpha: number): string {
   return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`
 }
 
+/** `#RGB`/`#RRGGBB` plus the opacity from an `rgba(...)` string, or `null` if
+ * the colour cannot be parsed. Used to re-stop a template's scrim. */
+function withRgbaAlpha(color: string, alpha: number): string {
+  const match = /rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/i.exec(color.trim())
+  if (!match) return null as unknown as string
+  return `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${alpha})`
+}
+
+/**
+ * A melt-gradient builder: fades `color` from fully transparent to its full
+ * opacity along `direction`, laying `steps` evenly-spaced smoothstep stops
+ * (zero slope at both ends, no step-knees in between) and interpolating in
+ * oklch — so the fade glides through the colour's own hue and never through a
+ * grey mid-band. This is what makes the cover→card hand-off read as one
+ * continuous, barely-perceptible gradient rather than two stops meeting.
+ */
+function meltGradient(direction: string, color: string, steps = 18): string {
+  const stops: string[] = []
+  for (let i = 0; i < steps; i += 1) {
+    const x = i / (steps - 1)
+    const alpha = x * x * (3 - 2 * x)
+    stops.push(`${withAlpha(color, Number(alpha.toFixed(3)))} ${Number((x * 100).toFixed(1))}%`)
+  }
+  return `linear-gradient(${direction} in oklch, ${stops.join(', ')})`
+}
+
+/** Same melt, but between two explicit opacity endpoints of the same colour
+ * (used for the smoky names veil, which fades 0 → full → 0 over its band). */
+function veilGradient(color: string): string {
+  // t: 0 at the band's top → 1 at its bottom. The scrim opacity follows a
+  // bell: 0 → 1 over the first 45% (smoothstep), holds full through the
+  // middle, then 1 → 0 over the last 35%. oklch keeps the smoke on-hue.
+  const bell = (t: number): number => {
+    const rise = Math.min(t / 0.45, 1)
+    const fall = Math.min(Math.max((1 - t) / 0.35, 0), 1)
+    const s = Math.min(rise, fall)
+    return s * s * (3 - 2 * s)
+  }
+  const stops: string[] = []
+  for (let i = 0; i <= 20; i += 1) {
+    const t = i / 20
+    stops.push(`${withRgbaAlpha(color, Number(bell(t).toFixed(3)))} ${Number((t * 100).toFixed(1))}%`)
+  }
+  return `linear-gradient(to bottom in oklch, ${stops.join(', ')})`
+}
+
 /**
  * Cover page: the opening page of the invitation — a full-bleed photo with a
  * refined, editorial text zone over a translucent gradient band. Only
@@ -271,27 +317,26 @@ export function CoverHero({
       />
       {/* The card's paper colour rises from the page below up into the cover,
           painted beneath the names veil: one single, very long melt (lower 55%
-          of the cover) with a smoothstep ramp — barely a tint far up, then an
-          almost imperceptible rise until the photo has become the card's own
-          paper. No concentrated band, no separation: cover and card read as one
-          continuous sheet of the same expensive paper. */}
+          of the cover). oklch interpolation keeps it on the paper's own hue
+          (no grey mid-band) and the smoothstep stops erase every corner, so
+          the photo quietly becomes the card's paper with no seam anywhere. */}
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%]"
         style={{
-          background: `linear-gradient(to bottom, ${withAlpha(paperColor, 0)} 0%, ${withAlpha(paperColor, 0.028)} 10%, ${withAlpha(paperColor, 0.104)} 20%, ${withAlpha(paperColor, 0.216)} 30%, ${withAlpha(paperColor, 0.352)} 40%, ${withAlpha(paperColor, 0.5)} 50%, ${withAlpha(paperColor, 0.648)} 60%, ${withAlpha(paperColor, 0.784)} 70%, ${withAlpha(paperColor, 0.896)} 80%, ${withAlpha(paperColor, 0.972)} 90%, ${withAlpha(paperColor, 1)} 100%)`,
+          background: meltGradient('to bottom', paperColor),
         }}
         aria-hidden="true"
       />
       {/* Names band — a smoky veil gathered around the names, feathering away
-          above and below over very long fades (the tail runs ~52mm and lands on
-          nearly-solid paper wash) so the smoke blends into the melt with no
-          visible edge anywhere. The names stay crisp on top while the card's
-          colour takes over the transition. */}
+          above and below along a smoothstep bell (oklch, on-hue), so the top
+          around the eyebrow thins out with no detectable start and the tail
+          dissolves into the melt with no detectable end. The names stay crisp
+          on top while the card's colour takes over the transition. */}
       {names ? (
         <div
           className="absolute inset-x-0 bottom-[2.5em] flex flex-col items-center px-[1.7em] pb-[10.8em] pt-[5.4em] text-center"
           style={{
-            background: `linear-gradient(to bottom, transparent 0%, ${bandColor} 30%, ${bandColor} 65%, transparent 100%)`,
+            background: veilGradient(bandColor),
           }}
         >
           <p
