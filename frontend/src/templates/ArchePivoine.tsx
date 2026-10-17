@@ -54,6 +54,7 @@ export function ArchePivoine({ draft }: TemplateProps) {
         bandColor="rgba(38,50,80,0.6)"
         edgeColor="rgba(194,154,78,0.9)"
         eyebrow="Avec leurs familles"
+        paperColor={PAPER}
         titleStyle={{
           fontFamily: SCRIPT_FONT,
           fontSize: titleEm ? '4.6em' : '3.7em',

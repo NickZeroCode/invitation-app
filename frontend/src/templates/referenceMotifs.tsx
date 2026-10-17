@@ -373,27 +373,28 @@ export function PeonyCluster({
   }
   return (
     <svg viewBox="0 0 260 240" className={className} style={style} aria-hidden="true">
-      <g stroke={palette.leafDeep} strokeWidth="2.2" strokeLinecap="round" fill="none" opacity="0.8">
-        <path d="M 132 210 C 122 170 116 132 122 96" />
-        <path d="M 122 120 C 92 108 66 112 46 126" />
-        <path d="M 124 150 C 152 138 178 140 198 152" />
+      {/* one fan of stems reaching each head, so the bouquet reads as a single
+          gathered bunch (stems end exactly where the heads sit) */}
+      <g stroke={palette.leafDeep} strokeLinecap="round" fill="none" opacity="0.8">
+        <path d="M 132 216 C 128 178 126 138 128 96" strokeWidth="2.4" />
+        <path d="M 132 216 C 108 184 84 168 68 154" strokeWidth="2.2" />
+        <path d="M 132 216 C 158 182 182 140 196 100" strokeWidth="2.2" />
       </g>
+      {/* leaves cupped at the stem nodes, not scattered */}
       <g fill={palette.leaf} opacity="0.85">
-        <ellipse cx="86" cy="112" rx="16" ry="9" transform="rotate(-28 86 112)" />
-        <ellipse cx="62" cy="122" rx="13" ry="7.5" transform="rotate(-16 62 122)" />
-        <ellipse cx="170" cy="142" rx="15" ry="8.5" transform="rotate(22 170 142)" />
-        <ellipse cx="192" cy="152" rx="12" ry="7" transform="rotate(14 192 152)" />
-        <ellipse cx="128" cy="182" rx="14" ry="8" transform="rotate(58 128 182)" />
+        <ellipse cx="116" cy="176" rx="15" ry="8.5" transform="rotate(-38 116 176)" />
+        <ellipse cx="150" cy="172" rx="14" ry="8" transform="rotate(28 150 172)" />
+        <ellipse cx="100" cy="178" rx="12" ry="7" transform="rotate(-64 100 178)" />
+        <ellipse cx="166" cy="150" rx="13" ry="7.5" transform="rotate(-24 166 150)" />
       </g>
       {peonyHead(128, 92, 62, colors, 'a')}
-      {peonyHead(66, 152, 44, colors, 'b')}
-      {peonyHead(196, 96, 34, colors, 'c')}
+      {peonyHead(66, 152, 42, colors, 'b')}
+      {peonyHead(196, 96, 32, colors, 'c')}
+      {/* a few accent buds tucked beside the heads only */}
       <g fill={palette.accent} opacity="0.9">
-        <circle cx="212" cy="140" r="4.6" />
-        <circle cx="222" cy="152" r="3.2" />
-        <circle cx="204" cy="154" r="2.6" />
-        <circle cx="44" cy="96" r="4" />
-        <circle cx="34" cy="106" r="2.8" />
+        <circle cx="212" cy="128" r="4.4" />
+        <circle cx="220" cy="140" r="3" />
+        <circle cx="46" cy="124" r="3.8" />
       </g>
     </svg>
   )
@@ -567,26 +568,27 @@ export function RoseCluster({
   }
   return (
     <svg viewBox="0 0 240 210" className={className} style={style} aria-hidden="true">
-      <g stroke={palette.leafDeep} strokeWidth="2.2" strokeLinecap="round" fill="none" opacity="0.85">
-        <path d="M 118 186 C 110 150 106 120 112 92" />
-        <path d="M 112 116 C 84 104 60 108 42 120" />
-        <path d="M 114 142 C 142 130 166 132 186 142" />
+      {/* one gathered fan of stems, each ending exactly beneath its rose */}
+      <g stroke={palette.leafDeep} strokeLinecap="round" fill="none" opacity="0.85">
+        <path d="M 118 190 C 112 156 110 120 112 86" strokeWidth="2.4" />
+        <path d="M 118 190 C 94 166 70 150 58 140" strokeWidth="2.2" />
+        <path d="M 118 190 C 146 162 166 132 178 106" strokeWidth="2.2" />
       </g>
+      {/* foliage cupped at the stem nodes */}
       <g fill={palette.leaf} opacity="0.9">
-        <path d="M 78 108 C 66 94 46 92 32 100 C 46 112 64 114 78 108 Z" />
-        <path d="M 58 122 C 48 110 30 110 18 118 C 30 128 46 128 58 122 Z" />
-        <path d="M 152 132 C 164 118 184 116 198 124 C 184 136 166 138 152 132 Z" />
-        <path d="M 172 146 C 182 134 200 134 212 142 C 200 152 184 152 172 146 Z" />
+        <path d="M 104 158 C 90 146 70 144 56 152 C 70 164 90 166 104 158 Z" />
+        <path d="M 134 152 C 148 140 168 138 182 146 C 168 158 148 160 134 152 Z" />
+        <path d="M 110 170 C 100 158 82 158 70 166 C 82 176 98 176 110 170 Z" />
       </g>
       {peonyHead(112, 82, 56, colors, 'r1')}
       {peonyHead(56, 138, 38, colors, 'r2')}
       {peonyHead(178, 104, 30, colors, 'r3')}
+      {/* a couple of sparkles kept to the open corners only */}
       <g fill={palette.accent}>
         {[
           [36, 40, 7],
-          [196, 44, 6],
-          [214, 88, 4.6],
-          [26, 168, 5.2],
+          [202, 44, 6],
+          [210, 170, 5],
         ].map(([x, y, s]) => (
           <path
             key={`${x}-${y}`}

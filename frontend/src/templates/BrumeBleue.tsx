@@ -50,6 +50,7 @@ export function BrumeBleue({ draft }: TemplateProps) {
         bandColor="rgba(48,62,92,0.58)"
         edgeColor="rgba(194,154,78,0.9)"
         eyebrow="Joignez-vous à nous"
+        paperColor={PAPER}
         titleStyle={{
           fontFamily: SCRIPT_FONT,
           fontSize: titleEm ? '4.3em' : '3.4em',

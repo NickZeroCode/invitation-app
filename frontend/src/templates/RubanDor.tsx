@@ -48,6 +48,7 @@ export function RubanDor({ draft }: TemplateProps) {
         bandColor="rgba(46,38,26,0.6)"
         edgeColor="rgba(201,162,74,0.9)"
         eyebrow="Fiançailles"
+        paperColor={PAPER}
         titleStyle={{
           fontFamily: SCRIPT_FONT,
           fontSize: titleEm ? '4.6em' : '3.7em',

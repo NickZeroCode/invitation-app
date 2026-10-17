@@ -61,6 +61,7 @@ export function RosesDor({ draft }: TemplateProps) {
         bandColor="rgba(52,42,32,0.6)"
         edgeColor="rgba(226,194,124,0.85)"
         eyebrow="Réservez la date"
+        paperColor={PAPER}
         titleStyle={{
           fontFamily: SCRIPT_FONT,
           fontSize: titleEm ? '4.6em' : '3.7em',

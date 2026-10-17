@@ -91,6 +91,7 @@ export function Grenat({ draft }: TemplateProps) {
         bandColor="rgba(70,18,32,0.6)"
         edgeColor="rgba(217,181,104,0.9)"
         eyebrow="Réservez la date"
+        paperColor={PAPER}
         titleStyle={{
           fontFamily: SCRIPT_FONT,
           fontSize: titleEm ? '4.5em' : '3.6em',

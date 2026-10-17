@@ -86,6 +86,7 @@ export function Hexagone({ draft }: TemplateProps) {
         bandColor="rgba(43,32,24,0.6)"
         edgeColor="rgba(216,178,106,0.85)"
         eyebrow="Célébrons ensemble"
+        paperColor={PAPER}
         titleStyle={{
           fontFamily: SCRIPT_FONT,
           fontSize: titleEm ? '4.4em' : '3.5em',

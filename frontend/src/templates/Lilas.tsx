@@ -64,6 +64,7 @@ export function Lilas({ draft }: TemplateProps) {
         bandColor="rgba(38,34,48,0.6)"
         edgeColor="rgba(201,180,228,0.9)"
         eyebrow="Joyeux anniversaire"
+        paperColor={PAPER}
         titleStyle={{
           fontFamily: SCRIPT_FONT,
           fontSize: titleEm ? '4.8em' : '3.9em',

@@ -54,6 +54,7 @@ export function Floraison({ draft }: TemplateProps) {
         bandColor="rgba(35,46,66,0.6)"
         edgeColor="rgba(201,168,118,0.9)"
         eyebrow="Réservez la date"
+        paperColor={PAPER}
         titleStyle={{
           fontFamily: SCRIPT_FONT,
           fontSize: titleEm ? '4.7em' : '3.8em',

@@ -81,6 +81,95 @@ function GoldDefs({ id }: { id: string }) {
   )
 }
 
+/**
+ * Subtle premium motif for the photo cover: a faint diagonal trellis of fine
+ * hairlines with a tiny diamond at each crossing, printed like a silk
+ * book-cloth. Kept very light (it sits over a photograph) so it reads as an
+ * expensive texture rather than a pattern. Renders in the accent colour at
+ * low alpha.
+ */
+export function CoverSheen({
+  color = '#E2C27C',
+  opacity = 0.16,
+  className,
+  style,
+}: {
+  color?: string
+  opacity?: number
+  className?: string
+  style?: CSSProperties
+}) {
+  const id = useId().replace(/[^a-zA-Z0-9-]/g, '')
+  const cell = 26
+  return (
+    <svg
+      viewBox="0 0 210 297"
+      preserveAspectRatio="xMidYMid slice"
+      className={className}
+      style={style}
+      aria-hidden="true"
+    >
+      <defs>
+        <pattern id={`cs-${id}`} width={cell} height={cell} patternUnits="userSpaceOnUse">
+          <g fill="none" stroke={color} strokeWidth="0.5" opacity="0.55">
+            <path d={`M 0 ${cell} L ${cell} 0`} />
+            <path d={`M 0 0 L ${cell} ${cell}`} />
+          </g>
+          <path
+            d={`M ${cell / 2} ${cell / 2 - 2} L ${cell / 2 + 2} ${cell / 2} L ${cell / 2} ${cell / 2 + 2} L ${cell / 2 - 2} ${cell / 2} Z`}
+            fill={color}
+            opacity="0.8"
+          />
+        </pattern>
+      </defs>
+      <rect width="210" height="297" fill={`url(#cs-${id})`} opacity={opacity} />
+    </svg>
+  )
+}
+
+/**
+ * A torn/deckled paper edge that peels the bottom of the photo cover into
+ * the next (paper) page, so the transition reads as a crafted sheet being
+ * turned rather than a hard image cut. The wave is filled with the paper
+ * colour and feathered upward into the photo by a soft gradient.
+ */
+export function CoverDeckle({
+  color = '#FFFFFF',
+  className,
+  style,
+}: {
+  color?: string
+  className?: string
+  style?: CSSProperties
+}) {
+  const id = useId().replace(/[^a-zA-Z0-9-]/g, '')
+  // Gentle, organic scalloped bottom edge (the deckle): paper peels up from
+  // the bottom ~12% of the sheet, feathering into the photo above.
+  const edge =
+    'M 0 297 L 0 262 C 18 255 34 266 52 260 C 70 254 84 265 102 260 C 120 255 134 266 152 261 C 168 257 182 267 210 262 L 210 297 Z'
+  return (
+    <svg
+      viewBox="0 0 210 297"
+      preserveAspectRatio="none"
+      className={className}
+      style={style}
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id={`cd-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={color} stopOpacity="0" />
+          <stop offset="0.45" stopColor={color} stopOpacity="0.35" />
+          <stop offset="1" stopColor={color} stopOpacity="0.75" />
+        </linearGradient>
+      </defs>
+      {/* feathered blend rising above the crest */}
+      <rect x="0" y="238" width="210" height="59" fill={`url(#cd-${id})`} />
+      {/* crisp deckle silhouette in the paper colour */}
+      <path d={edge} fill={color} />
+    </svg>
+  )
+}
+
 /** Scalloped rose outline: `bumps` petal arcs around (cx, cy). */
 function rosePath(cx: number, cy: number, r: number, bumps = 5, phase = -Math.PI / 2): string {
   const parts: string[] = []
@@ -126,21 +215,33 @@ export function GoldRoseCorner({
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <path d={rosePath(78, 74, 30, 5)} />
-        <path d={rosePath(78, 74, 21, 5, -Math.PI / 2 + 0.5)} />
-        <path d={rosePath(78, 74, 13, 5, -Math.PI / 2 + 1.1)} />
-        <path d="M 75 74 a 4.5 4.5 0 1 1 -4.5 4.5 a 2.6 2.6 0 1 0 2.6 -2.6" />
+        {/* one sweeping bough ties the roses into a single composed spray */}
+        <path
+          d="M 18 30 C 60 22 96 30 122 52 C 150 76 168 104 178 132"
+          strokeWidth={strokeWidth * 0.8}
+        />
+        <path d="M 60 40 C 70 52 78 62 84 74" strokeWidth={strokeWidth * 0.7} />
+        <path d="M 122 52 C 140 50 156 46 168 44" strokeWidth={strokeWidth * 0.7} />
+        <path d="M 150 96 C 152 108 151 120 150 130" strokeWidth={strokeWidth * 0.7} />
+        {/* hero rose, anchored on the bough */}
+        <path d={rosePath(84, 78, 30, 5)} />
+        <path d={rosePath(84, 78, 21, 5, -Math.PI / 2 + 0.5)} />
+        <path d={rosePath(84, 78, 13, 5, -Math.PI / 2 + 1.1)} />
+        <path d="M 81 78 a 4.5 4.5 0 1 1 -4.5 4.5 a 2.6 2.6 0 1 0 2.6 -2.6" />
+        {/* second rose on its fork */}
         <path d={rosePath(168, 46, 18, 5)} />
         <path d={rosePath(168, 46, 12, 5, -Math.PI / 2 + 0.5)} />
         <path d={rosePath(168, 46, 7, 5, -Math.PI / 2 + 1)} />
         <path d="M 166 46 a 3 3 0 1 1 -3 3 a 1.7 1.7 0 1 0 1.7 -1.7" />
+        {/* third rose at the bough's tip */}
         <path d={rosePath(150, 132, 13, 5)} />
         <path d={rosePath(150, 132, 7.5, 5, -Math.PI / 2 + 0.6)} />
         <path d="M 148 132 a 2.4 2.4 0 1 1 -2.4 2.4 a 1.3 1.3 0 1 0 1.3 -1.3" />
+        {/* small bud rose near the origin */}
         <path d={rosePath(46, 34, 13, 5, -1)} />
         <path d={rosePath(46, 34, 7.5, 5, -0.5)} />
         <path d="M 44 34 a 2.2 2.2 0 1 1 -2.2 2.2 a 1.2 1.2 0 1 0 1.2 -1.2" />
-        {/* leaves */}
+        {/* leaves clustered at the nodes along the bough */}
         <path d="M 108 92 C 124 78 146 76 158 86 C 142 98 122 100 108 92 Z" />
         <path d="M 112 90 C 126 86 142 86 154 87" strokeWidth={strokeWidth * 0.7} />
         <path d="M 62 112 C 50 128 48 150 58 162 C 70 146 72 126 62 112 Z" />
@@ -151,15 +252,13 @@ export function GoldRoseCorner({
         <path d="M 72 40 C 86 32 100 24 110 20" strokeWidth={strokeWidth * 0.7} />
         <path d="M 22 68 C 12 84 10 108 20 122 C 30 104 32 84 22 68 Z" />
         <path d="M 21 74 C 19 90 19 106 20 118" strokeWidth={strokeWidth * 0.7} />
-        <path d="M 40 158 C 28 168 22 186 28 196" />
+        {/* a few tendril accents, kept to the bough's flow */}
         <path d="M 118 44 C 132 30 152 26 166 32" />
         <path d="M 96 118 C 110 132 118 152 114 170" />
-        {/* sprig dots */}
+        {/* sprig dots tucked at the tips only */}
         <circle cx="30" cy="182" r="2.6" />
         <circle cx="42" cy="190" r="1.9" />
-        <circle cx="122" cy="180" r="2.4" />
         <circle cx="196" cy="122" r="2.2" />
-        <circle cx="132" cy="24" r="2.1" />
       </g>
     </svg>
   )
@@ -198,41 +297,49 @@ export function WatercolorSpray({
         </filter>
       </defs>
 
-      {/* soft watercolor bleed under the blooms */}
+      {/* soft watercolor bleed, pooled under each bloom (not scattered) */}
       <g filter={`url(#b-${id})`} opacity="0.22">
-        <circle cx="108" cy="112" r="30" fill={palette.petal} />
-        <circle cx="170" cy="88" r="23" fill={palette.petal} />
-        <circle cx="66" cy="152" r="17" fill={palette.petalDeep} />
+        <ellipse cx="150" cy="92" rx="34" ry="26" fill={palette.petal} />
+        <ellipse cx="92" cy="130" rx="24" ry="19" fill={palette.petal} />
+        <ellipse cx="196" cy="66" rx="16" ry="13" fill={palette.petalDeep} />
       </g>
 
-      {/* stems */}
+      {/* One hand-arranged stem: a main curved branch with three forks, so the
+          spray reads as a single composed stem rather than scattered parts.
+          Fork points = where blooms anchor. */}
       <g
         fill="none"
         stroke={palette.leafDeep}
-        strokeWidth="3"
         strokeLinecap="round"
-        opacity="0.6"
+        opacity="0.62"
       >
-        <path d="M 14 214 C 38 176 62 146 104 122" />
-        <path d="M 14 214 C 32 166 82 132 156 104" />
-        <path d="M 18 212 C 48 184 92 168 138 154" />
+        {/* main sweep */}
+        <path d="M 16 216 C 52 178 96 146 150 108" strokeWidth="3" />
+        {/* upper fork to the hero bloom */}
+        <path d="M 96 154 C 118 130 132 112 150 92" strokeWidth="2.6" />
+        {/* left fork to the second bloom */}
+        <path d="M 78 168 C 82 152 86 142 92 130" strokeWidth="2.2" />
+        {/* upper-right fork to the bud */}
+        <path d="M 128 122 C 154 100 176 82 196 66" strokeWidth="2" />
       </g>
 
-      {/* leaves */}
+      {/* Leaves clustered in pairs at each stem node (like real foliage),
+          all cupped along the growth direction — never free-floating. */}
       <g>
         {(
           [
-            [36, 188, -52, 0.95],
-            [58, 158, -38, 0.85],
-            [82, 146, -18, 1],
-            [46, 168, -118, 0.8],
-            [120, 118, -30, 0.9],
-            [150, 112, -58, 0.78],
-            [186, 92, -20, 0.88],
-            [64, 128, -142, 0.72],
-            [128, 152, 14, 0.82],
-            [212, 66, -40, 0.7],
-            [166, 138, 30, 0.72],
+            // node at (96,154) — the hero fork
+            [96, 154, -150, 1.05],
+            [100, 158, -32, 0.9],
+            // node at (78,168) — the second fork
+            [78, 168, -160, 0.9],
+            [82, 172, -18, 0.8],
+            // node at (128,122) — the upper-right fork
+            [128, 122, -150, 0.85],
+            [132, 126, -28, 0.75],
+            // base leaves by the stem origin
+            [40, 198, -128, 1.0],
+            [30, 204, -58, 0.85],
           ] as Array<[number, number, number, number]>
         ).map(([x, y, rot, s], index) => (
           <g key={`${x}-${y}`} transform={`translate(${x} ${y}) rotate(${rot}) scale(${s})`} opacity={0.6 + (index % 3) * 0.12}>
@@ -251,14 +358,14 @@ export function WatercolorSpray({
         ))}
       </g>
 
-      {/* blooms — outer + inner petal rings read as layered, real blossoms */}
+      {/* Blooms, graduated and anchored exactly on the fork tips: a large hero,
+          a medium second, a small bud — a composed trio, not a scatter. */}
       <g>
         {(
           [
-            [108, 112, 30, 6, 0],
-            [170, 88, 23, 6, 14],
-            [66, 152, 17, 5, 28],
-            [214, 56, 13, 5, 40],
+            [150, 92, 30, 7, 0],
+            [92, 130, 21, 6, 14],
+            [196, 66, 12, 5, 30],
           ] as Array<[number, number, number, number, number]>
         ).map(([cx, cy, r, petals, phase]) => (
           <g key={`f-${cx}`}>
@@ -299,13 +406,10 @@ export function WatercolorSpray({
         ))}
       </g>
 
-      {/* berries */}
+      {/* a couple of accent berries tucked at the fork nodes only */}
       <g fill={palette.accent} opacity="0.8">
-        <circle cx="140" cy="126" r="4.2" />
-        <circle cx="152" cy="140" r="3.2" />
-        <circle cx="128" cy="148" r="3.6" />
-        <circle cx="198" cy="112" r="3.2" />
-        <circle cx="88" cy="126" r="3" />
+        <circle cx="118" cy="150" r="3.6" />
+        <circle cx="108" cy="142" r="2.8" />
       </g>
     </svg>
   )

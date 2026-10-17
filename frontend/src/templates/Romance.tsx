@@ -52,6 +52,7 @@ export function Romance({ draft }: TemplateProps) {
         bandColor="rgba(30,42,66,0.6)"
         edgeColor="rgba(194,154,78,0.9)"
         eyebrow="Nous nous marions"
+        paperColor={PAPER}
         titleStyle={{
           fontFamily: SCRIPT_FONT,
           fontSize: titleEm ? '4.4em' : '3.5em',

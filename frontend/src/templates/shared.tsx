@@ -12,6 +12,7 @@
 /* oxlint-disable react/only-export-components -- pure helpers + one primitive component */
 import type { CSSProperties, ReactNode } from 'react'
 
+import { CoverDeckle, CoverSheen } from './florals.tsx'
 import { LuxuryTable } from './tableScene.tsx'
 import type { InvitationDraft } from './types.ts'
 
@@ -192,6 +193,8 @@ export function CoverHero({
   titleClassName,
   edgeColor,
   eyebrow,
+  paperColor = '#FFFFFF',
+  motifColor,
 }: {
   draft: InvitationDraft
   /** Scrim colour with alpha, e.g. 'rgba(43,38,32,0.55)'. */
@@ -204,6 +207,10 @@ export function CoverHero({
   edgeColor?: string
   /** Small caps line above the names (defaults to a neutral invitation word). */
   eyebrow?: string
+  /** The interior paper colour — used to deckle the cover into page 2. */
+  paperColor?: string
+  /** Accent for the cover's own subtle trellis motif (defaults to warm gold). */
+  motifColor?: string
 }) {
   if (!draft.cover_url) return null
   // The cover always celebrates something: the chosen names or, when the
@@ -212,11 +219,22 @@ export function CoverHero({
   return (
     <div
       data-export-skip="cover"
-      className="relative w-full shrink-0 overflow-hidden"
+      // `relative z-20` lifts the cover above the paper's `absolute inset-*`
+      // decorations (which sit at z-auto): the opaque full-bleed photo covers
+      // them, so template florals never scatter across the photograph. They
+      // remain visible on the interior card below the cover.
+      className="relative z-20 w-full shrink-0 overflow-hidden"
       // A4 portrait so the exported first page is a true full-bleed cover.
       style={{ aspectRatio: '210 / 297' }}
     >
       <img src={draft.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      {/* The cover's own subtle premium motif — a faint silk trellis, never
+          the template's florals. */}
+      <CoverSheen
+        className="pointer-events-none absolute inset-0 h-full w-full"
+        color={motifColor ?? edgeColor ?? '#E2C27C'}
+        opacity={0.14}
+      />
       {/* Soft top-to-bottom vignette so any photo sits in a premium frame. */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -226,9 +244,11 @@ export function CoverHero({
         }}
         aria-hidden="true"
       />
+      {/* Names band — lifted above the deckle strip so the paper's wavy
+          crest closes the page beneath the names. */}
       {names ? (
         <div
-          className="absolute inset-x-0 bottom-0 flex flex-col items-center px-[1.7em] pb-[2.1em] pt-[6em] text-center"
+          className="absolute inset-x-0 bottom-[5.4em] flex flex-col items-center px-[1.7em] pb-[2.8em] pt-[6em] text-center"
           style={{ background: `linear-gradient(to bottom, transparent, ${bandColor} 78%)` }}
         >
           <p
@@ -263,6 +283,13 @@ export function CoverHero({
           </h2>
         </div>
       ) : null}
+      {/* Smooth deckled paper transition into the next (interior) page —
+          painted last so the wavy paper crest masks the scrim's straight
+          bottom edge and the feathered blend softens dark band → paper. */}
+      <CoverDeckle
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-full w-full"
+        color={paperColor}
+      />
     </div>
   )
 }

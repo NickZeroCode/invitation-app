@@ -55,6 +55,7 @@ export function Mandala({ draft }: TemplateProps) {
         bandColor="rgba(70,10,16,0.62)"
         edgeColor="rgba(232,192,106,0.9)"
         eyebrow="Avec la bénédiction des familles"
+        paperColor={PAPER}
         titleStyle={{
           fontFamily: "'Cormorant Garamond', ui-serif, serif",
           fontWeight: 600,
