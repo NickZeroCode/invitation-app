@@ -379,7 +379,7 @@ export function CoverHero({
           real engraved plaque. The paper melt still runs beneath, so the tile
           and the card below share one continuous, expensive paper. */}
       {names ? (
-        <div className="absolute inset-x-0 bottom-[11em] flex justify-center px-[1.7em]">
+        <div className="absolute inset-x-0 bottom-[8.5em] flex justify-center px-[1.7em]">
           <div className="relative">
             {/* Festive ribbon woven behind the tile — satin in the card's
                 accent, swallow-tail ends with shadowed folds. */}
@@ -415,7 +415,7 @@ export function CoverHero({
                 where the names are cream, light frosted plate where they are
                 dark ink), framed in fine gold with corner diamonds. */}
             <div
-              className="relative z-10 flex flex-col items-center px-[2.6em] py-[2.1em] text-center"
+              className="relative z-10 flex flex-col items-center px-[2.2em] py-[1.75em] text-center"
               style={{
                 background: plateGradient(paperColor, bandColor),
                 border: `1px solid ${accentAlpha(edgeColor, 0.75)}`,
@@ -442,7 +442,7 @@ export function CoverHero({
               {eyebrow ?? 'Invitation'}
             </p>
             <span
-              className="mt-[1.05em] flex items-center gap-[0.9em]"
+              className="mt-[0.95em] flex items-center gap-[0.9em]"
               aria-hidden="true"
             >
               <span className="h-px w-[3.4em]" style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.85)' }} />
@@ -453,7 +453,7 @@ export function CoverHero({
               <span className="h-px w-[3.4em]" style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.85)' }} />
             </span>
             <h2
-              className={`mt-[1.15em] w-full break-words text-balance leading-[1.08] ${titleClassName ?? ''}`}
+              className={`mt-[1.02em] w-full break-words text-balance leading-[1.08] ${titleClassName ?? ''}`}
               style={titleStyle}
             >
               {names}
