@@ -190,12 +190,51 @@ function withAlpha(color: string, alpha: number): string {
   return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`
 }
 
-/** `#RGB`/`#RRGGBB` plus the opacity from an `rgba(...)` string, or `null` if
- * the colour cannot be parsed. Used to re-stop a template's scrim. */
-function withRgbaAlpha(color: string, alpha: number): string {
-  const match = /rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/i.exec(color.trim())
-  if (!match) return null as unknown as string
-  return `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${alpha})`
+/** rgb channels of a `#RGB`/`#RRGGBB`/`rgb()`/`rgba()` colour (null if unknown). */
+function parseRgb(color: string): [number, number, number] | null {
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(color.trim())
+  if (hex) {
+    const digits = hex[1].length === 3 ? hex[1].split('').map((d) => d + d).join('') : hex[1]
+    const value = Number.parseInt(digits, 16)
+    return [(value >> 16) & 255, (value >> 8) & 255, value & 255]
+  }
+  const fn = /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(color.trim())
+  return fn ? [Number(fn[1]), Number(fn[2]), Number(fn[3])] : null
+}
+
+/** Relative luminance of a colour string (0 dark ... 1 light). */
+function luminanceOf(color: string): number {
+  const [r, g, b] = parseRgb(color) ?? [255, 255, 255]
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255
+}
+
+/**
+ * The plate the cover text rests on. A dark engraved plate (the card's own
+ * shadow tone, warmed toward its scrim hue) where the names are cream; a light
+ * frosted plate where the names are dark ink — every template keeps its
+ * contrast in its own palette.
+ */
+function plateGradient(paper: string, veil: string): string {
+  if (luminanceOf(veil) >= 0.62) {
+    return `linear-gradient(180deg in oklch, ${accentAlpha(paper, 0.92)}, ${accentAlpha(paper, 0.72)})`
+  }
+  const [r, g, b] = parseRgb(paper) ?? [246, 242, 234]
+  const [vr, vg, vb] = parseRgb(veil) ?? [46, 38, 26]
+  const tone = (f: number) => {
+    // Paper shadow warmed ~45% toward the card's scrim hue: espresso, not grey.
+    const mix = 0.45
+    const rr = Math.round(r * f * (1 - mix) + vr * 0.85 * mix)
+    const gg = Math.round(g * f * (1 - mix) + vg * 0.85 * mix)
+    const bb = Math.round(b * f * (1 - mix) + vb * 0.85 * mix)
+    return `rgba(${rr}, ${gg}, ${bb}, 0.96)`
+  }
+  return `linear-gradient(180deg in oklch, ${tone(0.32)}, ${tone(0.19)})`
+}
+
+/** The woven festive ribbon behind the plate: the card's accent, lit from the
+ * top like satin. */
+function ribbonGradient(accent: string | undefined): string {
+  return `linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0) 42%, rgba(24,16,8,0.22)), linear-gradient(180deg in oklch, ${accentAlpha(accent, 0.95)}, ${accentAlpha(accent, 0.8)})`
 }
 
 /**
@@ -216,24 +255,27 @@ function meltGradient(direction: string, color: string, steps = 18): string {
   return `linear-gradient(${direction} in oklch, ${stops.join(', ')})`
 }
 
-/** Same melt, but between two explicit opacity endpoints of the same colour
- * (used for the smoky names veil, which fades 0 → full → 0 over its band). */
-function veilGradient(color: string): string {
-  // t: 0 at the band's top → 1 at its bottom. The scrim opacity follows a
-  // bell: 0 → 1 over the first 45% (smoothstep), holds full through the
-  // middle, then 1 → 0 over the last 35%. oklch keeps the smoke on-hue.
-  const bell = (t: number): number => {
-    const rise = Math.min(t / 0.45, 1)
-    const fall = Math.min(Math.max((1 - t) / 0.35, 0), 1)
-    const s = Math.min(rise, fall)
-    return s * s * (3 - 2 * s)
+/** `rgba(...)` (or pass-through) with a new opacity — for softening a hex or
+ * rgba accent into a border / shadow tone. Falls back to a warm gold. */
+function accentAlpha(color: string | undefined, alpha: number): string {
+  if (color) {
+    const rgba = /rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,/i.exec(color.trim())
+    if (rgba) return `rgba(${rgba[1]}, ${rgba[2]}, ${rgba[3]}, ${alpha})`
+    const hex = withAlpha(color, alpha)
+    if (hex.startsWith('rgba')) return hex
   }
-  const stops: string[] = []
-  for (let i = 0; i <= 20; i += 1) {
-    const t = i / 20
-    stops.push(`${withRgbaAlpha(color, Number(bell(t).toFixed(3)))} ${Number((t * 100).toFixed(1))}%`)
-  }
-  return `linear-gradient(to bottom in oklch, ${stops.join(', ')})`
+  return `rgba(226, 194, 124, ${alpha})`
+}
+
+/** A deep, warm shadow tone for the plaque's drop shadow (never cold grey). */
+function plaqueShadow(paper: string): string {
+  const match = /^#([0-9a-f]{6})$/i.exec(paper.trim())
+  if (!match) return 'rgba(46, 36, 24, 0.28)'
+  const v = Number.parseInt(match[1], 16)
+  const r = Math.round(((v >> 16) & 255) * 0.22)
+  const g = Math.round(((v >> 8) & 255) * 0.2)
+  const b = Math.round((v & 255) * 0.16)
+  return `rgba(${r}, ${g}, ${b}, 0.28)`
 }
 
 /**
@@ -263,8 +305,10 @@ export function CoverHero({
   /** Scrim colour with alpha, e.g. 'rgba(43,38,32,0.55)'. BELONGS TO THE
    * CARD'S PALETTE: the card's own accent darkened (gold card → gold-brown,
    * crimson card → crimson-black), or a light veil for dark names. A foreign
-   * dark hue (navy on a cream card) drags the melt through grey as it fades
-   * over the wash — the melt must glide along the card's colour line. */
+   * dark hue (navy on a cream card) drags the composition through grey — the
+   * tile and melt must glide along the card's colour line. Its luminance also
+   * picks the names plate: dark scrim → dark engraved plate (cream names),
+   * light veil → light frosted plate (dark ink names). */
   bandColor: string
   /** Per-template calligraphy for the names. */
   titleStyle?: CSSProperties
@@ -327,48 +371,95 @@ export function CoverHero({
         }}
         aria-hidden="true"
       />
-      {/* Names band — a smoky veil gathered around the names, feathering away
-          above and below along a smoothstep bell (oklch, on-hue), so the top
-          around the eyebrow thins out with no detectable start and the tail
-          dissolves into the melt with no detectable end. The names stay crisp
-          on top while the card's colour takes over the transition. */}
+      {/* Names tile + ribbon — the cover text rests on a physical festive
+          object rather than a painted gradient: a plate in the card's own tone
+          framed in fine gold with corner diamonds, laid over a satin ribbon
+          woven behind it and finished in swallow-tail ends with shadowed
+          folds. Soft shadows make the assembly sit ON the photograph like a
+          real engraved plaque. The paper melt still runs beneath, so the tile
+          and the card below share one continuous, expensive paper. */}
       {names ? (
-        <div
-          className="absolute inset-x-0 bottom-[2.5em] flex flex-col items-center px-[1.7em] pb-[10.8em] pt-[5.4em] text-center"
-          style={{
-            background: veilGradient(bandColor),
-          }}
-        >
-          <p
-            className="uppercase"
-            style={{
-              fontSize: '0.82em',
-              letterSpacing: '0.5em',
-              color: eyebrowColor ?? '#F5EDE0',
-              opacity: 0.92,
-              fontFamily: "'Montserrat', 'Inter', sans-serif",
-              fontWeight: 500,
-            }}
-          >
-            {eyebrow ?? 'Invitation'}
-          </p>
-          <span
-            className="mt-[1.05em] flex items-center gap-[0.9em]"
-            aria-hidden="true"
-          >
-            <span className="h-px w-[3.4em]" style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.85)' }} />
-            <span
-              className="inline-block h-[0.42em] w-[0.42em] rotate-45"
-              style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.9)' }}
+        <div className="absolute inset-x-0 bottom-[11em] flex justify-center px-[1.7em]">
+          <div className="relative">
+            {/* Festive ribbon woven behind the tile — satin in the card's
+                accent, swallow-tail ends with shadowed folds. */}
+            <div
+              aria-hidden="true"
+              className="absolute left-[-3.2em] top-1/2 h-[2.7em] w-[3.7em] -translate-y-1/2"
+              style={{
+                background: ribbonGradient(edgeColor),
+                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 1.15em 50%)',
+                filter: `drop-shadow(0 0.35em 0.55em ${plaqueShadow(paperColor)})`,
+              }}
             />
-            <span className="h-px w-[3.4em]" style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.85)' }} />
-          </span>
-          <h2
-            className={`mt-[1.15em] w-full break-words text-balance leading-[1.08] ${titleClassName ?? ''}`}
-            style={titleStyle}
-          >
-            {names}
-          </h2>
+            <div
+              aria-hidden="true"
+              className="absolute right-[-3.2em] top-1/2 h-[2.7em] w-[3.7em] -translate-y-1/2"
+              style={{
+                background: ribbonGradient(edgeColor),
+                clipPath: 'polygon(0 0, 100% 0, calc(100% - 1.15em) 50%, 100% 100%, 0 100%)',
+                filter: `drop-shadow(0 0.35em 0.55em ${plaqueShadow(paperColor)})`,
+              }}
+            />
+            <div
+              aria-hidden="true"
+              className="absolute left-[-0.15em] top-[calc(50%+1.15em)] h-[0.8em] w-[0.72em]"
+              style={{ background: 'rgba(24,16,8,0.32)', clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }}
+            />
+            <div
+              aria-hidden="true"
+              className="absolute right-[-0.15em] top-[calc(50%+1.15em)] h-[0.8em] w-[0.72em]"
+              style={{ background: 'rgba(24,16,8,0.32)', clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
+            />
+            {/* The tile: a plate in the card's own tone (dark engraved plate
+                where the names are cream, light frosted plate where they are
+                dark ink), framed in fine gold with corner diamonds. */}
+            <div
+              className="relative z-10 flex flex-col items-center px-[2.6em] py-[2.1em] text-center"
+              style={{
+                background: plateGradient(paperColor, bandColor),
+                border: `1px solid ${accentAlpha(edgeColor, 0.75)}`,
+                borderRadius: '0.5em',
+                boxShadow: `inset 0 0 0 1px ${accentAlpha(edgeColor, 0.35)}, 0 1.4em 3em -0.8em ${plaqueShadow(paperColor)}, 0 0.4em 1.1em -0.4em ${plaqueShadow(paperColor)}`,
+              }}
+            >
+            {/* Gold corner diamonds — a quiet festive frame. */}
+            <span aria-hidden="true" className="absolute left-[0.55em] top-[0.55em] h-[0.4em] w-[0.4em] rotate-45" style={{ backgroundColor: accentAlpha(edgeColor, 0.95) }} />
+            <span aria-hidden="true" className="absolute right-[0.55em] top-[0.55em] h-[0.4em] w-[0.4em] rotate-45" style={{ backgroundColor: accentAlpha(edgeColor, 0.95) }} />
+            <span aria-hidden="true" className="absolute bottom-[0.55em] left-[0.55em] h-[0.4em] w-[0.4em] rotate-45" style={{ backgroundColor: accentAlpha(edgeColor, 0.95) }} />
+            <span aria-hidden="true" className="absolute bottom-[0.55em] right-[0.55em] h-[0.4em] w-[0.4em] rotate-45" style={{ backgroundColor: accentAlpha(edgeColor, 0.95) }} />
+            <p
+              className="uppercase"
+              style={{
+                fontSize: '0.82em',
+                letterSpacing: '0.5em',
+                color: eyebrowColor ?? '#F5EDE0',
+                opacity: 0.92,
+                fontFamily: "'Montserrat', 'Inter', sans-serif",
+                fontWeight: 500,
+              }}
+            >
+              {eyebrow ?? 'Invitation'}
+            </p>
+            <span
+              className="mt-[1.05em] flex items-center gap-[0.9em]"
+              aria-hidden="true"
+            >
+              <span className="h-px w-[3.4em]" style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.85)' }} />
+              <span
+                className="inline-block h-[0.42em] w-[0.42em] rotate-45"
+                style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.9)' }}
+              />
+              <span className="h-px w-[3.4em]" style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.85)' }} />
+            </span>
+            <h2
+              className={`mt-[1.15em] w-full break-words text-balance leading-[1.08] ${titleClassName ?? ''}`}
+              style={titleStyle}
+            >
+              {names}
+            </h2>
+            </div>
+          </div>
         </div>
       ) : null}
     </div>
