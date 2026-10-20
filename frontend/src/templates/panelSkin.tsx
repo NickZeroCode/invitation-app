@@ -10,6 +10,19 @@ import type { CSSProperties } from 'react'
 
 import { BLUSH, DecoCorner, GoldRoseCorner, HexFrame, SAGE, StarField, WatercolorSpray } from './florals.tsx'
 import { LuxePattern } from './luxeMotifs.tsx'
+import {
+  AZURE,
+  FoliageCascade,
+  FloralWreath,
+  GRENAT,
+  GoldSprig,
+  LILAC,
+  MandalaRosette,
+  PeonyCluster,
+  RibbonField,
+  RoseCluster,
+  TAUPE,
+} from './referenceMotifs.tsx'
 
 export interface PanelSkin {
   /** Paper background (solid colour or gradient), copied from the template. */
@@ -156,6 +169,127 @@ export const PANEL_SKINS: Record<string, PanelSkin> = {
     onAccent: '#FFFFFF',
     titleClass: 'font-display',
   },
+  floraison: {
+    paper: '#F6F2EA',
+    ink: '#2C3E63',
+    inkSoft: '#6C7B95',
+    accent: '#C29A4E',
+    line: '#C9A876',
+    softBg: 'rgba(194, 154, 78, 0.08)',
+    chipBg: 'rgba(255, 255, 255, 0.66)',
+    onAccent: '#FFFFFF',
+    titleClass: 'font-display',
+  },
+  'arche-pivoine': {
+    paper: '#FFFFFF',
+    ink: '#33456B',
+    inkSoft: '#7C8BA6',
+    accent: '#C29A4E',
+    line: '#E3D6BE',
+    softBg: 'rgba(194, 154, 78, 0.07)',
+    chipBg: 'rgba(255, 255, 255, 0.66)',
+    onAccent: '#FFFFFF',
+    titleClass: 'font-display',
+  },
+  'brume-bleue': {
+    paper: '#FBFCFD',
+    ink: '#3D4E6B',
+    inkSoft: '#7A8FB4',
+    accent: '#66768C',
+    line: '#DCE4EC',
+    softBg: 'rgba(102, 118, 140, 0.08)',
+    chipBg: 'rgba(255, 255, 255, 0.66)',
+    onAccent: '#FFFFFF',
+    titleClass: 'font-display',
+  },
+  'ruban-dor': {
+    paper: '#F4EEE3',
+    ink: '#2F4A73',
+    inkSoft: '#6E7B92',
+    accent: '#C9A24A',
+    line: '#E3D3AE',
+    softBg: 'rgba(201, 162, 74, 0.08)',
+    chipBg: 'rgba(255, 255, 255, 0.66)',
+    onAccent: '#FFFFFF',
+    titleClass: 'font-display',
+  },
+  hexagone: {
+    paper: '#F2EAE0',
+    ink: '#5F4636',
+    inkSoft: '#8C6F5A',
+    accent: '#B4924F',
+    line: '#DCCBAF',
+    softBg: 'rgba(180, 146, 79, 0.08)',
+    chipBg: 'rgba(255, 255, 255, 0.66)',
+    onAccent: '#FFFFFF',
+    titleClass: 'font-display',
+  },
+  'roses-dor': {
+    paper: '#F4F2ED',
+    ink: '#7A6A55',
+    inkSoft: '#9A8B74',
+    accent: '#A98543',
+    line: '#D9CDB4',
+    softBg: 'rgba(169, 133, 67, 0.08)',
+    chipBg: 'rgba(255, 255, 255, 0.66)',
+    onAccent: '#FFFFFF',
+    titleClass: 'font-display',
+  },
+  mandala: {
+    paper: '#8E1F2B',
+    ink: '#F5E6C8',
+    inkSoft: '#E0B86A',
+    accent: '#E8C06A',
+    line: 'rgba(232, 192, 106, 0.42)',
+    softBg: 'rgba(232, 192, 106, 0.10)',
+    chipBg: 'rgba(0, 0, 0, 0.16)',
+    onAccent: '#4A1013',
+    titleClass: 'font-display',
+  },
+  lilas: {
+    paper: '#FCFBF9',
+    ink: '#2E3B33',
+    inkSoft: '#7A857C',
+    accent: '#7C6AA8',
+    line: '#DCD4E8',
+    softBg: 'rgba(124, 106, 168, 0.08)',
+    chipBg: 'rgba(255, 255, 255, 0.66)',
+    onAccent: '#FFFFFF',
+    titleClass: 'font-display',
+  },
+  romance: {
+    paper: '#FFFFFF',
+    ink: '#2C3E63',
+    inkSoft: '#7C8BA6',
+    accent: '#C29A4E',
+    line: '#E3D6BE',
+    softBg: 'rgba(194, 154, 78, 0.07)',
+    chipBg: 'rgba(255, 255, 255, 0.66)',
+    onAccent: '#FFFFFF',
+    titleClass: 'font-display',
+  },
+  grenat: {
+    paper: '#F7EDE4',
+    ink: '#8E2F45',
+    inkSoft: '#A86A77',
+    accent: '#8E2F45',
+    line: '#E6C9CE',
+    softBg: 'rgba(142, 47, 69, 0.07)',
+    chipBg: 'rgba(255, 255, 255, 0.66)',
+    onAccent: '#FFFFFF',
+    titleClass: 'font-display',
+  },
+  'mood-board': {
+    paper: '#F8F1E5',
+    ink: '#55240F',
+    inkSoft: '#93684C',
+    accent: '#B4653A',
+    line: '#E6CFA8',
+    softBg: 'rgba(180, 101, 58, 0.08)',
+    chipBg: 'rgba(255, 255, 255, 0.66)',
+    onAccent: '#FFFFFF',
+    titleClass: 'font-display',
+  },
 }
 
 export function panelSkinFor(templateKey: string): PanelSkin {
@@ -168,14 +302,19 @@ export const DARK_PANEL_KEYS = new Set([
   'nuit-celeste',
   'sceau-academique',
   'soiree-formelle',
+  'mandala',
 ])
 
-/** Hand-drawn floral corner, mirroring « Jardin floral »'s bouquet. */
+/**
+ * Realistic botanical corner spray for « Jardin floral » — a swept branch of
+ * dusty-rose buds and olive leaves that hugs the panel corner, drawn with
+ * tapered stems and veined petals (replaces the old circle/ellipse blobs).
+ */
 function FloralCorner({ flipX = false }: { flipX?: boolean }) {
   return (
     <svg
       viewBox="0 0 120 120"
-      className="absolute top-0 h-auto w-[5.75rem] opacity-90"
+      className="absolute top-0 h-auto w-[5.75rem] opacity-95"
       style={{
         left: flipX ? undefined : 0,
         right: flipX ? 0 : undefined,
@@ -183,20 +322,54 @@ function FloralCorner({ flipX = false }: { flipX?: boolean }) {
       }}
       aria-hidden="true"
     >
-      <g fill="none" stroke="#7C8B6B" strokeWidth="2.4" strokeLinecap="round">
-        <path d="M8 8 C 42 14, 66 34, 78 62" />
-        <path d="M8 8 C 12 42, 30 68, 58 82" />
+      {/* main swept stem hugging the corner + one branch */}
+      <g fill="none" stroke="#7C8B6B" strokeLinecap="round">
+        <path d="M6 6 C 30 12, 52 30, 66 58" strokeWidth="2" />
+        <path d="M6 6 C 12 30, 28 54, 54 68" strokeWidth="2" />
+        <path d="M40 26 C 52 30, 62 40, 68 52" strokeWidth="1.6" />
       </g>
-      <g fill="#B4636F" opacity="0.85">
-        <circle cx="30" cy="18" r="5.5" />
-        <circle cx="52" cy="34" r="4.5" />
-        <circle cx="18" cy="40" r="4" />
-        <circle cx="72" cy="58" r="5" />
+      {/* olive leaves, veined and tapered */}
+      <g>
+        {[
+          [24, 16, 40, 13],
+          [48, 38, 62, 12],
+          [16, 34, -50, 12],
+          [40, 54, -30, 11],
+          [60, 58, 20, 10],
+        ].map(([x, y, rot, s]) => (
+          <g key={`${x}-${y}`} transform={`translate(${x} ${y}) rotate(${rot}) scale(${s / 12})`}>
+            <path d="M0 0 C 8 -9 22 -10 30 -2 C 22 6 8 7 0 0 Z" fill="#7C8B6B" opacity="0.85" />
+            <path d="M3 -1 C 12 -3 22 -3 28 -2" fill="none" stroke="#5E6B47" strokeWidth="0.9" opacity="0.6" />
+          </g>
+        ))}
       </g>
-      <g fill="#7C8B6B" opacity="0.9">
-        <ellipse cx="42" cy="24" rx="7" ry="3" transform="rotate(38 42 24)" />
-        <ellipse cx="22" cy="58" rx="7" ry="3" transform="rotate(-58 22 58)" />
-        <ellipse cx="58" cy="52" rx="7" ry="3" transform="rotate(20 58 52)" />
+      {/* dusty-rose blossoms: layered petals around a centre */}
+      <g>
+        {[
+          [62, 26, 9],
+          [34, 62, 8],
+          [70, 58, 6.5],
+        ].map(([x, y, r]) => (
+          <g key={`b-${x}-${y}`}>
+            {Array.from({ length: 5 }, (_, p) => (
+              <ellipse
+                key={p}
+                cx={x}
+                cy={y - r * 0.52}
+                rx={r * 0.42}
+                ry={r * 0.6}
+                fill={p % 2 === 0 ? '#B4636F' : '#C98BA0'}
+                opacity="0.9"
+                transform={`rotate(${(p * 360) / 5} ${x} ${y})`}
+              />
+            ))}
+            <circle cx={x} cy={y} r={r * 0.22} fill="#E9C4CD" />
+          </g>
+        ))}
+        {/* tiny buds tucked along the stem */}
+        <circle cx="20" cy="20" r="2.6" fill="#B4636F" opacity="0.85" />
+        <circle cx="52" cy="48" r="2.2" fill="#B4636F" opacity="0.85" />
+        <circle cx="12" cy="46" r="2.4" fill="#C98BA0" opacity="0.85" />
       </g>
     </svg>
   )
@@ -368,6 +541,132 @@ function decorFor(templateKey: string) {
           className="absolute inset-[0.62rem] border"
           style={{ borderColor: '#D8D2C6' }}
         />
+      )
+    case 'floraison':
+      return (
+        <>
+          <WatercolorSpray
+            palette={AZURE}
+            className="absolute -left-[2.2rem] -top-[1.8rem] w-[7.5rem]"
+            style={{ transform: 'scaleY(-1)' }}
+          />
+          <WatercolorSpray
+            palette={AZURE}
+            className="absolute -bottom-[1.8rem] -right-[2.2rem] w-[7.5rem]"
+            style={{ transform: 'scaleX(-1)' }}
+          />
+          <GoldSprig className="absolute bottom-[0.2rem] left-[0.4rem] w-[3.4rem]" color="#C29A4E" />
+        </>
+      )
+    case 'arche-pivoine':
+      return (
+        <>
+          <PeonyCluster
+            palette={AZURE}
+            className="absolute -left-[1.6rem] top-[0.2rem] w-[5.5rem] opacity-90"
+          />
+          <PeonyCluster
+            palette={AZURE}
+            className="absolute -right-[1.6rem] bottom-[0.2rem] w-[5.5rem] opacity-90"
+            style={{ transform: 'rotate(180deg)' }}
+          />
+        </>
+      )
+    case 'brume-bleue':
+      return (
+        <FoliageCascade className="absolute -right-[1.2rem] top-[0.4rem] h-[10rem] w-[6rem] opacity-90" />
+      )
+    case 'ruban-dor':
+      return <RibbonField className="absolute inset-0 h-full w-full opacity-70" />
+    case 'hexagone':
+      return (
+        <>
+          <div className="absolute inset-[0.5rem]">
+            <HexFrame color="#B4924F" opacity={0.4} className="h-full w-full" />
+          </div>
+          <WatercolorSpray
+            palette={TAUPE}
+            className="absolute -left-[1.8rem] -top-[1.4rem] w-[6.5rem]"
+            style={{ transform: 'scaleY(-1)' }}
+          />
+          <WatercolorSpray
+            palette={TAUPE}
+            className="absolute -bottom-[1.4rem] -right-[1.8rem] w-[6.5rem]"
+            style={{ transform: 'scaleX(-1)' }}
+          />
+        </>
+      )
+    case 'roses-dor':
+      return (
+        <>
+          <GoldRoseCorner className="absolute left-[0.35rem] top-[0.35rem] w-[5rem] opacity-90" />
+          <GoldRoseCorner
+            className="absolute bottom-[0.35rem] right-[0.35rem] w-[5rem] opacity-90"
+            style={{ transform: 'rotate(180deg)' }}
+          />
+        </>
+      )
+    case 'mandala':
+      return (
+        <MandalaRosette
+          color="#E8C06A"
+          className="absolute -right-[2.4rem] top-[1rem] w-[8.5rem] opacity-70"
+        />
+      )
+    case 'lilas':
+      return (
+        <FloralWreath
+          palette={LILAC}
+          className="absolute -right-[1.8rem] top-[0.6rem] w-[7rem] opacity-80"
+        />
+      )
+    case 'romance':
+      return (
+        <>
+          <WatercolorSpray
+            palette={AZURE}
+            className="absolute -left-[1.8rem] -top-[1.4rem] w-[6.5rem]"
+            style={{ transform: 'scaleY(-1)' }}
+          />
+          <WatercolorSpray
+            palette={AZURE}
+            className="absolute -bottom-[1.4rem] -right-[1.8rem] w-[6.5rem]"
+            style={{ transform: 'scaleX(-1)' }}
+          />
+        </>
+      )
+    case 'grenat':
+      return (
+        <>
+          <RoseCluster
+            palette={GRENAT}
+            className="absolute -left-[1.2rem] top-[0.2rem] w-[5.5rem] opacity-95"
+          />
+          <RoseCluster
+            palette={GRENAT}
+            className="absolute -right-[1.2rem] bottom-[0.2rem] w-[5.5rem] opacity-95"
+            style={{ transform: 'rotate(180deg)' }}
+          />
+        </>
+      )
+    case 'mood-board':
+      return (
+        <>
+          <div
+            className="absolute inset-[0.55rem]"
+            style={{ border: '1px solid rgba(176, 135, 60, 0.5)' }}
+          />
+          <div
+            className="absolute inset-[0.82rem]"
+            style={{ border: '1px dashed rgba(176, 135, 60, 0.35)' }}
+          />
+          <GoldSprig className="absolute left-[0.5rem] top-[0.55rem] w-[3.2rem]" color="#B0873C" />
+          <GoldSprig
+            className="absolute bottom-[0.55rem] right-[0.5rem] w-[3.2rem]"
+            color="#B0873C"
+            style={{ transform: 'rotate(180deg)' }}
+          />
+        </>
       )
     default:
       return null
