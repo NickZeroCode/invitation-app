@@ -237,9 +237,11 @@ const PATTERNS: Record<string, PatternSpec> = {
   'ruban-dor': { svg: petalsTile('#C9A24A'), w: 10.5, h: 10.5, opacity: 0.09 },
   hexagone: { svg: latticeTile('#B58A6E'), w: 5.2, h: 5.2, opacity: 0.1 },
   'roses-dor': { svg: vineTile('#C2A87A'), w: 8.8, h: 8.8, opacity: 0.09 },
+  mandala: { svg: damaskTile('#E8C06A'), w: 6.4, h: 9.6, opacity: 0.14 },
   lilas: { svg: clematisTile('#A78FD0'), w: 10, h: 10, opacity: 0.1 },
   romance: { svg: petalsTile('#7D9BC9'), w: 10.5, h: 10.5, opacity: 0.09 },
   grenat: { svg: vineTile('#B98A93'), w: 9, h: 9, opacity: 0.08 },
+  'mood-board': { svg: petalsTile('#B4653A'), w: 10.5, h: 10.5, opacity: 0.1 },
 }
 
 export const LUXE_PATTERN_KEYS = new Set(Object.keys(PATTERNS))

@@ -4,8 +4,9 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { TEMPLATES, getTemplate, sampleDraft } from './registry.tsx'
 
 // Must match the backend seeds `templates_app/migrations/0002_seed_templates.py`,
-// `templates_app/migrations/0003_seed_wedding_templates.py` and
-// `templates_app/migrations/0004_seed_reference_templates.py`.
+// `templates_app/migrations/0003_seed_wedding_templates.py`,
+// `templates_app/migrations/0004_seed_reference_templates.py` and
+// `templates_app/migrations/0005_seed_moodboard_template.py`.
 const BACKEND_KEYS = [
   'heritage-luxe',
   'eternite-or',
@@ -28,6 +29,7 @@ const BACKEND_KEYS = [
   'lilas',
   'romance',
   'grenat',
+  'mood-board',
 ]
 
 afterEach(cleanup)

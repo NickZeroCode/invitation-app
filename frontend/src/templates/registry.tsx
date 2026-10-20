@@ -24,6 +24,7 @@ import { Grenat } from './Grenat.tsx'
 import { Hexagone } from './Hexagone.tsx'
 import { Lilas } from './Lilas.tsx'
 import { Mandala } from './Mandala.tsx'
+import { MoodBoard } from './MoodBoard.tsx'
 import { Romance } from './Romance.tsx'
 import { RosesDor } from './RosesDor.tsx'
 import { RubanDor } from './RubanDor.tsx'
@@ -240,6 +241,16 @@ export const TEMPLATES: TemplateDefinition[] = [
     emphasisFields: ['title', 'date', 'venue'],
     Component: Grenat,
   },
+  {
+    key: 'mood-board',
+    name: 'Mood Board',
+    category: 'wedding',
+    categoryLabel: 'Mariage',
+    description: 'Planche terracotta : monogramme en couronne dorée, calendrier à date cerclée et palette de couleurs.',
+    supportsCover: true,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: MoodBoard,
+  },
 ]
 
 export function getTemplate(key: string): TemplateDefinition | undefined {
@@ -415,6 +426,13 @@ const SAMPLES: Record<string, Partial<InvitationDraft>> = {
     venue_name: 'Villa Grenat',
     venue_address: 'Avenue du Colonel Ebeya, Kinshasa',
     venue_details: 'Dîner de gala',
+  },
+  'mood-board': {
+    title: 'James & Tony',
+    message: 'Mariage Civil & Religieux',
+    venue_name: 'Salle des Fêtes Le Prestige',
+    venue_address: 'Boulevard du 30 Juin, Kinshasa',
+    venue_details: 'Cérémonie et réception',
   },
 }
 
