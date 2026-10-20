@@ -223,6 +223,9 @@ const ORNAMENTS: Record<string, (props: OrnamentProps) => React.ReactElement> = 
     <FlourishRule color={color ?? '#C29A4E'} className={className} style={style} />
   ),
   grenat: QuietRule,
+  'mood-board': ({ color, className, style }) => (
+    <FlourishRule color={color ?? '#B0873C'} className={className} style={style} />
+  ),
 }
 
 /** The template's ornamental rule, drawn in its accent colour. */
