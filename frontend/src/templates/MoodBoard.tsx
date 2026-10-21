@@ -15,8 +15,8 @@ import type { CSSProperties, ReactNode } from 'react'
 import { LuxePattern, VellumHalo, monogramFrom } from './luxeMotifs.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
+import { CoverSheen } from './florals.tsx'
 import {
-  CoverHero,
   InvitationPaper,
   ProgramSection,
   TableSection,
@@ -63,17 +63,17 @@ function goldText(color: string): CSSProperties {
 function CoverScript() {
   return (
     <div
-      className="pointer-events-none absolute inset-x-0 top-[5%] z-30 flex flex-col items-center px-[1.4em]"
+      className="pointer-events-none absolute inset-x-0 top-[7%] z-30 flex flex-col items-center px-[1.4em]"
       aria-hidden="true"
     >
       <p
         className="whitespace-nowrap leading-[0.95]"
         style={{
           fontFamily: SCRIPT_FONT,
-          fontSize: '4.5em',
+          fontSize: '3.4em',
           color: '#FBF7EF',
           textShadow:
-            '0 0.06em 0.32em rgba(40,15,5,0.5), 0 0.02em 0.1em rgba(40,15,5,0.6)',
+            '0 0.07em 0.4em rgba(40,15,5,0.62), 0 0.02em 0.12em rgba(40,15,5,0.7)',
           transform: 'rotate(-2deg)',
         }}
       >
@@ -81,7 +81,7 @@ function CoverScript() {
       </p>
       {/* Éclat doré — une fine ligne brillante sous le script. */}
       <span
-        className="mt-[0.55em] block h-[0.1em] w-[46%]"
+        className="mt-[0.7em] block h-[0.1em] w-[40%]"
         style={{
           background: `linear-gradient(90deg, transparent, ${GOLD_SHINE}, ${GOLD}, ${GOLD_SHINE}, transparent)`,
           borderRadius: '999px',
@@ -354,16 +354,36 @@ export function MoodBoard({ draft }: TemplateProps) {
       <LuxePattern templateKey="mood-board" />
       <VellumHalo color={PAPER} />
 
-      {/* Couverture plein cadre + grand script « Save the date ». */}
+      {/* Couverture — photo plus courte qu'une page pleine, fondue dans le
+          papier, portant le grand script « Save the date ». Pas de plaque :
+          les prénoms vivent plus bas sur le papier, comme la référence. */}
       {draft.cover_url ? (
-        <div className="relative">
-          <CoverHero
-            draft={draft}
-            bandColor="rgba(58,26,10,0.5)"
-            edgeColor="rgba(217,180,92,0.9)"
-            eyebrow=""
-            paperColor={PAPER}
-            titleStyle={{ display: 'none' }}
+        <div
+          data-export-skip="cover"
+          className="relative z-20 w-full shrink-0 overflow-hidden"
+          style={{ aspectRatio: '5 / 6' }}
+        >
+          <img src={draft.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <CoverSheen
+            className="pointer-events-none absolute inset-0 h-full w-full"
+            color={GOLD}
+            opacity={0.12}
+          />
+          {/* voile haut + fonte basse vers le papier */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(to bottom, rgba(20,16,12,0.2), transparent 26%, transparent 52%, transparent)',
+            }}
+            aria-hidden="true"
+          />
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-[52%]"
+            style={{
+              background: `linear-gradient(to bottom, transparent, ${PAPER})`,
+            }}
+            aria-hidden="true"
           />
           <CoverScript />
         </div>
