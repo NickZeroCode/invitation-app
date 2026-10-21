@@ -204,13 +204,13 @@ function CalendarBoard({ iso }: { iso: string }) {
   while (cells.length % 7 !== 0) cells.push(null)
   const eventDay = date.getDate()
   return (
-    <div className="mt-[1.7em] w-full max-w-[24em]">
+    <div className="mt-[1.3em] w-full max-w-[24em]">
       <p
         className="uppercase"
         style={{
           fontFamily: ROMAN_FONT,
           fontWeight: 600,
-          fontSize: '1.5em',
+          fontSize: '1.4em',
           letterSpacing: '0.34em',
           color: INK,
         }}
@@ -260,48 +260,6 @@ function CalendarBoard({ iso }: { iso: string }) {
             </span>
           ),
         )}
-      </div>
-    </div>
-  )
-}
-
-/* Palette — pastilles allongées comme la planche de référence. */
-const PALETTE: Array<[string, string]> = [
-  ['#C7A76C', 'Sable'],
-  ['#F3E7CD', 'Ivoire'],
-  ['#9A5A40', 'Cannelle'],
-  ['#55240F', 'Cacao'],
-  ['#C4743C', 'Terracotta'],
-]
-
-function PaletteBoard() {
-  return (
-    <div className="mt-[1.6em] w-full">
-      <p className="leading-none" style={{ fontFamily: SCRIPT_FONT, fontSize: '2.6em', color: INK }}>
-        Palette de couleurs
-      </p>
-      <div className="mt-[1.6em] flex flex-wrap items-end justify-center gap-[1em]">
-        {PALETTE.map(([hex, name]) => (
-          <figure key={name} className="flex flex-col items-center">
-            <span
-              aria-hidden="true"
-              className="block h-[5.4em] w-[1.6em]"
-              style={{
-                backgroundColor: hex,
-                borderRadius: '999px',
-                border: '1px solid rgba(85,36,15,0.10)',
-                boxShadow:
-                  'inset 0 0.3em 0.5em rgba(255,255,255,0.22), 0 0.4em 0.9em rgba(85,36,15,0.16)',
-              }}
-            />
-            <figcaption
-              className="mt-[0.7em] text-[0.72em] uppercase"
-              style={{ color: SOFT, letterSpacing: '0.22em' }}
-            >
-              {name}
-            </figcaption>
-          </figure>
-        ))}
       </div>
     </div>
   )
@@ -389,20 +347,20 @@ export function MoodBoard({ draft }: TemplateProps) {
         </div>
       ) : null}
 
-      <div className="relative flex flex-1 flex-col items-center px-[2.8em] pb-[3.6em] text-center">
+      <div className="relative flex flex-1 flex-col items-center px-[1.9em] pb-[2.4em] text-center">
         {/* Monogramme à cheval sur la fonte de la photo. */}
         {initials ? (
-          <div className={draft.cover_url ? '-mt-[6.2em]' : 'mt-[3em]'}>
+          <div className={draft.cover_url ? '-mt-[5.4em]' : 'mt-[2.4em]'}>
             <Monogram initials={initials} />
           </div>
         ) : null}
 
         {/* Prénoms en capitales espacées. */}
         <h1
-          className="mt-[1.4em] break-words text-balance uppercase leading-[1.25]"
+          className="mt-[1.1em] break-words text-balance uppercase leading-[1.25]"
           style={{
-            fontSize: titleEm ? '2.15em' : '1.85em',
-            letterSpacing: '0.32em',
+            fontSize: titleEm ? '1.95em' : '1.7em',
+            letterSpacing: '0.3em',
             color: INK,
             fontFamily: ROMAN_FONT,
             fontWeight: 600,
@@ -414,9 +372,9 @@ export function MoodBoard({ draft }: TemplateProps) {
         {/* Type d'événement en script doré (le message de la planche). */}
         {draft.message ? (
           <p
-            className="mt-[0.5em] leading-[1.05]"
+            className="mt-[0.4em] leading-[1.05]"
             style={{
-              fontSize: '3.1em',
+              fontSize: '2.7em',
               fontFamily: messageFontCss(draft.messageFont) ?? SCRIPT_FONT,
               ...goldText(TERRACOTTA),
             }}
@@ -434,7 +392,7 @@ export function MoodBoard({ draft }: TemplateProps) {
         {/* Citation — la note de l'organisateur en petites capitales. */}
         {draft.note ? (
           <p
-            className="mt-[1.5em] max-w-[30em] uppercase leading-[1.8]"
+            className="mt-[1.2em] max-w-[30em] uppercase leading-[1.8]"
             style={{ fontSize: '0.78em', letterSpacing: '0.16em', color: SOFT }}
           >
             {draft.note}
@@ -452,9 +410,9 @@ export function MoodBoard({ draft }: TemplateProps) {
         {/* Lieu en capitales espacées. */}
         {draft.venue_name || draft.venue_address ? (
           <div
-            className="mt-[1.5em] uppercase"
+            className="mt-[1.2em] uppercase"
             style={{
-              fontSize: isEmphasized(draft, 'venue') ? '1.1em' : '0.96em',
+              fontSize: isEmphasized(draft, 'venue') ? '1.05em' : '0.92em',
               letterSpacing: '0.26em',
               color: INK,
               lineHeight: 1.9,
@@ -470,29 +428,32 @@ export function MoodBoard({ draft }: TemplateProps) {
           </p>
         ) : null}
 
-        {/* Planche — Mood Board / Thème / Palette. */}
-        <div className="mt-[3em] w-full">
-          <p className="leading-none" style={{ fontFamily: SCRIPT_FONT, fontSize: '3em', ...goldText(TERRACOTTA) }}>
-            Mood Board
-          </p>
+        {/* Thème — en lettrine serif, comme la planche de référence. */}
+        <div className="mt-[2em] w-full">
           <p
-            className="mt-[0.6em] uppercase"
+            className="uppercase"
             style={{
               fontFamily: ROMAN_FONT,
               fontWeight: 600,
-              fontSize: '1.5em',
-              letterSpacing: '0.2em',
+              fontSize: '1.3em',
+              letterSpacing: '0.24em',
               color: INK,
             }}
           >
             Thème : Terracotta
           </p>
+          <span
+            className="mx-auto mt-[0.6em] block h-[0.08em] w-[52%]"
+            style={{
+              background: `linear-gradient(90deg, transparent, ${GOLD_SHINE}, ${GOLD}, ${GOLD_SHINE}, transparent)`,
+            }}
+            aria-hidden="true"
+          />
         </div>
-        <PaletteBoard />
 
         {/* Tenues — photos sous une étiquette script. */}
         {dressCode.length ? (
-          <div className="mt-[3em] w-full">
+          <div className="mt-[2.2em] w-full">
             {women.length ? (
               <div className="w-full">
                 <ScriptLabel>Outfit women&rsquo;s</ScriptLabel>
@@ -562,8 +523,8 @@ export function MoodBoard({ draft }: TemplateProps) {
         />
 
         {/* Clôture — anneaux + remerciement. */}
-        <div className="mt-[3.2em] flex w-full flex-col items-center">
-          <RingsFlourish className="w-[11em]" />
+        <div className="mt-[2.4em] flex w-full flex-col items-center">
+          <RingsFlourish className="w-[10em]" />
           <p className="mt-[1.1em] max-w-[30em] text-pretty leading-[1.7]" style={{ fontSize: '0.98em', color: INK }}>
             Nous sommes ravis de vous convier à notre mariage et vous remercions
             chaleureusement de votre présence. Votre soutien et votre amour sont
