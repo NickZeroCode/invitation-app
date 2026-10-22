@@ -22,6 +22,7 @@ import { BrumeBleue } from './BrumeBleue.tsx'
 import { Floraison } from './Floraison.tsx'
 import { Grenat } from './Grenat.tsx'
 import { Hexagone } from './Hexagone.tsx'
+import { Kasai } from './Kasai.tsx'
 import { Lilas } from './Lilas.tsx'
 import { Mandala } from './Mandala.tsx'
 import { MoodBoard } from './MoodBoard.tsx'
@@ -86,7 +87,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     name: 'Jardin',
     category: 'anniversary',
     categoryLabel: 'Anniversaire de mariage',
-    description: 'Décor floral délicat, tons poudrés et titrage romantique.',
+    description: 'Planche botanique : couronne de laurier et boutons de rose à l’encre fine, les années au cœur.',
     supportsCover: true,
     emphasisFields: ['title', 'date', 'venue'],
     Component: JardinFloral,
@@ -106,7 +107,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     name: 'Confetti',
     category: 'birthday',
     categoryLabel: 'Anniversaire',
-    description: 'Anniversaire festif, couleurs franches et titrage joyeux.',
+    description: 'Impression riso deux tons : l’âge en grand chiffre, confettis de papier et date sur ticket perforé.',
     supportsCover: true,
     emphasisFields: ['title', 'date'],
     Component: Confetti,
@@ -136,7 +137,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     name: 'Mémoire',
     category: 'memorial',
     categoryLabel: 'Hommage',
-    description: 'Hommage sobre et lumineux, composition apaisée et discrète.',
+    description: 'Hommage sobre : un arum gravé, une serif apaisée et de grandes marges.',
     supportsCover: false,
     emphasisFields: ['title', 'date'],
     Component: Memoire,
@@ -250,6 +251,16 @@ export const TEMPLATES: TemplateDefinition[] = [
     supportsCover: true,
     emphasisFields: ['title', 'date', 'venue'],
     Component: MoodBoard,
+  },
+  {
+    key: 'kasai',
+    name: 'Kasaï',
+    category: 'wedding',
+    categoryLabel: 'Mariage',
+    description: 'Inspiré des tissus de raffia Kuba du Kasaï : frises entrelacées, losanges ocre et rouille sur papier tissé.',
+    supportsCover: true,
+    emphasisFields: ['title', 'date', 'venue'],
+    Component: Kasai,
   },
 ]
 
@@ -426,6 +437,13 @@ const SAMPLES: Record<string, Partial<InvitationDraft>> = {
     venue_name: 'Villa Grenat',
     venue_address: 'Avenue du Colonel Ebeya, Kinshasa',
     venue_details: 'Dîner de gala',
+  },
+  kasai: {
+    title: 'Grâce & Éric',
+    message: 'Unis par l’amour et la bénédiction de nos familles, nous vous invitons à célébrer notre mariage.',
+    venue_name: 'Salle Kasaï',
+    venue_address: 'Boulevard du 30 Juin, Kinshasa',
+    venue_details: 'Mariage coutumier et réception',
   },
   'mood-board': {
     title: 'James & Tony',

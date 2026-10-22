@@ -18,12 +18,64 @@ import type { InvitationDraft } from './types.ts'
 
 export const PAPER_FONT_SIZE = '2.6cqw'
 
+/**
+ * Cotton-paper material shared by every sheet: a very low-frequency mottle
+ * (the cloudiness of pressed cotton pulp) plus sparse fibres. Two tiles of
+ * different sizes so the repeat never lines up. It lies over the template's
+ * own artwork so ink and florals read as printed INTO the sheet. Plain alpha
+ * compositing (no blend mode): a full-sheet blend layer costs a phone a
+ * repaint on every scroll, and tinted low-alpha noise looks the same.
+ */
+function cottonBackground(rgb: [number, number, number]): string {
+  const [r, g, b] = rgb.map((channel) => (channel / 255).toFixed(3))
+  const tint = `0 0 0 0 ${r}  0 0 0 0 ${g}  0 0 0 0 ${b}`
+  const mottle =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="420" height="420">' +
+    '<filter id="m"><feTurbulence type="fractalNoise" baseFrequency="0.011" numOctaves="3" seed="7" stitchTiles="stitch"/>' +
+    `<feColorMatrix values="${tint}  0 0 0 0.55 -0.2"/></filter>` +
+    '<rect width="420" height="420" filter="url(#m)"/></svg>'
+  const fibre =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260">' +
+    '<filter id="f"><feTurbulence type="fractalNoise" baseFrequency="0.018 0.42" numOctaves="2" seed="3" stitchTiles="stitch"/>' +
+    `<feColorMatrix values="${tint}  0 0 0 1.6 -0.98"/></filter>` +
+    '<rect width="260" height="260" filter="url(#f)"/></svg>'
+  return [fibre, mottle].map((svg) => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`).join(', ')
+}
+
+/** Light papers take a warm umber shadow; dark papers a cream lift. */
+const COTTON_LIGHT = cottonBackground([107, 92, 69])
+const COTTON_DARK = cottonBackground([236, 224, 200])
+
+export type PaperTexture = 'cotton' | 'cotton-dark' | 'none'
+
+function CottonTexture({ texture }: { texture: PaperTexture }) {
+  if (texture === 'none') return null
+  const dark = texture === 'cotton-dark'
+  return (
+    <div
+      aria-hidden="true"
+      data-paper-texture=""
+      className="pointer-events-none absolute inset-0 z-30"
+      style={{
+        backgroundImage: dark ? COTTON_DARK : COTTON_LIGHT,
+        // Tile sizes in em: the material scales with the sheet, so a gallery
+        // thumbnail and the full invitation show the same paper.
+        backgroundSize: '19em 19em, 31em 31em',
+        opacity: dark ? 0.16 : 0.2,
+      }}
+    />
+  )
+}
+
 export function InvitationPaper({
   children,
   style,
+  texture = 'cotton',
 }: {
   children: ReactNode
   style?: CSSProperties
+  /** Paper material laid over the sheet; dark papers pass 'cotton-dark'. */
+  texture?: PaperTexture
 }) {
   return (
     <div className="h-full w-full" style={{ containerType: 'inline-size' }}>
@@ -55,9 +107,66 @@ export function InvitationPaper({
         }}
       >
         {children}
+        <CottonTexture texture={texture} />
       </article>
     </div>
   )
+}
+
+/**
+ * Foil-gradient lettering that never crops its own glyphs. A script face
+ * (Great Vibes, Parisienne) swashes well past its advance width and its
+ * accents rise above the line box, while `background-clip: text` only paints
+ * inside the box — so on a shrink-wrapped heading the final swash and the
+ * « É » accent vanished. An INLINE span's padding enlarges the painted area
+ * without moving a single line (vertical inline padding takes no layout
+ * space; the horizontal bleed is cancelled by an equal negative margin), and
+ * `box-decoration-break: clone` repeats it on every wrapped line.
+ */
+export function FoilText({ gradient, children }: { gradient: string; children: ReactNode }) {
+  return (
+    <span
+      style={{
+        backgroundImage: gradient,
+        WebkitBackgroundClip: 'text',
+        backgroundClip: 'text',
+        color: 'transparent',
+        padding: '0.32em 0.42em',
+        margin: '0 -0.42em',
+        WebkitBoxDecorationBreak: 'clone',
+        boxDecorationBreak: 'clone',
+      }}
+    >
+      {children}
+    </span>
+  )
+}
+
+/**
+ * The celebrated people's initials for a monogram: « Grâce & Éric » → G·E,
+ * « Le Mariage de Léa et Gabriel » → L·G, a single name → its initial.
+ * Leading formulae (« Le mariage de », « Les 30 ans de ») are skipped so the
+ * crest carries names, never articles.
+ */
+export function monogramInitials(text: string): string[] {
+  const cleaned = text
+    .replace(/^.*?\b(?:de|d’|d')\s*(?=[A-ZÀ-Ý])/u, '')
+    .trim()
+  const parts = cleaned
+    .split(/\s*(?:&|\bet\b|\+)\s*/iu)
+    .map((part) => part.trim())
+    .filter(Boolean)
+  const initials = parts
+    .slice(0, 2)
+    .map((part) => part.match(/\p{L}/u)?.[0]?.toUpperCase() ?? '')
+    .filter(Boolean)
+  return initials.length ? initials : []
+}
+
+/** The first standalone number in a title (« Les 30 ans de Sarah » → "30"). */
+export function titleNumber(text: string): string | null {
+  const match = /(?:^|\D)(\d{1,3})(?=\D|$)/u.exec(text)
+  return match ? match[1] : null
 }
 
 function parseDate(iso: string): Date | null {
@@ -331,6 +440,19 @@ export function CoverHero({
   // The cover always celebrates something: the chosen names or, when the
   // organizer left them empty, the event title itself (never a bare photo).
   const names = draft.coverTitle.trim() || draft.title.trim()
+  // A foil-gradient title is painted by an inner `FoilText` span so its
+  // swashes are never cropped; the heading keeps the typographic settings.
+  const foil =
+    titleStyle?.backgroundClip === 'text' && typeof titleStyle.backgroundImage === 'string'
+      ? titleStyle.backgroundImage
+      : null
+  const headingStyle: CSSProperties | undefined = foil
+    ? Object.fromEntries(
+        Object.entries(titleStyle ?? {}).filter(
+          ([key]) => !['backgroundImage', 'WebkitBackgroundClip', 'backgroundClip', 'color'].includes(key),
+        ),
+      )
+    : titleStyle
   return (
     <div
       data-export-skip="cover"
@@ -454,9 +576,9 @@ export function CoverHero({
             </span>
             <h2
               className={`mt-[1.02em] w-full break-words text-balance leading-[1.08] ${titleClassName ?? ''}`}
-              style={titleStyle}
+              style={headingStyle}
             >
-              {names}
+              {foil ? <FoilText gradient={foil}>{names}</FoilText> : names}
             </h2>
             </div>
           </div>

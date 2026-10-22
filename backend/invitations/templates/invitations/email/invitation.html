@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>{{ subject }}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#EFEAE1;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">{{ event_title }} — {{ event_when }}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#EFEAE1;">
+  <tr>
+    <td align="center" style="padding:36px 14px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background-color:#FBF7F0;border:1px solid #E3D6BE;">
+        <tr>
+          <td style="padding:6px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E9DDC6;">
+              <tr>
+                <td align="center" style="padding:40px 36px 8px;font-family:Georgia,'Times New Roman',serif;">
+                  <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#9A7536;">Invitation</p>
+                  <p style="margin:18px 0 0;font-size:15px;font-style:italic;color:#7A6A50;">Pour {{ guest_name }}</p>
+                  <h1 style="margin:14px 0 0;font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:30px;line-height:1.2;color:#2B2620;">{{ event_title }}</h1>
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:22px auto 0;">
+                    <tr>
+                      <td style="width:48px;border-top:1px solid #C9A86A;font-size:0;line-height:0;">&nbsp;</td>
+                      <td style="padding:0 10px;font-size:10px;color:#B08A45;line-height:1;">&#9670;</td>
+                      <td style="width:48px;border-top:1px solid #C9A86A;font-size:0;line-height:0;">&nbsp;</td>
+                    </tr>
+                  </table>
+                  <p style="margin:20px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#2B2620;">{{ event_when }}</p>
+                  {% if venue_name %}<p style="margin:8px 0 0;font-size:16px;color:#2B2620;">{{ venue_name }}</p>{% endif %}
+                  {% if venue_address %}<p style="margin:4px 0 0;font-size:14px;color:#7A6A50;">{{ venue_address }}</p>{% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:26px 40px 6px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#3B342B;">
+                  {% for paragraph in paragraphs %}<p style="margin:0 0 14px;">{{ paragraph|linebreaksbr|urlize }}</p>{% endfor %}
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="padding:10px 36px 40px;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td align="center" bgcolor="#2B2620" style="background-color:#2B2620;">
+                        <a href="{{ url }}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:Arial,Helvetica,sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#FBF7F0;text-decoration:none;">Ouvrir mon invitation</a>
+                      </td>
+                    </tr>
+                  </table>
+                  <p style="margin:16px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#8E8170;">Ou copiez ce lien&nbsp;: <a href="{{ url }}" style="color:#8E6A2E;word-break:break-all;">{{ url }}</a></p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+      <p style="margin:18px 0 0;max-width:560px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.5;color:#8E8170;">Envoyé avec NickEvents à la demande de l’organisateur. Répondez à cet e-mail pour lui écrire.</p>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

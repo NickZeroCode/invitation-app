@@ -1,0 +1,12 @@
+{% autoescape off %}{{ message }}
+{% if not url_in_message %}
+Votre invitation : {{ url }}
+{% endif %}
+—
+{{ event_title }}
+{{ event_when }}{% if venue_name %}
+{{ venue_name }}{% endif %}{% if venue_address %}
+{{ venue_address }}{% endif %}
+
+Envoyé avec NickEvents à la demande de l’organisateur. Répondez à cet e-mail pour lui écrire.
+{% endautoescape %}

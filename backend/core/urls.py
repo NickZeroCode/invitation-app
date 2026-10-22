@@ -15,6 +15,7 @@ from invitations.public import (
     PublicInvitationView,
     PublicVerificationView,
 )
+from invitations.sharing import ShareContextView, ShareEmailView
 from invitations.verification import (
     EventVerificationLinksView,
     EventVerificationScanView,
@@ -90,6 +91,9 @@ urlpatterns = [
         EventTableItemView.as_view(),
         name="event-table-item",
     ),
+    # Organizer delivery of one invitation (WhatsApp prefill + e-mail).
+    path("share/invitations/<str:token>/", ShareContextView.as_view(), name="share-context"),
+    path("share/invitations/<str:token>/email/", ShareEmailView.as_view(), name="share-email"),
     path("invitations/<int:pk>/", InvitationDetailView.as_view(), name="invitation-detail"),
     path("invitations/<int:pk>/revoke/", InvitationRevokeView.as_view(), name="invitation-revoke"),
     path(

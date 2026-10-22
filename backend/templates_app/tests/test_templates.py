@@ -38,6 +38,8 @@ def test_seeded_catalog_lists_all_templates_with_capabilities(auth_client):
         "lilas",
         "romance",
         "grenat",
+        "mood-board",
+        "kasai",
     }
 
     heritage = next(item for item in templates if item["key"] == "heritage-luxe")

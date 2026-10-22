@@ -128,10 +128,41 @@ REST_FRAMEWORK = {
         # per-link lock), scans run in bursts at the door.
         "verify-code": env("THROTTLE_VERIFY_CODE_RATE", "10/min"),
         "verify": env("THROTTLE_VERIFY_RATE", "60/min"),
+        # Organizer → guest invitation e-mails (per organizer account).
+        "share-email": env("THROTTLE_SHARE_EMAIL_RATE", "40/hour"),
     },
     "EXCEPTION_HANDLER": "core.exceptions.api_exception_handler",
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
+
+# --- Outgoing e-mail (invitation delivery) ----------------------------------
+# Delivery is enabled only when an SMTP relay is configured (any provider:
+# Brevo, Mailgun, SES, Postmark…). Without EMAIL_HOST the share dialog falls
+# back to the organizer's own mail app and the API refuses to pretend it sent
+# anything. Credentials live only in the server environment.
+SMTP_HOST = env("EMAIL_HOST", "")
+SMTP_OPTIONS = {
+    "host": SMTP_HOST,
+    "port": env_int("EMAIL_PORT", "587"),
+    "username": env("EMAIL_HOST_USER", ""),
+    "password": env("EMAIL_HOST_PASSWORD", ""),
+    # Port 587 → STARTTLS (EMAIL_USE_TLS); port 465 → implicit TLS
+    # (EMAIL_USE_SSL=true and EMAIL_USE_TLS=false). Never both.
+    "use_tls": env_bool("EMAIL_USE_TLS", "true"),
+    "use_ssl": env_bool("EMAIL_USE_SSL", "false"),
+    "timeout": env_int("EMAIL_TIMEOUT", "15"),
+}
+# Django 6.1 mailer configuration (replaces the deprecated EMAIL_* settings).
+MAILERS = {
+    "default": {"BACKEND": "django.core.mail.backends.smtp.EmailBackend", "OPTIONS": SMTP_OPTIONS},
+}
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "NickEvents <invitations@nickevents.com>")
+INVITATION_EMAIL_ENABLED = bool(SMTP_HOST)
+
+# Absolute origin of the guest-facing SPA, used to build the invitation link
+# placed in outgoing messages (e.g. https://www.nickevents.com). Empty =
+# derive it from the request host (the SPA and API share one origin).
+PUBLIC_APP_URL = env("PUBLIC_APP_URL", "").rstrip("/")
 
 # --- Logging --------------------------------------------------------------
 LOGGING = {

@@ -29,6 +29,7 @@ import {
   IconDownload,
   IconEdit,
   IconLink,
+  IconSend,
   IconPlus,
   IconQr,
   IconSearch,
@@ -61,6 +62,7 @@ import type {
   InvitationPayload,
   InvitationState,
 } from '../lib/types.ts'
+import { ShareInvitationDialog } from '../components/ShareInvitationDialog.tsx'
 import { fr } from '../locales/fr.ts'
 import { emptyDraft } from '../templates/registry.tsx'
 
@@ -770,6 +772,7 @@ function GuestRow({
   const [confirmingRevoke, setConfirmingRevoke] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [sharing, setSharing] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [name, setName] = useState(invitation.guest_name)
@@ -956,6 +959,17 @@ function GuestRow({
         </div>
 
         <div className="flex shrink-0 items-center">
+          {invitation.status === 'active' ? (
+            <button
+              type="button"
+              onClick={() => setSharing(true)}
+              title={fr.guests.send}
+              className={buttonClasses('primary', 'sm', 'mr-1 h-9 w-9 px-0 sm:w-auto sm:px-3')}
+            >
+              <IconSend className="h-4 w-4" />
+              <span className="sr-only sm:not-sr-only">{fr.guests.send}</span>
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => void copyLink()}
@@ -998,6 +1012,8 @@ function GuestRow({
           />
         </div>
       </div>
+
+      <ShareInvitationDialog token={invitation.token} open={sharing} onClose={() => setSharing(false)} />
 
       {/* While the edit dialog is open its own alert carries the message —
           keeping this one hidden avoids duplicate role="alert" announcements. */}

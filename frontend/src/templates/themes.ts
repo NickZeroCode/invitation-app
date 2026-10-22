@@ -91,11 +91,11 @@ export const TEMPLATE_THEMES: Record<string, TemplateTheme> = {
     titleClass: '',
   },
   confetti: {
-    accent: '#C2185B',
-    ink: '#312E81',
-    inkSoft: '#7A74B4',
-    surface: '#FFF8E7',
-    line: '#F0DFB2',
+    accent: '#D24A35',
+    ink: '#1E2740',
+    inkSoft: '#5B6378',
+    surface: '#FBF4E6',
+    line: '#EADBC0',
     titleClass: '',
   },
   'sceau-academique': {

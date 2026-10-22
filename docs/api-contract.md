@@ -278,3 +278,58 @@ ever needs: the public invitation URL embeds it and requires no login. It is
 surfaced only to the authenticated organizer (for copy/share) and must be
 treated as a bearer secret — never logged, never accepted through guessable
 identifiers.
+
+## Invitation delivery — WhatsApp & e-mail (additive)
+
+Additive endpoints only: no model, field or migration change, and no change
+to existing payloads. Both are keyed by the invitation's public `token` so
+the guest page and the guest list share one contract.
+
+### Endpoints
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/share/invitations/{token}/` | session (optional) | Share context. Anyone who is not the owning organizer receives `200 {"can_share": false}` — no 401, nothing leaks. |
+| POST | `/api/share/invitations/{token}/email/` | session + CSRF | Sends the invitation e-mail to one recipient. Owner-only (others: 404). Throttle scope `share-email` (default `40/hour` per account). |
+
+### Share context (owner)
+
+```json
+{
+  "can_share": true,
+  "shareable": true,
+  "status": "active",
+  "invitation_id": 42,
+  "display_name": "M. Éric Mukendi",
+  "public_url": "https://www.nickevents.com/i/<token>",
+  "email_enabled": true,
+  "event": { "title": "…", "event_date": "2026-12-12", "event_time": "15:00:00", "venue_name": "…" },
+  "default_subject": "Invitation — …",
+  "default_message": "Bonjour …\n\n…\n\nhttps://www.nickevents.com/i/<token>\n\n…"
+}
+```
+
+- `public_url` is built by the server: `PUBLIC_APP_URL` + `/i/{token}`, or the
+  request host when `PUBLIC_APP_URL` is empty (same-origin deployment).
+- `shareable` is false for revoked/expired links; the UI refuses to send them.
+
+### E-mail request
+
+`{"recipient": "invite@example.com", "subject": "…", "message": "…"}` —
+`subject` (≤ 150) and `message` (≤ 1500) are optional and default to the
+context values. The HTML e-mail always carries an « Ouvrir mon invitation »
+button with the public URL; a plain-text alternative is included and
+`Reply-To` is the organizer's address. Recipients are not stored.
+
+| Status | `error.code` | Meaning |
+| --- | --- | --- |
+| 200 | — | `{"status": "accepted"}` — the provider accepted the message. Delivery and opening are **not** tracked. |
+| 400 | `validation_error` | Invalid address (`fields.recipient`) or inactive invitation. |
+| 404 | `not_found` | Not the organizer's invitation. |
+| 429 | `throttled` | Rate limit reached. |
+| 502 | `email_failed` | The provider refused or failed; nothing was sent. |
+| 503 | `email_unavailable` | No provider configured (`EMAIL_HOST` empty). The UI falls back to the organizer's own mail app. |
+
+WhatsApp needs no endpoint: the client opens WhatsApp's official
+click-to-chat link `https://wa.me/<E.164 digits>?text=<message>` and the
+organizer presses « Envoyer » in WhatsApp — nothing is sent automatically.

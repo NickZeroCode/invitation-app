@@ -36,6 +36,8 @@ import type {
   PublicInvitationVerification,
   PublicVerificationLinkInfo,
   RegisterPayload,
+  ShareContext,
+  ShareEmailPayload,
   VerificationLink,
   VerificationLinkPayload,
   VerificationScanResult,
@@ -291,6 +293,19 @@ export const publicApi = {
       'POST',
       `/api/public/invitations/${encodeURIComponent(token)}/confirm-presence/`,
       {},
+    ),
+}
+
+/** Organizer delivery of one invitation (WhatsApp prefill, e-mail). */
+export const shareApi = {
+  context: (token: string) =>
+    request<ShareContext>('GET', `/api/share/invitations/${encodeURIComponent(token)}/`),
+  /** Resolves only once the provider accepted the message. */
+  email: (token: string, payload: ShareEmailPayload) =>
+    request<{ status: 'accepted' }>(
+      'POST',
+      `/api/share/invitations/${encodeURIComponent(token)}/email/`,
+      payload,
     ),
 }
 

@@ -143,6 +143,24 @@ export function ModernRule({ color = '#C8102E', className, style }: OrnamentProp
   )
 }
 
+/** « Kasaï » — a short woven chevron with a lozenge at its heart. */
+export function KubaRule({ color = '#B5702A', className, style }: OrnamentProps) {
+  return (
+    <Ornament color={color} className={className} style={style}>
+      <rect x="18" y="12.4" width="50" height="1.1" fill={color} opacity="0.55" />
+      <rect x="152" y="12.4" width="50" height="1.1" fill={color} opacity="0.55" />
+      <path
+        d="M 74 17 L 82 8 L 90 17 L 98 8 L 106 17 M 114 17 L 122 8 L 130 17 L 138 8 L 146 17"
+        fill="none"
+        stroke={color}
+        strokeWidth="2.4"
+        strokeLinejoin="miter"
+      />
+      <path d="M 110 7.5 L 115 13 L 110 18.5 L 105 13 Z" fill="#8C3A21" />
+    </Ornament>
+  )
+}
+
 /** « Sceau Académique » — a laurel sprig flanked by rules. */
 export function LaurelRule({ color = '#9A7B1C', className, style }: OrnamentProps) {
   return (
@@ -223,6 +241,7 @@ const ORNAMENTS: Record<string, (props: OrnamentProps) => React.ReactElement> = 
     <FlourishRule color={color ?? '#C29A4E'} className={className} style={style} />
   ),
   grenat: QuietRule,
+  kasai: KubaRule,
   'mood-board': ({ color, className, style }) => (
     <FlourishRule color={color ?? '#B0873C'} className={className} style={style} />
   ),

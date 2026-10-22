@@ -430,3 +430,22 @@ export function IconExternal({ className = 'h-5 w-5' }: IconProps) {
     </svg>
   )
 }
+
+export function IconSend({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M20.5 3.5 10.5 13.5" />
+      <path d="m20.5 3.5-6.5 17-3.5-7-7-3.5z" />
+    </svg>
+  )
+}
+
+/** Chat bubble with a handset — reads as « WhatsApp » next to its label. */
+export function IconChat({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M4.2 19.8 5.3 16A8 8 0 1 1 8 18.7z" />
+      <path d="M9.2 9.1c.2 2.4 2.3 4.5 4.7 4.7l1.1-1.2 1.8.9c-.2 1-1 1.7-2 1.6-3.4-.3-6.1-3-6.4-6.4-.1-1 .6-1.8 1.6-2l.9 1.8z" />
+    </svg>
+  )
+}

@@ -5,6 +5,7 @@
  */
 import {
   CoverHero,
+  FoilText,
   DateBlock,
   DressCodeSection,
   InvitationPaper,
@@ -98,13 +99,9 @@ export function HeritageLuxe({ draft }: TemplateProps) {
           style={{
             fontSize: titleEm ? '4.1em' : '3.1em',
             fontFamily: "'Great Vibes', cursive",
-            backgroundImage: TITLE_GOLD,
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            color: 'transparent',
           }}
         >
-          {draft.title}
+          <FoilText gradient={TITLE_GOLD}>{draft.title}</FoilText>
         </h1>
 
         {draft.message ? (

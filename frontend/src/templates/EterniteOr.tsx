@@ -6,6 +6,7 @@
  */
 import {
   CoverHero,
+  FoilText,
   DateBlock,
   DressCodeSection,
   InvitationPaper,
@@ -49,7 +50,7 @@ export function EterniteOr({ draft }: TemplateProps) {
   const dateEm = isEmphasized(draft, 'date')
   const venueEm = isEmphasized(draft, 'venue')
   return (
-    <InvitationPaper style={{ backgroundImage: PAPER_BG, color: IVORY }}>
+    <InvitationPaper texture="cotton-dark" style={{ backgroundImage: PAPER_BG, color: IVORY }}>
       <CoverHero
         draft={draft}
         bandColor="rgba(15,11,7,0.6)"
@@ -115,13 +116,9 @@ export function EterniteOr({ draft }: TemplateProps) {
           style={{
             fontSize: titleEm ? '4.1em' : '3.1em',
             fontFamily: "'Great Vibes', cursive",
-            backgroundImage: TITLE_GOLD,
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            color: 'transparent',
           }}
         >
-          {draft.title}
+          <FoilText gradient={TITLE_GOLD}>{draft.title}</FoilText>
         </h1>
 
         {draft.message ? (

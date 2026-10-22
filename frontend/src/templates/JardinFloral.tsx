@@ -1,7 +1,14 @@
 /**
- * « Jardin » — romantic botanical: blush paper, hand-drawn floral corners,
- * soft rose accents and an oval portrait cover.
+ * « Jardin » — wedding anniversary as a fine-art botanical plate.
+ *
+ * The years together are the focal point: the number pulled from the title
+ * (« Nos 25 ans de mariage » → 25) sits inside an open laurel-and-rosebud
+ * wreath drawn in engraved line work over a watercolour wash. Without a
+ * number the wreath holds the couple's initials. Blush cotton paper, plum
+ * ink, sage foliage — romantic, but restrained: the drawing frames, the
+ * typography speaks.
  */
+import { BotanicalSprig, BotanicalWreath } from './botanicals.tsx'
 import {
   CoverHero,
   DressCodeSection,
@@ -9,162 +16,195 @@ import {
   NoteSection,
   ProgramSection,
   TableSection,
-  formatEventDate,
+  formatDayNumber,
   formatEventTime,
+  formatMonthYear,
+  formatWeekday,
   guestLabel,
   isEmphasized,
+  monogramInitials,
+  titleNumber,
 } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
 
-const ROSE = '#B4636F'
-const SAGE = '#7C8B6B'
-
-function FloralCorner({ flipX = false }: { flipX?: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 120 120"
-      className="absolute h-[16em] w-[16em] opacity-92"
-      style={{
-        top: 0,
-        left: flipX ? undefined : 0,
-        right: flipX ? 0 : undefined,
-        transform: flipX ? 'scaleX(-1)' : undefined,
-      }}
-      aria-hidden="true"
-    >
-      <g fill="none" stroke={SAGE} strokeWidth="2.4" strokeLinecap="round">
-        <path d="M8 8 C 42 14, 66 34, 78 62" />
-        <path d="M8 8 C 12 42, 30 68, 58 82" />
-      </g>
-      <g fill={ROSE} opacity="0.85">
-        <circle cx="30" cy="18" r="5.5" />
-        <circle cx="52" cy="34" r="4.5" />
-        <circle cx="18" cy="40" r="4" />
-        <circle cx="72" cy="58" r="5" />
-      </g>
-      <g fill={SAGE} opacity="0.9">
-        <ellipse cx="42" cy="24" rx="7" ry="3" transform="rotate(38 42 24)" />
-        <ellipse cx="22" cy="58" rx="7" ry="3" transform="rotate(-58 22 58)" />
-        <ellipse cx="58" cy="52" rx="7" ry="3" transform="rotate(20 58 52)" />
-      </g>
-    </svg>
-  )
-}
+const PAPER = '#FBF4F0'
+const PLUM = '#4E2F37'
+const ROSE = '#A65A66'
+const SAGE = '#6F7F63'
+const SERIF = "'Cormorant Garamond', 'Playfair Display', Georgia, serif"
 
 export function JardinFloral({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
   const venueEm = isEmphasized(draft, 'venue')
+  const years = titleNumber(draft.title)
+  const initials = monogramInitials(draft.title)
+  const sectionOrnament = (
+    <TemplateOrnament templateKey="jardin-floral" color={ROSE} className="block h-auto w-full" />
+  )
+  const sectionTitle = { letterSpacing: '0.16em', textTransform: 'none' as const, fontSize: '1.35em' }
+
   return (
-    <InvitationPaper style={{ backgroundColor: '#FCF3F1', color: '#4A3238' }}>
+    <InvitationPaper
+      style={{
+        backgroundColor: PAPER,
+        backgroundImage: 'radial-gradient(ellipse at 50% 22%, rgba(255,255,255,0.7), transparent 62%)',
+        color: PLUM,
+      }}
+    >
       <CoverHero
         draft={draft}
-        bandColor="rgba(252,243,241,0.82)"
-        paperColor="#FCF3F1"
-        eyebrowColor="#5C3A43"
-        edgeColor="rgba(180,99,111,0.7)"
+        bandColor="rgba(251,244,240,0.82)"
+        paperColor={PAPER}
+        eyebrowColor={PLUM}
+        edgeColor="rgba(166,90,102,0.7)"
         titleClassName="font-display italic"
-        titleStyle={{
-          fontSize: titleEm ? '3em' : '2.3em',
-          color: '#5C3A43',
-        }}
+        titleStyle={{ fontSize: titleEm ? '3em' : '2.3em', color: PLUM }}
       />
 
-      {/* Decorations frame the text zone (below the cover photo). */}
       <div className="relative flex flex-1 flex-col">
-        <FloralCorner />
-        <FloralCorner flipX />
-        <div className="relative flex flex-1 flex-col items-center px-[6.5em] py-[4em] text-center">
-        <p
-          className="font-display text-[1.2em] italic"
-          style={{ color: ROSE, letterSpacing: '0.22em' }}
-        >
-          C'est avec joie que nous vous convions
-        </p>
-
-        <h1
-          className="mt-[1em] break-words text-balance font-display italic leading-[1.2]"
-          style={{ fontSize: titleEm ? '3.4em' : '2.5em', color: '#5C3A43' }}
-        >
-          {draft.title}
-        </h1>
-
-        <p className="mt-[1.8em] font-display text-[1.1em] italic" style={{ color: ROSE }}>
-          {guestLabel(draft)}
-        </p>
-        {draft.message ? (
-          <p className="mt-[1em] max-w-[28em] text-pretty text-[1.14em] leading-[1.75] break-words opacity-92" style={{ fontFamily: messageFontCss(draft.messageFont) }}>
-            {draft.message}
-          </p>
-        ) : null}
-
+        {/* A single hairline frame: the paper edge of a printed card. */}
         <div
-          className="mt-[2.2em] rounded-[1.2em] px-[2.2em] py-[1.4em]"
-          style={{ backgroundColor: '#FFFFFFB8' }}
-        >
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-[2.4em]"
+          style={{ border: '1px solid rgba(166,90,102,0.28)' }}
+        />
+
+        <div className="relative flex flex-1 flex-col items-center px-[6.5em] pb-[4.5em] pt-[4.6em] text-center">
           <p
-            className="font-display"
-            style={{ fontSize: dateEm ? '1.6em' : '1.25em', color: '#5C3A43' }}
+            className="text-[0.9em] uppercase"
+            style={{ letterSpacing: '0.44em', color: ROSE, fontFamily: "'Montserrat', 'Inter', sans-serif" }}
           >
-            {formatEventDate(draft.event_date)}
+            Avec joie, nous vous convions
           </p>
-          <p className="mt-[0.35em] text-[1.08em]" style={{ letterSpacing: '0.3em', color: ROSE }}>
-            {formatEventTime(draft.event_time)}
-          </p>
-        </div>
 
-        {draft.venue_name || draft.venue_address ? (
-          <div className="mt-[1.8em]">
-            <p
-              className="font-display text-[1.15em] italic"
-              style={{ color: venueEm ? ROSE : '#5C3A43' }}
-            >
-              {draft.venue_name}
-            </p>
-            <p className="mt-[0.3em] text-[1.08em] opacity-88">{draft.venue_address}</p>
-            {draft.venue_details ? (
-              <p className="mt-[0.5em] text-[0.96em] italic opacity-80">{draft.venue_details}</p>
-            ) : null}
+          <div className="relative mt-[1.6em] h-[17em] w-[17em]">
+            <BotanicalWreath className="absolute inset-0 h-full w-full" leaf={SAGE} bud={ROSE} />
+            <div className="absolute inset-0 flex flex-col items-center justify-center pb-[1.2em]">
+              {years ? (
+                <>
+                  <span
+                    className="italic leading-none"
+                    style={{ fontFamily: SERIF, fontWeight: 500, fontSize: '5.4em', color: PLUM }}
+                  >
+                    {years}
+                  </span>
+                  <span
+                    className="mt-[0.2em] text-[0.82em] uppercase"
+                    style={{ letterSpacing: '0.5em', color: ROSE, fontFamily: "'Montserrat', 'Inter', sans-serif" }}
+                  >
+                    ans
+                  </span>
+                </>
+              ) : initials.length ? (
+                <span className="italic leading-none" style={{ fontFamily: SERIF, fontSize: '3.6em', color: PLUM }}>
+                  {initials.join(' & ')}
+                </span>
+              ) : null}
+            </div>
           </div>
-        ) : null}
 
-        <NoteSection draft={draft} ink="#5C3A43" />
-        <ProgramSection
-          draft={draft}
-          accent={ROSE}
-          ink="#5C3A43"
-          ornament={
-            <TemplateOrnament templateKey="jardin-floral" color={ROSE} className="block h-auto w-full" />
-          }
-          titleClassName="font-display italic"
-          titleStyle={{ letterSpacing: '0.18em', textTransform: 'none' }}
-        />
-        <TableSection
-          draft={draft}
-          accent={ROSE}
-          ink="#5C3A43"
-          ornament={
-            <TemplateOrnament templateKey="jardin-floral" color={ROSE} className="block h-auto w-full" />
-          }
-          titleClassName="font-display italic"
-          titleStyle={{ letterSpacing: '0.18em', textTransform: 'none' }}
-        />
-        <DressCodeSection
-          draft={draft}
-          accent={ROSE}
-          ink="#5C3A43"
-          ornament={
-            <TemplateOrnament templateKey="jardin-floral" color={ROSE} className="block h-auto w-full" />
-          }
-          titleClassName="font-display italic"
-          titleStyle={{ letterSpacing: '0.18em', textTransform: 'none' }}
-        />
+          <h1
+            className="mt-[1.1em] max-w-[20em] break-words text-balance italic leading-[1.15]"
+            style={{ fontFamily: SERIF, fontWeight: 500, fontSize: titleEm ? '3.5em' : '2.9em', color: PLUM }}
+          >
+            {draft.title}
+          </h1>
 
-        <p className="mt-auto pt-[2em] text-[0.96em] italic opacity-78">
-          Au plaisir de vous y retrouver
-        </p>
+          <p className="mt-[1.4em] text-[1.25em] italic" style={{ fontFamily: SERIF, color: ROSE }}>
+            {guestLabel(draft)}
+          </p>
+          {draft.message ? (
+            <p
+              className="mt-[1em] max-w-[27em] text-pretty text-[1.15em] leading-[1.75] break-words"
+              style={{ fontFamily: messageFontCss(draft.messageFont) ?? SERIF }}
+            >
+              {draft.message}
+            </p>
+          ) : null}
+
+          {draft.event_date ? (
+            <div className="mt-[2.4em] flex w-full max-w-[26em] items-center justify-center gap-[1.4em]">
+              <div className="flex-1 text-right">
+                <p className="text-[0.92em] uppercase" style={{ letterSpacing: '0.34em', color: ROSE }}>
+                  {formatWeekday(draft.event_date)}
+                </p>
+              </div>
+              <div
+                className="flex flex-col items-center px-[1.2em]"
+                style={{ borderLeft: '1px solid rgba(166,90,102,0.4)', borderRight: '1px solid rgba(166,90,102,0.4)' }}
+              >
+                <span className="leading-none" style={{ fontFamily: SERIF, fontWeight: 500, fontSize: dateEm ? '3.4em' : '2.8em' }}>
+                  {formatDayNumber(draft.event_date)}
+                </span>
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-[0.92em] uppercase" style={{ letterSpacing: '0.24em', color: ROSE }}>
+                  {formatMonthYear(draft.event_date)}
+                </p>
+              </div>
+            </div>
+          ) : null}
+          {draft.event_time ? (
+            <p className="mt-[0.9em] text-[1.2em] italic" style={{ fontFamily: SERIF }}>
+              à {formatEventTime(draft.event_time).replace(':', 'h')}
+            </p>
+          ) : null}
+
+          {draft.venue_name || draft.venue_address ? (
+            <div className="mt-[1.8em] max-w-[26em]">
+              {draft.venue_name ? (
+                <p className="italic" style={{ fontFamily: SERIF, fontSize: venueEm ? '1.6em' : '1.4em', color: PLUM }}>
+                  {draft.venue_name}
+                </p>
+              ) : null}
+              {draft.venue_address ? (
+                <p className="mt-[0.3em] text-[1em] leading-[1.55]" style={{ opacity: 0.82 }}>
+                  {draft.venue_address}
+                </p>
+              ) : null}
+              {draft.venue_details ? (
+                <p className="mt-[0.5em] text-[1em] italic" style={{ color: ROSE }}>
+                  {draft.venue_details}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          <NoteSection draft={draft} ink={PLUM} />
+          <ProgramSection
+            draft={draft}
+            accent={ROSE}
+            ink={PLUM}
+            ornament={sectionOrnament}
+            titleClassName="font-display italic"
+            titleStyle={sectionTitle}
+          />
+          <TableSection
+            draft={draft}
+            accent={ROSE}
+            ink={PLUM}
+            ornament={sectionOrnament}
+            titleClassName="font-display italic"
+            titleStyle={sectionTitle}
+          />
+          <DressCodeSection
+            draft={draft}
+            accent={ROSE}
+            ink={PLUM}
+            ornament={sectionOrnament}
+            titleClassName="font-display italic"
+            titleStyle={sectionTitle}
+          />
+
+          <div className="mt-auto flex flex-col items-center pt-[2.4em]">
+            <BotanicalSprig className="h-auto w-[10em]" leaf={SAGE} bud={ROSE} />
+            <p className="mt-[0.6em] text-[1.1em] italic" style={{ fontFamily: SERIF, opacity: 0.85 }}>
+              Au plaisir de vous y retrouver
+            </p>
+          </div>
         </div>
       </div>
     </InvitationPaper>

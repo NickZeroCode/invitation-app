@@ -508,3 +508,28 @@ export interface VerificationScanResult {
   summary: VerificationScanSummary | null
   verified_at: string
 }
+
+/** Organizer-only share context for one invitation (`/api/share/invitations/{token}/`). */
+export type ShareContext =
+  | { can_share: false }
+  | {
+      can_share: true
+      /** False when the link is revoked/expired: sending would show a dead end. */
+      shareable: boolean
+      status: InvitationState
+      invitation_id: number
+      display_name: string
+      /** Absolute guest-facing URL built by the server. */
+      public_url: string
+      /** True only when the server has an e-mail provider configured. */
+      email_enabled: boolean
+      event: { title: string; event_date: string; event_time: string; venue_name: string }
+      default_subject: string
+      default_message: string
+    }
+
+export interface ShareEmailPayload {
+  recipient: string
+  subject?: string
+  message?: string
+}

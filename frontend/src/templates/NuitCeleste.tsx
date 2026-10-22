@@ -6,6 +6,7 @@
  */
 import {
   CoverHero,
+  FoilText,
   DateBlock,
   DressCodeSection,
   InvitationPaper,
@@ -121,7 +122,7 @@ export function NuitCeleste({ draft }: TemplateProps) {
   const dateEm = isEmphasized(draft, 'date')
   const venueEm = isEmphasized(draft, 'venue')
   return (
-    <InvitationPaper style={{ backgroundImage: PAPER_BG, color: STAR }}>
+    <InvitationPaper texture="cotton-dark" style={{ backgroundImage: PAPER_BG, color: STAR }}>
       <CoverHero
         draft={draft}
         bandColor="rgba(11,18,40,0.6)"
@@ -187,14 +188,10 @@ export function NuitCeleste({ draft }: TemplateProps) {
           style={{
             fontSize: titleEm ? '4.1em' : '3.1em',
             fontFamily: "'Great Vibes', cursive",
-            backgroundImage: TITLE_GOLD,
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            color: 'transparent',
             filter: 'drop-shadow(0 0.04em 0.22em rgba(226,194,124,0.35))',
           }}
         >
-          {draft.title}
+          <FoilText gradient={TITLE_GOLD}>{draft.title}</FoilText>
         </h1>
 
         {draft.message ? (

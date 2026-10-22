@@ -30,6 +30,7 @@ const BACKEND_KEYS = [
   'romance',
   'grenat',
   'mood-board',
+  'kasai',
 ]
 
 afterEach(cleanup)

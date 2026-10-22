@@ -47,7 +47,7 @@ export function Mandala({ draft }: TemplateProps) {
   const dateEm = isEmphasized(draft, 'date')
   const venueEm = isEmphasized(draft, 'venue')
   return (
-    <InvitationPaper style={{ backgroundColor: PAPER, color: CREAM }}>
+    <InvitationPaper texture="cotton-dark" style={{ backgroundColor: PAPER, color: CREAM }}>
       <DamaskPattern color={GOLD} opacity={0.14} />
 
       <CoverHero

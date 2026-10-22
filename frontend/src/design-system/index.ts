@@ -34,6 +34,8 @@ export {
   IconLink,
   IconLogout,
   IconMail,
+  IconChat,
+  IconSend,
   IconMenu,
   IconMonitor,
   IconMore,

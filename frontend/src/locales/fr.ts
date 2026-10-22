@@ -371,6 +371,7 @@ export const fr = {
     expires: 'Expire le {date}',
     noExpiry: 'Sans expiration',
     copyLink: 'Copier le lien',
+    send: 'Envoyer',
     linkCopied: 'Lien copié.',
     edit: 'Modifier',
     save: 'Enregistrer',

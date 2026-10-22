@@ -4,7 +4,11 @@ from .base import *  # noqa: F401,F403
 DEBUG = True
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,testserver")
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Invitation e-mails print to the runserver console in development, unless a
+# real SMTP relay is configured in .env (then it is used, like production).
+if not SMTP_HOST:  # noqa: F405
+    MAILERS = {"default": {"BACKEND": "django.core.mail.backends.console.EmailBackend"}}
+INVITATION_EMAIL_ENABLED = True
 
 # Unhashed static files + finders so /admin/ renders styled without a
 # collectstatic step. Production keeps the manifest storage from base.py.

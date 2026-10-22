@@ -11,6 +11,7 @@ import {
   formatDayNumber,
   formatEventTime,
   formatMonthYear,
+  formatShortDate,
   guestLabel,
   isEmphasized,
 } from './shared.tsx'
@@ -30,14 +31,16 @@ export function LigneModerne({ draft }: TemplateProps) {
     <InvitationPaper style={{ backgroundColor: '#FFFFFF', color: INK }}>
       <div className="flex flex-1 flex-col px-[5.5em] py-[4em]">
         <div className="flex items-center justify-between">
+          {/* The host's card, not the platform's: no NickEvents branding on
+              a client's invitation — the masthead carries the date. */}
           <p
             className="text-[1.02em] font-semibold uppercase"
             style={{ letterSpacing: '0.42em', color: ACCENT }}
           >
-            MalaikaEvents
-          </p>
-          <p className="text-[1.02em] uppercase" style={{ letterSpacing: '0.28em', opacity: 0.7 }}>
             Invitation
+          </p>
+          <p className="text-[1.02em] uppercase tabular-nums" style={{ letterSpacing: '0.28em', opacity: 0.7 }}>
+            {formatShortDate(draft.event_date)}
           </p>
         </div>
         <span className="mt-[1.2em] h-[0.35em] w-full" style={{ backgroundColor: INK }} />

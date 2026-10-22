@@ -1,7 +1,9 @@
 /**
  * « Mémoire » — memorial homage: ivory paper, restrained serif typography,
- * a single quiet ornament and generous whitespace. No cover image.
+ * one calla lily drawn as an engraving (the flower of remembrance) and
+ * generous whitespace. No cover image, no gilding — dignity through calm.
  */
+import { CallaLily } from './botanicals.tsx'
 import {
   DressCodeSection,
   InvitationPaper,
@@ -41,20 +43,23 @@ export function Memoire({ draft }: TemplateProps) {
         aria-hidden="true"
       />
       <div className="flex flex-1 flex-col items-center px-[7.5em] py-[5em] text-center">
-        <div className="w-[12em]">
-          <DiamondRule />
-        </div>
+        <CallaLily className="h-[12.5em] w-auto" ink="#6B7368" wash="#E3E6DE" />
 
         <p
-          className="mt-[2.4em] text-[1.02em] uppercase"
+          className="mt-[1.6em] text-[1.02em] uppercase"
           style={{ color: SAGE, letterSpacing: '0.5em' }}
         >
           En souvenir
         </p>
 
         <h1
-          className="mt-[1.6em] break-words text-balance font-display leading-[1.3]"
-          style={{ fontSize: titleEm ? '2.9em' : '2.15em', color: '#3A352E' }}
+          className="mt-[1.2em] break-words text-balance leading-[1.2]"
+          style={{
+            fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif",
+            fontWeight: 500,
+            fontSize: titleEm ? '3.5em' : '2.8em',
+            color: '#3A352E',
+          }}
         >
           {draft.title}
         </h1>

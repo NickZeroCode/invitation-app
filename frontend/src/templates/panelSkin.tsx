@@ -9,6 +9,7 @@
 import type { CSSProperties } from 'react'
 
 import { BLUSH, DecoCorner, GoldRoseCorner, HexFrame, SAGE, StarField, WatercolorSpray } from './florals.tsx'
+import { BotanicalSprig } from './botanicals.tsx'
 import { LuxePattern } from './luxeMotifs.tsx'
 import {
   AZURE,
@@ -104,11 +105,11 @@ export const PANEL_SKINS: Record<string, PanelSkin> = {
     titleClass: 'font-display',
   },
   'jardin-floral': {
-    paper: '#FCF3F1',
-    ink: '#4A3238',
-    inkSoft: '#8D6C74',
-    accent: '#B4636F',
-    line: '#EBCFD4',
+    paper: '#FBF4F0',
+    ink: '#4E2F37',
+    inkSoft: '#86656C',
+    accent: '#A65A66',
+    line: '#ECD3D4',
     softBg: 'rgba(180, 99, 111, 0.08)',
     chipBg: 'rgba(255, 255, 255, 0.66)',
     onAccent: '#FFFFFF',
@@ -126,15 +127,15 @@ export const PANEL_SKINS: Record<string, PanelSkin> = {
     titleClass: '',
   },
   confetti: {
-    paper: '#FFF8E7',
-    ink: '#312E81',
-    inkSoft: '#7A74B4',
-    accent: '#EC4899',
-    line: '#F0DFB2',
-    softBg: 'rgba(236, 72, 153, 0.08)',
+    paper: '#FBF4E6',
+    ink: '#1E2740',
+    inkSoft: '#5B6378',
+    accent: '#D24A35',
+    line: '#EADBC0',
+    softBg: 'rgba(226, 85, 63, 0.07)',
     chipBg: 'rgba(255, 255, 255, 0.66)',
     onAccent: '#FFFFFF',
-    titleClass: '',
+    titleClass: 'font-display',
   },
   'sceau-academique': {
     paper: '#14213D',
@@ -290,6 +291,17 @@ export const PANEL_SKINS: Record<string, PanelSkin> = {
     onAccent: '#FFFFFF',
     titleClass: 'font-display',
   },
+  kasai: {
+    paper: '#EFE3CB',
+    ink: '#2B1E14',
+    inkSoft: '#6B5440',
+    accent: '#8C3A21',
+    line: '#D9C39C',
+    softBg: 'rgba(181, 112, 42, 0.08)',
+    chipBg: 'rgba(255, 250, 238, 0.7)',
+    onAccent: '#FFF8EC',
+    titleClass: '',
+  },
 }
 
 export function panelSkinFor(templateKey: string): PanelSkin {
@@ -305,93 +317,16 @@ export const DARK_PANEL_KEYS = new Set([
   'mandala',
 ])
 
-/**
- * Realistic botanical corner spray for « Jardin floral » — a swept branch of
- * dusty-rose buds and olive leaves that hugs the panel corner, drawn with
- * tapered stems and veined petals (replaces the old circle/ellipse blobs).
- */
-function FloralCorner({ flipX = false }: { flipX?: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 120 120"
-      className="absolute top-0 h-auto w-[5.75rem] opacity-95"
-      style={{
-        left: flipX ? undefined : 0,
-        right: flipX ? 0 : undefined,
-        transform: flipX ? 'scaleX(-1)' : undefined,
-      }}
-      aria-hidden="true"
-    >
-      {/* main swept stem hugging the corner + one branch */}
-      <g fill="none" stroke="#7C8B6B" strokeLinecap="round">
-        <path d="M6 6 C 30 12, 52 30, 66 58" strokeWidth="2" />
-        <path d="M6 6 C 12 30, 28 54, 54 68" strokeWidth="2" />
-        <path d="M40 26 C 52 30, 62 40, 68 52" strokeWidth="1.6" />
-      </g>
-      {/* olive leaves, veined and tapered */}
-      <g>
-        {[
-          [24, 16, 40, 13],
-          [48, 38, 62, 12],
-          [16, 34, -50, 12],
-          [40, 54, -30, 11],
-          [60, 58, 20, 10],
-        ].map(([x, y, rot, s]) => (
-          <g key={`${x}-${y}`} transform={`translate(${x} ${y}) rotate(${rot}) scale(${s / 12})`}>
-            <path d="M0 0 C 8 -9 22 -10 30 -2 C 22 6 8 7 0 0 Z" fill="#7C8B6B" opacity="0.85" />
-            <path d="M3 -1 C 12 -3 22 -3 28 -2" fill="none" stroke="#5E6B47" strokeWidth="0.9" opacity="0.6" />
-          </g>
-        ))}
-      </g>
-      {/* dusty-rose blossoms: layered petals around a centre */}
-      <g>
-        {[
-          [62, 26, 9],
-          [34, 62, 8],
-          [70, 58, 6.5],
-        ].map(([x, y, r]) => (
-          <g key={`b-${x}-${y}`}>
-            {Array.from({ length: 5 }, (_, p) => (
-              <ellipse
-                key={p}
-                cx={x}
-                cy={y - r * 0.52}
-                rx={r * 0.42}
-                ry={r * 0.6}
-                fill={p % 2 === 0 ? '#B4636F' : '#C98BA0'}
-                opacity="0.9"
-                transform={`rotate(${(p * 360) / 5} ${x} ${y})`}
-              />
-            ))}
-            <circle cx={x} cy={y} r={r * 0.22} fill="#E9C4CD" />
-          </g>
-        ))}
-        {/* tiny buds tucked along the stem */}
-        <circle cx="20" cy="20" r="2.6" fill="#B4636F" opacity="0.85" />
-        <circle cx="52" cy="48" r="2.2" fill="#B4636F" opacity="0.85" />
-        <circle cx="12" cy="46" r="2.4" fill="#C98BA0" opacity="0.85" />
-      </g>
-    </svg>
-  )
-}
-
-/** Slim confetti band, mirroring « Confetti »'s top band of candy dots. */
+/** A few paper confetti in the panel corner, mirroring « Confetti »'s
+ * hand-cut pieces (same riso inks), kept clear of the text. */
 function ConfettiBand() {
   return (
-    <svg
-      viewBox="0 0 320 30"
-      className="absolute inset-x-0 top-0 h-[1.9rem] w-full"
-      aria-hidden="true"
-      preserveAspectRatio="none"
-    >
-      <rect x="0" y="0" width="320" height="30" fill="#4338CA" />
-      <circle cx="28" cy="9" r="4.5" fill="#F59E0B" />
-      <circle cx="70" cy="20" r="3.5" fill="#EC4899" />
-      <rect x="118" y="6" width="7" height="7" fill="#FFFFFF" transform="rotate(18 121 9)" />
-      <circle cx="176" cy="17" r="4" fill="#F59E0B" />
-      <rect x="216" y="15" width="6" height="6" fill="#EC4899" transform="rotate(-14 219 18)" />
-      <circle cx="268" cy="7" r="3.8" fill="#FFFFFF" />
-      <circle cx="300" cy="19" r="3.5" fill="#F59E0B" />
+    <svg viewBox="0 0 120 40" className="absolute right-0 top-0 h-auto w-[7rem]" aria-hidden="true">
+      <circle cx="104" cy="9" r="4" fill="#F0B23A" />
+      <rect x="78" y="6" width="12" height="3" rx="0.6" fill="#E2553F" transform="rotate(-28 84 7.5)" />
+      <path d="M 94 24 q 3 -4 6 0 t 6 0" fill="none" stroke="#2D55C8" strokeWidth="2.2" strokeLinecap="round" />
+      <circle cx="66" cy="12" r="2" fill="#F2B8AE" />
+      <path d="M 112 30 l 3.5 5.5 h -7 z" fill="#2D55C8" transform="rotate(14 112 33)" />
     </svg>
   )
 }
@@ -497,10 +432,11 @@ function decorFor(templateKey: string) {
       )
     case 'jardin-floral':
       return (
-        <>
-          <FloralCorner />
-          <FloralCorner flipX />
-        </>
+        <BotanicalSprig
+          className="absolute bottom-[0.5rem] right-[0.4rem] h-auto w-[6.5rem] opacity-90"
+          leaf="#6F7F63"
+          bud="#A65A66"
+        />
       )
     case 'ligne-moderne':
       return null
