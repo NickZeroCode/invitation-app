@@ -272,7 +272,7 @@ function luminanceOf(color: string): number {
  */
 function plateGradient(paper: string, veil: string): string {
   if (luminanceOf(veil) >= 0.62) {
-    return `linear-gradient(180deg in oklch, ${accentAlpha(paper, 0.92)}, ${accentAlpha(paper, 0.72)})`
+    return `linear-gradient(180deg in oklch, ${accentAlpha(paper, 0.62)}, ${accentAlpha(paper, 0.44)})`
   }
   const [r, g, b] = parseRgb(paper) ?? [246, 242, 234]
   const [vr, vg, vb] = parseRgb(veil) ?? [46, 38, 26]
@@ -282,7 +282,7 @@ function plateGradient(paper: string, veil: string): string {
     const rr = Math.round(r * f * (1 - mix) + vr * 0.85 * mix)
     const gg = Math.round(g * f * (1 - mix) + vg * 0.85 * mix)
     const bb = Math.round(b * f * (1 - mix) + vb * 0.85 * mix)
-    return `rgba(${rr}, ${gg}, ${bb}, 0.96)`
+    return `rgba(${rr}, ${gg}, ${bb}, 0.58)`
   }
   return `linear-gradient(180deg in oklch, ${tone(0.32)}, ${tone(0.19)})`
 }
@@ -290,7 +290,7 @@ function plateGradient(paper: string, veil: string): string {
 /** The woven festive ribbon behind the plate: the card's accent, lit from the
  * top like satin. */
 function ribbonGradient(accent: string | undefined): string {
-  return `linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0) 42%, rgba(24,16,8,0.22)), linear-gradient(180deg in oklch, ${accentAlpha(accent, 0.95)}, ${accentAlpha(accent, 0.8)})`
+  return `linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0) 42%, rgba(24,16,8,0.22)), linear-gradient(180deg in oklch, ${accentAlpha(accent, 0.8)}, ${accentAlpha(accent, 0.64)})`
 }
 
 /**
@@ -400,6 +400,20 @@ export function CoverHero({
         ),
       )
     : titleStyle
+  // The cover names stay a caption on the photo, never a headline that hides
+  // it: templates ask for 2.2–4.6em, the tile caps them at 2.4em and steps
+  // long names down further.
+  const asked = Number.parseFloat(String(headingStyle?.fontSize ?? '2.4em')) || 2.4
+  const nameSize = Math.min(asked, 2.4) * (names.length > 22 ? 0.86 : 1)
+  const darkPlate = luminanceOf(bandColor) < 0.62
+  const nameStyle: CSSProperties = {
+    ...headingStyle,
+    fontSize: `${nameSize.toFixed(2)}em`,
+    // A soft halo keeps the names legible on the lighter, see-through plate.
+    textShadow:
+      headingStyle?.textShadow ??
+      (darkPlate ? '0 0.04em 0.35em rgba(10,6,2,0.55)' : '0 0 0.45em rgba(255,255,255,0.75)'),
+  }
   return (
     <div
       data-export-skip="cover"
@@ -454,42 +468,45 @@ export function CoverHero({
                 accent, swallow-tail ends with shadowed folds. */}
             <div
               aria-hidden="true"
-              className="absolute left-[-3.2em] top-1/2 h-[2.7em] w-[3.7em] -translate-y-1/2"
+              className="absolute left-[-2.5em] top-1/2 h-[2.1em] w-[3em] -translate-y-1/2"
               style={{
                 background: ribbonGradient(edgeColor),
-                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 1.15em 50%)',
+                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 0.9em 50%)',
                 filter: `drop-shadow(0 0.35em 0.55em ${plaqueShadow(paperColor)})`,
               }}
             />
             <div
               aria-hidden="true"
-              className="absolute right-[-3.2em] top-1/2 h-[2.7em] w-[3.7em] -translate-y-1/2"
+              className="absolute right-[-2.5em] top-1/2 h-[2.1em] w-[3em] -translate-y-1/2"
               style={{
                 background: ribbonGradient(edgeColor),
-                clipPath: 'polygon(0 0, 100% 0, calc(100% - 1.15em) 50%, 100% 100%, 0 100%)',
+                clipPath: 'polygon(0 0, 100% 0, calc(100% - 0.9em) 50%, 100% 100%, 0 100%)',
                 filter: `drop-shadow(0 0.35em 0.55em ${plaqueShadow(paperColor)})`,
               }}
             />
             <div
               aria-hidden="true"
-              className="absolute left-[-0.15em] top-[calc(50%+1.15em)] h-[0.8em] w-[0.72em]"
+              className="absolute left-[-0.15em] top-[calc(50%+0.9em)] h-[0.6em] w-[0.55em]"
               style={{ background: 'rgba(24,16,8,0.32)', clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }}
             />
             <div
               aria-hidden="true"
-              className="absolute right-[-0.15em] top-[calc(50%+1.15em)] h-[0.8em] w-[0.72em]"
+              className="absolute right-[-0.15em] top-[calc(50%+0.9em)] h-[0.6em] w-[0.55em]"
               style={{ background: 'rgba(24,16,8,0.32)', clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
             />
             {/* The tile: a plate in the card's own tone (dark engraved plate
                 where the names are cream, light frosted plate where they are
                 dark ink), framed in fine gold with corner diamonds. */}
             <div
-              className="relative z-10 flex flex-col items-center px-[2.2em] py-[1.75em] text-center"
+              className="relative z-10 flex max-w-[21em] flex-col items-center px-[1.4em] py-[0.95em] text-center"
               style={{
                 background: plateGradient(paperColor, bandColor),
                 border: `1px solid ${accentAlpha(edgeColor, 0.75)}`,
                 borderRadius: '0.5em',
-                boxShadow: `inset 0 0 0 1px ${accentAlpha(edgeColor, 0.35)}, 0 1.4em 3em -0.8em ${plaqueShadow(paperColor)}, 0 0.4em 1.1em -0.4em ${plaqueShadow(paperColor)}`,
+                boxShadow: `inset 0 0 0 1px ${accentAlpha(edgeColor, 0.3)}, 0 0.8em 1.8em -0.8em ${plaqueShadow(paperColor)}`,
+                // Frost the photo just behind the names (not the whole cover).
+                backdropFilter: 'blur(3px)',
+                WebkitBackdropFilter: 'blur(3px)',
               }}
             >
             {/* Gold corner diamonds — a quiet festive frame. */}
@@ -500,8 +517,8 @@ export function CoverHero({
             <p
               className="uppercase"
               style={{
-                fontSize: '0.82em',
-                letterSpacing: '0.5em',
+                fontSize: '0.7em',
+                letterSpacing: '0.42em',
                 color: eyebrowColor ?? '#F5EDE0',
                 opacity: 0.92,
                 fontFamily: "'Montserrat', 'Inter', sans-serif",
@@ -511,19 +528,19 @@ export function CoverHero({
               {eyebrow ?? 'Invitation'}
             </p>
             <span
-              className="mt-[0.95em] flex items-center gap-[0.9em]"
+              className="mt-[0.6em] flex items-center gap-[0.7em]"
               aria-hidden="true"
             >
-              <span className="h-px w-[3.4em]" style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.85)' }} />
+              <span className="h-px w-[2.4em]" style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.85)' }} />
               <span
                 className="inline-block h-[0.42em] w-[0.42em] rotate-45"
                 style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.9)' }}
               />
-              <span className="h-px w-[3.4em]" style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.85)' }} />
+              <span className="h-px w-[2.4em]" style={{ backgroundColor: edgeColor ?? 'rgba(226,194,124,0.85)' }} />
             </span>
             <h2
-              className={`mt-[1.02em] w-full break-words text-balance leading-[1.08] ${titleClassName ?? ''}`}
-              style={headingStyle}
+              className={`mt-[0.55em] w-full break-words text-balance leading-[1.08] ${titleClassName ?? ''}`}
+              style={nameStyle}
             >
               {foil ? <FoilText gradient={foil}>{names}</FoilText> : names}
             </h2>
