@@ -59,3 +59,6 @@ backend/media/
 
 # Local probe scripts (never commit)
 backend/_tmp_probe3.py
+
+# Local preview server config (machine-specific)
+.claude/launch.json
