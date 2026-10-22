@@ -1,445 +1,834 @@
 /**
  * Public marketing homepage (`/`).
  *
- * Deliberately static and API-free for fast first paint: every invitation
- * preview is the real template component fed by `sampleDraft`, so the page
- * always shows genuine product output — never stock illustration.
+ * Art direction: an editorial stationery studio. Warm paper, ink, one gold
+ * accent; Playfair for display, Inter for reading. Every invitation shown is
+ * the real template component rendered from `sampleDraft`, and the small UI
+ * pieces (reply card, access card, send dialog) mirror the actual product —
+ * no stock imagery, no invented customers, prices or statistics. The figures
+ * in the facts band are read from the template registry.
+ *
+ * Deliberately API-free for a fast first paint. Motion is limited to a short
+ * hero entrance and hover states, and is disabled for reduced-motion users.
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import QRCode from 'qrcode'
 
-import { PUBLIC_SITE_URL } from '../lib/publicUrl.ts'
-
+import { LegalLinks } from '../components/LegalLinks.tsx'
 import {
-  Badge,
   BrandLockup,
   buttonClasses,
+  IconArrowRight,
+  IconBan,
+  IconCalendar,
+  IconChat,
   IconCheck,
-  IconEvents,
+  IconClose,
+  IconDownload,
   IconInbox,
-  IconTemplates,
+  IconMail,
+  IconMenu,
+  IconQr,
+  IconShirt,
+  IconUsers,
   LogoArtwork,
-  LogoMark,
 } from '../design-system/index.ts'
-import { LegalLinks } from '../components/LegalLinks.tsx'
+import { PUBLIC_SITE_URL } from '../lib/publicUrl.ts'
 import { fr } from '../locales/fr.ts'
 import { getTemplate, sampleDraft, TEMPLATES } from '../templates/registry.tsx'
 
 const CURRENT_YEAR = new Date().getFullYear()
+const COPY = fr.landing
 
-/** Shared page rhythm — one measure, one padding scale, everywhere. */
-const SECTION = 'mx-auto max-w-6xl px-4 sm:px-6 lg:px-8'
-const SECTION_Y = 'py-20 lg:py-28'
+/** One measure and one padding scale for the whole page. */
+const WRAP = 'mx-auto w-full max-w-[76rem] px-5 sm:px-8 lg:px-10'
+const SECTION_Y = 'py-20 sm:py-24 lg:py-32'
+const H2 = 'font-display text-[2rem] leading-[1.1] tracking-[-0.015em] text-ink sm:text-[2.5rem] lg:text-[2.875rem]'
+const LEAD = 'text-[1.0625rem] leading-relaxed text-ink-soft'
+const EYEBROW = 'text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-brand'
 
-/** Small-caps eyebrow framed by hairline rules — the page's editorial signature. */
-const EYEBROW =
-  'inline-flex items-center justify-center gap-3 text-[0.6875rem] font-semibold uppercase tracking-[0.24em] text-brand'
+/** The curated first view of the collection (covers every event type). */
+const FEATURED_KEYS = [
+  'heritage-luxe',
+  'floraison',
+  'confetti',
+  'kasai',
+  'sceau-academique',
+  'jardin-floral',
+  'soiree-formelle',
+  'ligne-moderne',
+  'memoire',
+]
 
-const HERO_TEMPLATE_KEYS = ['heritage-luxe', 'confetti', 'soiree-formelle']
+const NAV_LINKS: Array<[string, string]> = [
+  ['modeles', COPY.nav.templates],
+  ['fonctionnalites', COPY.nav.features],
+  ['fonctionnement', COPY.nav.howItWorks],
+  ['questions', COPY.nav.faq],
+]
 
-const BENEFIT_ICONS = [IconTemplates, IconEvents, IconCheck, IconInbox]
+const FEATURE_ICONS = [IconChat, IconUsers, IconQr, IconInbox, IconShirt, IconDownload, IconBan]
 
-function TemplatePreview({
-  templateKey,
-  className = '',
-}: {
-  templateKey: string
-  className?: string
-}) {
+/* ------------------------------------------------------------------ parts */
+
+function TemplatePreview({ templateKey, className = '' }: { templateKey: string; className?: string }) {
   const definition = getTemplate(templateKey)
   return (
     <div
-      className={`aspect-[3/4] w-full overflow-hidden rounded-lg border border-line bg-surface-muted ${className}`}
+      className={`aspect-[3/4] w-full overflow-hidden bg-surface-muted ${className}`}
       role="img"
-      aria-label={
-        definition
-          ? `${fr.templates.previewLabel} : ${definition.name}`
-          : fr.templates.previewLabel
-      }
+      aria-label={definition ? `${fr.templates.previewLabel} : ${definition.name}` : fr.templates.previewLabel}
     >
-      {definition ? (
-        <definition.Component draft={sampleDraft(templateKey)} />
-      ) : null}
+      {definition ? <definition.Component draft={sampleDraft(templateKey)} /> : null}
     </div>
   )
 }
 
-export function LandingPage() {
-  const [qrDataUrl, setQrDataUrl] = useState('')
+function SectionHeader({
+  id,
+  eyebrow,
+  title,
+  lead,
+  className = '',
+}: {
+  id: string
+  eyebrow?: string
+  title: string
+  lead?: string
+  className?: string
+}) {
+  return (
+    <div className={`max-w-[38rem] ${className}`}>
+      {eyebrow ? <p className={EYEBROW}>{eyebrow}</p> : null}
+      <h2 id={id} className={`${H2} ${eyebrow ? 'mt-4' : ''}`}>
+        {title}
+      </h2>
+      {lead ? <p className={`mt-5 ${LEAD}`}>{lead}</p> : null}
+    </div>
+  )
+}
 
+/** Small product card used in the hero composition. */
+function FloatingCard({ className = '', children }: { className?: string; children: ReactNode }) {
+  return (
+    <div
+      className={`rounded-md border border-line bg-surface px-4 py-3.5 shadow-[0_1px_2px_rgba(26,24,21,0.06),0_18px_40px_-18px_rgba(26,24,21,0.35)] ${className}`}
+    >
+      {children}
+    </div>
+  )
+}
+
+function useQrDataUrl(text: string): string {
+  const [url, setUrl] = useState('')
   useEffect(() => {
     let cancelled = false
-    QRCode.toDataURL(`${PUBLIC_SITE_URL}/`, {
-      width: 340,
-      margin: 1,
-      color: { dark: '#1a261f', light: '#ffffff' },
-    })
-      .then((url) => {
-        if (!cancelled) setQrDataUrl(url)
+    QRCode.toDataURL(text, { width: 340, margin: 1, color: { dark: '#1a1815', light: '#ffffff' } })
+      .then((value) => {
+        if (!cancelled) setUrl(value)
       })
       .catch(() => {
-        if (!cancelled) setQrDataUrl('')
+        if (!cancelled) setUrl('')
       })
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [text])
+  return url
+}
+
+/* ------------------------------------------------------------------ header */
+
+function SiteHeader() {
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (!open) return undefined
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open])
 
   return (
-    <div className="min-h-svh bg-paper">
-      <a
-        href="#contenu"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-30 focus:rounded-md focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-white"
-      >
-        {fr.landing.nav.skipToContent}
-      </a>
+    <header className="sticky top-0 z-30 border-b border-line/70 bg-paper/90 backdrop-blur-md">
+      <div className={`flex h-16 items-center justify-between gap-6 ${WRAP}`}>
+        <Link to="/" aria-label={fr.appName} className="shrink-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40">
+          <BrandLockup />
+        </Link>
 
-      <header className="sticky top-0 z-20 border-b border-line/70 bg-paper/85 backdrop-blur-md">
-        <div className={`flex h-16 items-center justify-between gap-4 ${SECTION}`}>
-          <Link to="/">
-            <BrandLockup />
+        <nav aria-label={COPY.nav.ariaLabel} className="hidden items-center gap-9 lg:flex">
+          {NAV_LINKS.map(([href, label]) => (
+            <a
+              key={href}
+              href={`#${href}`}
+              className="relative text-[0.875rem] text-ink-soft transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-ink after:transition-transform hover:text-ink hover:after:scale-x-100"
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-2">
+          <Link to="/connexion" className={buttonClasses('ghost', 'sm', 'hidden text-ink-soft sm:inline-flex')}>
+            {COPY.nav.login}
           </Link>
-          <nav
-            aria-label={fr.landing.nav.ariaLabel}
-            className="hidden items-center gap-8 text-[0.9375rem] text-ink-soft lg:flex"
+          <Link to="/inscription" className={buttonClasses('primary', 'sm', 'hidden sm:inline-flex')}>
+            {COPY.nav.signup}
+          </Link>
+          <button
+            type="button"
+            className="-mr-2 flex h-10 w-10 items-center justify-center rounded-md text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 lg:hidden"
+            aria-expanded={open}
+            aria-controls="menu-mobile"
+            aria-label={open ? COPY.nav.closeMenu : COPY.nav.openMenu}
+            onClick={() => setOpen((value) => !value)}
           >
-            {[
-              ['modeles', fr.landing.nav.templates],
-              ['avantages', fr.landing.nav.benefits],
-              ['fonctionnement', fr.landing.nav.howItWorks],
-              ['verification', fr.landing.nav.verification],
-            ].map(([href, label]) => (
+            {open ? <IconClose className="h-5 w-5" /> : <IconMenu className="h-5 w-5" />}
+          </button>
+        </div>
+      </div>
+
+      {open ? (
+        <div id="menu-mobile" className="border-t border-line bg-paper lg:hidden">
+          <nav aria-label={COPY.nav.ariaLabel} className={`flex flex-col py-3 ${WRAP}`}>
+            {NAV_LINKS.map(([href, label]) => (
               <a
                 key={href}
-                className="underline-offset-4 transition-colors hover:text-ink hover:underline"
                 href={`#${href}`}
+                onClick={() => setOpen(false)}
+                className="border-b border-line/70 py-3.5 font-display text-[1.25rem] text-ink"
               >
                 {label}
               </a>
             ))}
-          </nav>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <span className="hidden sm:block">
-              <Link to="/connexion" className={buttonClasses('ghost', 'sm', 'text-ink-soft')}>
-                {fr.landing.nav.login}
+            <div className="mt-5 grid grid-cols-2 gap-3 pb-3">
+              <Link to="/connexion" className={buttonClasses('secondary', 'md', 'w-full justify-center')}>
+                {COPY.nav.login}
               </Link>
+              <Link to="/inscription" className={buttonClasses('primary', 'md', 'w-full justify-center')}>
+                {COPY.nav.signup}
+              </Link>
+            </div>
+          </nav>
+        </div>
+      ) : null}
+    </header>
+  )
+}
+
+/* -------------------------------------------------------------------- hero */
+
+function Hero({ qrDataUrl }: { qrDataUrl: string }) {
+  return (
+    <section aria-labelledby="hero-titre" className="relative overflow-hidden border-b border-line">
+      <div className={`grid items-center gap-14 pb-20 pt-14 sm:pt-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-10 lg:pb-28 lg:pt-24 ${WRAP}`}>
+        <div className="landing-rise max-w-[36rem]">
+          <p className={EYEBROW}>{COPY.hero.eyebrow}</p>
+          <h1
+            id="hero-titre"
+            className="mt-5 font-display text-[2.6rem] leading-[1.04] tracking-[-0.02em] text-ink sm:text-[3.4rem] lg:text-[3.9rem]"
+          >
+            {COPY.hero.title}
+          </h1>
+          <p className={`mt-6 max-w-[32rem] ${LEAD}`}>{COPY.hero.text}</p>
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link to="/inscription" className={buttonClasses('primary', 'lg', 'justify-center gap-2')}>
+              {COPY.hero.signupCta}
+              <IconArrowRight className="h-4 w-4" />
+            </Link>
+            <a href="#modeles" className={buttonClasses('secondary', 'lg', 'justify-center')}>
+              {COPY.hero.secondaryCta}
+            </a>
+          </div>
+          <p className="mt-6 text-[0.875rem] text-ink-soft">
+            {COPY.hero.loginPrompt}{' '}
+            <Link to="/connexion" className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink">
+              {COPY.hero.primaryCta}
+            </Link>
+          </p>
+        </div>
+
+        {/* Product stage: a real invitation, the guest's reply and access card. */}
+        <div className="landing-rise relative mx-auto w-full max-w-[30rem] lg:mr-0" style={{ ['--rise-delay' as string]: '120ms' }} role="group" aria-label={COPY.hero.stageLabel}>
+          <div className="canvas-grid absolute -inset-x-6 -inset-y-8 rounded-xl border border-line sm:-inset-x-10" aria-hidden="true" />
+          <div className="relative mx-auto w-[74%] rotate-[-1.5deg] shadow-[0_2px_4px_rgba(26,24,21,0.08),0_30px_60px_-24px_rgba(26,24,21,0.45)]">
+            <TemplatePreview templateKey="floraison" />
+          </div>
+
+          <FloatingCard className="absolute -left-2 bottom-[16%] w-[15.5rem] sm:-left-6">
+            <p className="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-brand">{COPY.hero.rsvpTitle}</p>
+            <p className="mt-2 text-[0.8125rem] font-medium text-ink">{COPY.hero.rsvpGuest}</p>
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-sm bg-success-soft px-2 py-1 text-[0.75rem] font-medium text-success">
+              <IconCheck className="h-3.5 w-3.5" />
+              {COPY.hero.rsvpStatus}
+            </p>
+          </FloatingCard>
+
+          <FloatingCard className="absolute -right-2 top-[10%] flex w-[9.5rem] flex-col items-center text-center sm:-right-6">
+            <p className="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-brand">{COPY.hero.accessTitle}</p>
+            {qrDataUrl ? (
+              <img src={qrDataUrl} alt="" className="mt-2.5 h-[5.5rem] w-[5.5rem]" />
+            ) : (
+              <span className="mt-2.5 block h-[5.5rem] w-[5.5rem] bg-surface-muted" aria-hidden="true" />
+            )}
+            <p className="mt-2 inline-flex items-center gap-1.5 text-[0.75rem] font-medium text-ink">
+              <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
+              {COPY.hero.accessStatus}
+            </p>
+          </FloatingCard>
+
+          <FloatingCard className="absolute -bottom-5 right-[8%] flex items-center gap-2 py-2.5">
+            <IconChat className="h-4 w-4 text-success" />
+            <span className="text-[0.75rem] font-medium text-ink">{COPY.hero.sentLabel}</span>
+          </FloatingCard>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------- facts */
+
+function FactsBand() {
+  const occasions = new Set(TEMPLATES.map((template) => template.category)).size
+  const facts: Array<[string, string]> = [
+    [String(TEMPLATES.length), COPY.facts.templates],
+    [String(occasions), COPY.facts.occasions],
+    ['3', COPY.facts.channels],
+    ['0', COPY.facts.app],
+  ]
+  return (
+    <section aria-label={COPY.facts.ariaLabel} className="border-b border-line bg-surface">
+      <dl className={`grid grid-cols-2 lg:grid-cols-4 ${WRAP}`}>
+        {facts.map(([value, label], index) => (
+          <div
+            key={label}
+            className={`py-8 pr-4 sm:py-10 ${index % 2 === 1 ? 'pl-5 sm:pl-8' : ''} ${index > 0 ? 'lg:pl-8' : ''} ${index % 2 === 1 ? 'border-l border-line' : ''} ${index === 2 ? 'border-t border-line lg:border-l lg:border-t-0' : ''} ${index === 3 ? 'border-t border-line lg:border-t-0' : ''}`}
+          >
+            <dt className="sr-only">{label}</dt>
+            <dd>
+              <span className="block font-display text-[2.25rem] leading-none text-ink sm:text-[2.75rem]">{value}</span>
+              <span className="mt-3 block max-w-[14rem] text-[0.875rem] leading-snug text-ink-soft">{label}</span>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------- problem/solution */
+
+function ProblemSolution() {
+  return (
+    <section aria-labelledby="pourquoi-titre" className="border-b border-line">
+      <div className={`${WRAP} ${SECTION_Y}`}>
+        <SectionHeader id="pourquoi-titre" eyebrow={COPY.problem.eyebrow} title={COPY.problem.title} />
+        <div className="mt-14 grid gap-px overflow-hidden rounded-lg border border-line bg-line md:grid-cols-2">
+          <div className="bg-paper p-7 sm:p-10">
+            <h3 className="text-[0.75rem] font-semibold uppercase tracking-[0.18em] text-ink-faint">{COPY.problem.beforeTitle}</h3>
+            <ul className="mt-6 space-y-4">
+              {COPY.problem.before.map((item) => (
+                <li key={item} className="flex gap-3 text-[0.9375rem] leading-relaxed text-ink-soft">
+                  <span aria-hidden="true" className="mt-[0.7em] h-px w-3 shrink-0 bg-ink-faint" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="bg-surface p-7 sm:p-10">
+            <h3 className="text-[0.75rem] font-semibold uppercase tracking-[0.18em] text-brand">{COPY.problem.afterTitle}</h3>
+            <ul className="mt-6 space-y-4">
+              {COPY.problem.after.map((item) => (
+                <li key={item} className="flex gap-3 text-[0.9375rem] leading-relaxed text-ink">
+                  <IconCheck className="mt-1 h-4 w-4 shrink-0 text-brand" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ---------------------------------------------------------- guest journey */
+
+function MiniEnvelope() {
+  return (
+    <svg viewBox="0 0 160 110" className="h-auto w-[78%]" aria-hidden="true">
+      <rect x="4" y="8" width="152" height="96" rx="3" fill="#EDE3D0" />
+      <path d="M4 104 L80 58 L156 104 Z" fill="#E6DAC2" />
+      <path d="M4 8 L80 64 L156 8 Z" fill="#F2EADB" stroke="rgba(60,40,20,0.12)" />
+      <circle cx="80" cy="62" r="12" fill="#8F6518" />
+      <circle cx="80" cy="62" r="8.5" fill="none" stroke="#C9A24E" strokeWidth="1" />
+      <text x="80" y="66" textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="9" fontStyle="italic" fill="#F6E7C4">
+        GE
+      </text>
+    </svg>
+  )
+}
+
+function GuestJourney({ qrDataUrl }: { qrDataUrl: string }) {
+  const visuals: ReactNode[] = [
+    <MiniEnvelope key="envelope" />,
+    <div key="sheet" className="w-[62%] shadow-[0_14px_30px_-16px_rgba(26,24,21,0.45)]">
+      <TemplatePreview templateKey="heritage-luxe" />
+    </div>,
+    <div key="rsvp" className="w-[82%] rounded-md border border-line bg-surface px-4 py-4 text-left">
+      <p className="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-brand">{COPY.hero.rsvpTitle}</p>
+      <div className="mt-3 rounded-sm bg-ink px-3 py-2 text-center text-[0.75rem] font-medium text-white">
+        {COPY.hero.rsvpStatus}
+      </div>
+      <div className="mt-2.5 space-y-1.5">
+        <div className="h-1.5 w-4/5 rounded-full bg-line" />
+        <div className="h-1.5 w-3/5 rounded-full bg-line" />
+      </div>
+    </div>,
+    <div key="access" className="flex w-[70%] flex-col items-center rounded-md border border-line bg-surface px-4 py-4">
+      {qrDataUrl ? <img src={qrDataUrl} alt="" className="h-20 w-20" /> : <span className="h-20 w-20 bg-surface-muted" />}
+      <span className="mt-2.5 inline-flex items-center gap-1.5 text-[0.6875rem] font-medium text-ink-soft">
+        <IconCalendar className="h-3.5 w-3.5" />
+        {COPY.guest.calendar}
+      </span>
+    </div>,
+  ]
+  return (
+    <section aria-labelledby="invite-titre" className="border-b border-line bg-surface">
+      <div className={`${WRAP} ${SECTION_Y}`}>
+        <SectionHeader id="invite-titre" eyebrow={COPY.guest.eyebrow} title={COPY.guest.title} lead={COPY.guest.subtitle} />
+        <ol className="mt-14 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+          {COPY.guest.steps.map((step, index) => (
+            <li key={step.title}>
+              <div className="flex aspect-[4/3.4] items-center justify-center overflow-hidden rounded-lg border border-line bg-paper">
+                {visuals[index]}
+              </div>
+              <p className="mt-6 font-display text-[1.125rem] leading-none text-gold" aria-hidden="true">
+                {String(index + 1).padStart(2, '0')}
+              </p>
+              <h3 className="mt-3 text-[1rem] font-semibold tracking-[-0.005em] text-ink">{step.title}</h3>
+              <p className="mt-2 text-[0.9375rem] leading-relaxed text-ink-soft">{step.text}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )
+}
+
+/* --------------------------------------------------------------- features */
+
+/** Miniature of the real « Envoyer l'invitation » dialog. */
+function SendDialogMiniature() {
+  return (
+    <div className="rounded-lg border border-line bg-surface p-5 shadow-[0_24px_50px_-28px_rgba(26,24,21,0.4)]" aria-hidden="true">
+      <p className="text-[0.875rem] font-semibold text-ink">{COPY.illustration.dialogTitle}</p>
+      <p className="text-[0.75rem] text-ink-soft">{COPY.illustration.dialogFor}</p>
+      <div className="mt-4 grid grid-cols-3 gap-1 rounded-md bg-surface-muted p-1 text-[0.75rem]">
+        <span className="flex items-center justify-center gap-1.5 rounded-sm py-1.5 text-ink-soft">
+          <IconChat className="h-3.5 w-3.5" />
+          WhatsApp
+        </span>
+        <span className="flex items-center justify-center gap-1.5 rounded-sm bg-surface py-1.5 font-medium text-ink shadow-xs">
+          <IconMail className="h-3.5 w-3.5" />
+          E-mail
+        </span>
+        <span className="flex items-center justify-center rounded-sm py-1.5 text-ink-soft">{COPY.illustration.tabLink}</span>
+      </div>
+      <div className="mt-4 space-y-2.5">
+        <div className="rounded-md border border-line px-3 py-2 text-[0.75rem] text-ink">{COPY.illustration.email}</div>
+        <div className="space-y-1.5 rounded-md border border-line px-3 py-2.5">
+          <div className="h-1.5 w-11/12 rounded-full bg-line" />
+          <div className="h-1.5 w-4/5 rounded-full bg-line" />
+          <div className="h-1.5 w-2/3 rounded-full bg-line" />
+        </div>
+        <div className="flex items-center gap-2 rounded-md border border-line bg-surface-muted/60 px-3 py-2 text-[0.75rem] text-ink">
+          <span className="flex h-3.5 w-3.5 items-center justify-center rounded-[3px] bg-brand text-white">
+            <IconCheck className="h-3 w-3" />
+          </span>
+          {COPY.illustration.attachPdf}
+        </div>
+      </div>
+      <div className="mt-4 rounded-md bg-ink py-2 text-center text-[0.75rem] font-medium text-white">{COPY.illustration.sendEmail}</div>
+    </div>
+  )
+}
+
+function Features() {
+  return (
+    <section id="fonctionnalites" aria-labelledby="avantages-titre" className="scroll-mt-16 border-b border-line">
+      <div className={`grid gap-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20 ${WRAP} ${SECTION_Y}`}>
+        <div className="lg:sticky lg:top-28 lg:self-start">
+          <SectionHeader id="avantages-titre" eyebrow={COPY.nav.features} title={COPY.benefits.title} lead={COPY.benefits.subtitle} />
+          <div className="mt-10 hidden max-w-[24rem] sm:block">
+            <SendDialogMiniature />
+          </div>
+        </div>
+        <ul className="divide-y divide-line border-y border-line">
+          {COPY.benefits.items.map((item, index) => {
+            const Icon = FEATURE_ICONS[index % FEATURE_ICONS.length]
+            return (
+              <li key={item.title} className="grid grid-cols-[2.25rem_1fr] gap-x-4 py-7 sm:py-8">
+                <Icon className="mt-0.5 h-5 w-5 text-brand" />
+                <div>
+                  <h3 className="text-[1.0625rem] font-semibold tracking-[-0.005em] text-ink">{item.title}</h3>
+                  <p className="mt-2 max-w-[34rem] text-[0.9375rem] leading-relaxed text-ink-soft">{item.text}</p>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------ how it works */
+
+function HowItWorks() {
+  return (
+    <section id="fonctionnement" aria-labelledby="fonctionnement-titre" className="scroll-mt-16 border-b border-line bg-surface">
+      <div className={`${WRAP} ${SECTION_Y}`}>
+        <SectionHeader id="fonctionnement-titre" title={COPY.howItWorks.title} lead={COPY.howItWorks.subtitle} />
+        <ol className="relative mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+          {/* The timeline rule behind the step markers (desktop). */}
+          <span aria-hidden="true" className="absolute left-0 right-0 top-[0.6875rem] hidden h-px bg-line-strong lg:block" />
+          {COPY.howItWorks.steps.map((step, index) => (
+            <li key={step.title} className="relative">
+              <span className="relative flex items-center gap-3">
+                <span aria-hidden="true" className="h-[1.375rem] w-[1.375rem] rounded-full border border-brand bg-surface p-[5px]">
+                  <span className="block h-full w-full rounded-full bg-brand" />
+                </span>
+                <span className="font-display text-[1.125rem] leading-none text-gold">{String(index + 1).padStart(2, '0')}</span>
+              </span>
+              <h3 className="mt-5 text-[1.0625rem] font-semibold tracking-[-0.005em] text-ink">{step.title}</h3>
+              <p className="mt-2 text-[0.9375rem] leading-relaxed text-ink-soft">{step.text}</p>
+            </li>
+          ))}
+        </ol>
+        <div className="mt-14">
+          <Link to="/inscription" className={buttonClasses('primary', 'lg', 'gap-2')}>
+            {COPY.finalCta.button}
+            <IconArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* -------------------------------------------------------------- showcase */
+
+function Showcase() {
+  const categories = useMemo(() => {
+    const seen = new Map<string, string>()
+    for (const template of TEMPLATES) if (!seen.has(template.category)) seen.set(template.category, template.categoryLabel)
+    return Array.from(seen.entries())
+  }, [])
+  const [category, setCategory] = useState<string | null>(null)
+  const shown = category
+    ? TEMPLATES.filter((template) => template.category === category).slice(0, 6)
+    : FEATURED_KEYS.map((key) => getTemplate(key)).filter((template): template is NonNullable<typeof template> => Boolean(template))
+
+  const chip = (selected: boolean) =>
+    `shrink-0 rounded-sm border px-3.5 py-2 text-[0.8125rem] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${
+      selected ? 'border-ink bg-ink text-white' : 'border-line bg-surface text-ink-soft hover:border-line-strong hover:text-ink'
+    }`
+
+  return (
+    <section id="modeles" aria-labelledby="modeles-titre" className="scroll-mt-16 border-b border-line">
+      <div className={`${WRAP} ${SECTION_Y}`}>
+        <SectionHeader id="modeles-titre" eyebrow={COPY.showcase.eyebrow} title={COPY.showcase.title} lead={COPY.showcase.subtitle} />
+
+        <div role="group" aria-label={COPY.showcase.filterLabel} className="-mx-5 mt-10 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+          <button type="button" aria-pressed={category === null} className={chip(category === null)} onClick={() => setCategory(null)}>
+            {COPY.showcase.all}
+          </button>
+          {categories.map(([key, label]) => (
+            <button key={key} type="button" aria-pressed={category === key} className={chip(category === key)} onClick={() => setCategory(key)}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <ul className="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+          {shown.map((template) => (
+            <li key={template.key} className="group [content-visibility:auto] [contain-intrinsic-size:auto_32rem]">
+              <div className="overflow-hidden rounded-sm border border-line shadow-[0_1px_2px_rgba(26,24,21,0.05)] transition-shadow duration-300 group-hover:shadow-[0_24px_48px_-24px_rgba(26,24,21,0.35)]">
+                <TemplatePreview templateKey={template.key} />
+              </div>
+              <div className="mt-5 flex items-baseline justify-between gap-3">
+                <h3 className="font-display text-[1.25rem] text-ink">{template.name}</h3>
+                <span className="text-[0.75rem] uppercase tracking-[0.12em] text-ink-faint">{template.categoryLabel}</span>
+              </div>
+              <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-soft">{template.description}</p>
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-16 flex flex-col items-start gap-4 border-t border-line pt-10 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-[30rem] text-[0.9375rem] text-ink-soft">
+            {COPY.showcase.more.replace('{count}', String(TEMPLATES.length))}
+          </p>
+          <Link to="/inscription" className={buttonClasses('primary', 'lg', 'gap-2')}>
+            {COPY.showcase.cta}
+            <IconArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* -------------------------------------------------------------- occasions */
+
+function Occasions() {
+  return (
+    <section id="occasions" aria-labelledby="occasions-titre" className="scroll-mt-16 border-b border-line bg-surface">
+      <div className={`grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-20 ${WRAP} ${SECTION_Y}`}>
+        <SectionHeader id="occasions-titre" title={COPY.categories.title} lead={COPY.categories.subtitle} />
+        <ul className="grid border-t border-line sm:grid-cols-2 sm:gap-x-10">
+          {COPY.categories.items.map((category) => (
+            <li key={category.name} className="border-b border-line py-5">
+              <h3 className="font-display text-[1.25rem] text-ink">{category.name}</h3>
+              <p className="mt-1 text-[0.875rem] text-ink-soft">{category.text}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------ verification */
+
+function Verification({ qrDataUrl }: { qrDataUrl: string }) {
+  return (
+    <section id="verification" aria-labelledby="verification-titre" className="scroll-mt-16 border-b border-line">
+      <div className={`grid items-center gap-14 lg:grid-cols-2 lg:gap-20 ${WRAP} ${SECTION_Y}`}>
+        <div>
+          <SectionHeader id="verification-titre" eyebrow={COPY.verification.eyebrow} title={COPY.verification.title} lead={COPY.verification.text} />
+          <ul className="mt-8 space-y-4">
+            {COPY.verification.points.map((point) => (
+              <li key={point} className="flex items-start gap-3 text-[0.9375rem] leading-relaxed text-ink-soft">
+                <IconCheck className="mt-1 h-4 w-4 shrink-0 text-brand" />
+                {point}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* The door: the printed QR and the verdict the scanner returns. */}
+        <figure className="canvas-grid relative mx-auto flex w-full max-w-[28rem] flex-col items-center rounded-xl border border-line px-6 py-12 sm:px-10">
+          <div className="rounded-md border border-line bg-surface p-5 shadow-[0_24px_50px_-28px_rgba(26,24,21,0.45)]">
+            {qrDataUrl ? (
+              <img src={qrDataUrl} alt={COPY.verification.qrAlt} className="h-44 w-44" />
+            ) : (
+              <div className="h-44 w-44 bg-surface-muted" aria-hidden="true" />
+            )}
+          </div>
+          <div className="mt-6 flex w-full max-w-[17rem] items-center gap-3 rounded-md border border-success/30 bg-success-soft px-4 py-3" aria-hidden="true">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-success text-white">
+              <IconCheck className="h-4 w-4" />
             </span>
-            <Link to="/inscription" className={buttonClasses('primary', 'sm')}>
-              {fr.landing.nav.signup}
+            <span className="text-left">
+              <span className="block text-[0.8125rem] font-semibold text-success">{COPY.illustration.verdict}</span>
+              <span className="block text-[0.75rem] text-ink-soft">{COPY.illustration.verdictGuest}</span>
+            </span>
+          </div>
+          <figcaption className="mt-5 text-[0.8125rem] text-ink-faint">{COPY.verification.qrCaption}</figcaption>
+        </figure>
+      </div>
+    </section>
+  )
+}
+
+/* -------------------------------------------------------------------- faq */
+
+function Faq() {
+  return (
+    <section id="questions" aria-labelledby="questions-titre" className="scroll-mt-16 border-b border-line bg-surface">
+      <div className={`grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-20 ${WRAP} ${SECTION_Y}`}>
+        <div>
+          <SectionHeader id="questions-titre" eyebrow={COPY.faq.eyebrow} title={COPY.faq.title} />
+          <p className="mt-5 text-[0.9375rem] leading-relaxed text-ink-soft">
+            {COPY.footer.contact} :{' '}
+            <a className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink" href={`mailto:${COPY.footer.contactEmail}`}>
+              {COPY.footer.contactEmail}
+            </a>
+          </p>
+        </div>
+        <div className="border-t border-line">
+          {COPY.faq.items.map((item, index) => (
+            <details key={item.q} className="faq-item group border-b border-line" open={index === 0}>
+              <summary className="flex cursor-pointer list-none items-start justify-between gap-6 py-6 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 [&::-webkit-details-marker]:hidden">
+                <span className="text-[1rem] font-semibold leading-snug text-ink">{item.q}</span>
+                <span aria-hidden="true" className="relative mt-1.5 h-3 w-3 shrink-0">
+                  <span className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-ink" />
+                  <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-ink transition-transform duration-200 group-open:scale-y-0" />
+                </span>
+              </summary>
+              <p className="-mt-1 max-w-[36rem] pb-6 text-[0.9375rem] leading-relaxed text-ink-soft">
+                {item.a}
+                {index === COPY.faq.items.length - 1 ? (
+                  <>
+                    {' '}
+                    <Link to="/politique-de-confidentialite" className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink">
+                      {COPY.faq.privacyLink}
+                    </Link>
+                    .
+                  </>
+                ) : null}
+              </p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* -------------------------------------------------------------- final cta */
+
+function FinalCta() {
+  return (
+    <section aria-labelledby="final-titre" className="bg-ink">
+      <div className={`grid items-center gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] ${WRAP} py-20 sm:py-24`}>
+        <div>
+          <h2 id="final-titre" className="max-w-[34rem] font-display text-[2rem] leading-[1.1] tracking-[-0.015em] text-white sm:text-[2.5rem]">
+            {COPY.finalCta.title}
+          </h2>
+          <p className="mt-5 max-w-[30rem] text-[1.0625rem] leading-relaxed text-white/70">{COPY.finalCta.text}</p>
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <Link to="/inscription" className={buttonClasses('secondary', 'lg', 'justify-center gap-2')}>
+              {COPY.finalCta.button}
+              <IconArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              to="/connexion"
+              className="inline-flex h-12 items-center justify-center rounded-md border border-white/25 px-6 text-[0.9375rem] font-medium text-white transition-colors hover:border-white/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+            >
+              {COPY.finalCta.secondary}
             </Link>
           </div>
         </div>
-      </header>
+        <LogoArtwork className="mx-auto w-[min(70vw,20rem)] opacity-95 lg:mr-0" />
+      </div>
+    </section>
+  )
+}
 
-      <main id="contenu">
-        <section className="relative">
-          <div className={`pb-16 pt-16 text-center sm:pt-20 lg:pb-20 lg:pt-24 ${SECTION}`}>
-            <div className="mx-auto max-w-3xl">
-              <p className={EYEBROW}>
-                <span aria-hidden="true" className="hidden h-px w-8 bg-gold sm:block" />
-                {fr.landing.hero.eyebrow}
-                <span aria-hidden="true" className="hidden h-px w-8 bg-gold sm:block" />
-              </p>
-              <h1 className="mt-6 font-display text-[2.75rem] leading-[1.05] tracking-[-0.015em] text-ink sm:text-6xl lg:text-7xl">
-                {fr.landing.hero.title}
-              </h1>
-              <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-ink-soft sm:text-lg">
-                {fr.landing.hero.text}
-              </p>
-              <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-                <Link to="/inscription" className={buttonClasses('primary', 'lg')}>
-                  {fr.landing.hero.signupCta}
-                </Link>
-                <Link to="/connexion" className={buttonClasses('secondary', 'lg')}>
-                  {fr.landing.hero.primaryCta}
-                </Link>
-                <a href="#modeles" className={buttonClasses('ghost', 'lg')}>
-                  {fr.landing.hero.secondaryCta}
+/* ----------------------------------------------------------------- footer */
+
+function SiteFooter() {
+  const columnTitle = 'text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-ink'
+  const link = 'text-[0.875rem] text-ink-soft transition-colors hover:text-ink'
+  return (
+    <footer className="bg-paper">
+      <div className={`grid gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))] lg:gap-10 ${WRAP}`}>
+        <div className="sm:col-span-2 lg:col-span-1">
+          <BrandLockup />
+          <p className="mt-5 max-w-[22rem] text-[0.875rem] leading-relaxed text-ink-soft">{COPY.footer.description}</p>
+          <p className="mt-4 font-display text-[1rem] italic text-ink">{COPY.footer.tagline}</p>
+        </div>
+        <nav aria-label={COPY.footer.product}>
+          <p className={columnTitle}>{COPY.footer.product}</p>
+          <ul className="mt-5 space-y-3">
+            {[
+              ['modeles', COPY.nav.templates],
+              ['fonctionnalites', COPY.nav.features],
+              ['fonctionnement', COPY.nav.howItWorks],
+              ['verification', COPY.nav.verification],
+              ['questions', COPY.nav.faq],
+            ].map(([href, label]) => (
+              <li key={href}>
+                <a className={link} href={`#${href}`}>
+                  {label}
                 </a>
-              </div>
-              <ul className="mx-auto mt-8 flex max-w-2xl flex-wrap items-center justify-center gap-x-7 gap-y-2 text-[0.8125rem] text-ink-soft">
-                {(
-                  [
-                    fr.landing.hero.point1,
-                    fr.landing.hero.point2,
-                    fr.landing.hero.point3,
-                  ] as const
-                ).map((point) => (
-                  <li key={point} className="flex items-center gap-2">
-                    <IconCheck className="h-4 w-4 text-brand" />
-                    {point}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* The collection itself, staged on the drafting canvas. */}
-          <div className="canvas-grid border-y border-line">
-            <div className={`pb-16 pt-14 lg:pb-20 lg:pt-16 ${SECTION}`}>
-              <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-8">
-                {HERO_TEMPLATE_KEYS.map((templateKey, index) => (
-                  <div
-                    key={templateKey}
-                    className={
-                      index === 0
-                        ? 'mx-auto w-full max-w-[280px] sm:max-w-none'
-                        : 'hidden sm:block'
-                    }
-                  >
-                    <TemplatePreview
-                      templateKey={templateKey}
-                      className={
-                        index === 0
-                          ? 'shadow-canvas'
-                          : index === 1
-                            ? 'shadow-raised sm:mt-12'
-                            : 'shadow-raised sm:mt-6'
-                      }
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section
-          id="avantages"
-          aria-labelledby="avantages-titre"
-          className="scroll-mt-20 border-t border-line bg-surface"
-        >
-          <div className={`${SECTION} ${SECTION_Y}`}>
-            <div className="max-w-2xl">
-              <h2
-                id="avantages-titre"
-                className="font-display text-3xl leading-tight tracking-[-0.01em] text-ink sm:text-4xl lg:text-[2.75rem]"
-              >
-                {fr.landing.benefits.title}
-              </h2>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-soft">
-                {fr.landing.benefits.subtitle}
-              </p>
-            </div>
-            <ul className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-              {fr.landing.benefits.items.map((item, index) => {
-                const Icon = BENEFIT_ICONS[index % BENEFIT_ICONS.length]
-                return (
-                  <li key={item.title} className="border-t border-line-strong pt-6">
-                    <Icon className="h-6 w-6 text-brand" />
-                    <h3 className="mt-5 text-base font-semibold tracking-[-0.005em] text-ink">
-                      {item.title}
-                    </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                      {item.text}
-                    </p>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        </section>
-
-        <section
-          id="fonctionnement"
-          aria-labelledby="fonctionnement-titre"
-          className="scroll-mt-20 border-t border-line"
-        >
-          <div className={`${SECTION} ${SECTION_Y}`}>
-            <div className="max-w-2xl">
-              <h2
-                id="fonctionnement-titre"
-                className="font-display text-3xl leading-tight tracking-[-0.01em] text-ink sm:text-4xl lg:text-[2.75rem]"
-              >
-                {fr.landing.howItWorks.title}
-              </h2>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-soft">
-                {fr.landing.howItWorks.subtitle}
-              </p>
-            </div>
-            <ol className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-              {fr.landing.howItWorks.steps.map((step, index) => (
-                <li key={step.title} className="border-t border-line-strong pt-6">
-                  <p className="font-display text-3xl leading-none text-gold">
-                    {String(index + 1).padStart(2, '0')}
-                  </p>
-                  <h3 className="mt-4 text-base font-semibold tracking-[-0.005em] text-ink">
-                    {step.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                    {step.text}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        <section
-          id="occasions"
-          aria-labelledby="occasions-titre"
-          className="scroll-mt-20 border-t border-line"
-        >
-          <div className={`${SECTION} ${SECTION_Y}`}>
-            <div className="max-w-2xl">
-              <h2
-                id="occasions-titre"
-                className="font-display text-3xl leading-tight tracking-[-0.01em] text-ink sm:text-4xl lg:text-[2.75rem]"
-              >
-                {fr.landing.categories.title}
-              </h2>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-soft">
-                {fr.landing.categories.subtitle}
-              </p>
-            </div>
-            <ul className="mt-12 grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
-              {fr.landing.categories.items.map((category) => (
-                <li key={category.name} className="border-t border-line pt-4">
-                  <h3 className="text-[0.8125rem] font-semibold uppercase tracking-[0.12em] text-ink">
-                    {category.name}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                    {category.text}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        <section
-          id="verification"
-          aria-labelledby="verification-titre"
-          className="canvas-grid scroll-mt-20 border-t border-line"
-        >
-          <div
-            className={`grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16 ${SECTION} ${SECTION_Y}`}
-          >
-            <div>
-              <h2
-                id="verification-titre"
-                className="font-display text-3xl leading-tight tracking-[-0.01em] text-ink sm:text-4xl lg:text-[2.75rem]"
-              >
-                {fr.landing.verification.title}
-              </h2>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-soft">
-                {fr.landing.verification.text}
-              </p>
-              <ul className="mt-8 space-y-3.5">
-                {fr.landing.verification.points.map((point) => (
-                  <li
-                    key={point}
-                    className="flex items-start gap-2.5 text-sm leading-relaxed text-ink-soft"
-                  >
-                    <IconCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-                    {point}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="flex justify-center">
-              <div className="w-full max-w-sm rounded-xl border border-line bg-surface p-8 shadow-canvas">
-                <div className="flex flex-col items-center text-center">
-                  <Badge tone="brand">{fr.appName}</Badge>
-                  {qrDataUrl ? (
-                    <img
-                      src={qrDataUrl}
-                      alt={fr.landing.verification.qrAlt}
-                      className="mt-6 h-40 w-40 rounded-xl bg-white p-2 shadow-sm ring-1 ring-line"
-                    />
-                  ) : (
-                    <div
-                      className="mt-6 h-40 w-40 rounded-xl bg-white ring-1 ring-line"
-                      aria-hidden="true"
-                    />
-                  )}
-                  <p className="mt-5 text-sm font-medium text-ink">
-                    {fr.landing.verification.qrCaption}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section
-          id="modeles"
-          aria-labelledby="modeles-titre"
-          className="scroll-mt-20 border-t border-line bg-surface"
-        >
-          <div className={`${SECTION} ${SECTION_Y}`}>
-            <div className="max-w-2xl">
-              <h2
-                id="modeles-titre"
-                className="font-display text-3xl leading-tight tracking-[-0.01em] text-ink sm:text-4xl lg:text-[2.75rem]"
-              >
-                {fr.landing.showcase.title}
-              </h2>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-soft">
-                {fr.landing.showcase.subtitle}
-              </p>
-            </div>
-            <ul className="mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-              {TEMPLATES.map((template) => (
-                <li key={template.key}>
-                  <TemplatePreview templateKey={template.key} className="shadow-card" />
-                  <div className="mt-5 flex items-center justify-between gap-3">
-                    <h3 className="text-base font-semibold tracking-[-0.005em] text-ink">
-                      {template.name}
-                    </h3>
-                    <Badge tone="neutral">{template.categoryLabel}</Badge>
-                  </div>
-                  <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                    {template.description}
-                  </p>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-14 flex justify-center">
-              <Link to="/connexion" className={buttonClasses('primary', 'lg')}>
-                {fr.landing.showcase.cta}
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <nav aria-label={COPY.footer.account}>
+          <p className={columnTitle}>{COPY.footer.account}</p>
+          <ul className="mt-5 space-y-3">
+            <li>
+              <Link className={link} to="/inscription">
+                {COPY.nav.signup}
               </Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="border-t border-line bg-ink">
-          <div className={`flex flex-col items-center text-center ${SECTION} ${SECTION_Y}`}>
-            {/* The full logo lockup, plateless on the dark band. */}
-            <LogoArtwork className="w-[min(64vw,24rem)]" />
-            <h2 className="mt-10 font-display text-3xl leading-tight tracking-[-0.01em] text-white sm:text-4xl lg:text-[2.75rem]">
-              {fr.landing.finalCta.title}
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-white/75">
-              {fr.landing.finalCta.text}
-            </p>
-            <div className="mt-9 flex justify-center">
-              <Link to="/connexion" className={buttonClasses('secondary', 'lg')}>
-                {fr.landing.finalCta.button}
+            </li>
+            <li>
+              <Link className={link} to="/connexion">
+                {COPY.nav.login}
               </Link>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <footer className="border-t border-line bg-paper">
-        <div className="mx-auto flex max-w-6xl flex-col items-start gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2.5">
-            <LogoMark />
-            <div>
-              <p className="text-sm font-semibold text-ink">{fr.appName}</p>
-              <p className="text-xs text-ink-faint">{fr.landing.footer.tagline}</p>
-            </div>
-          </div>
-          <div className="flex flex-col items-start gap-3 sm:items-end">
+            </li>
+          </ul>
+        </nav>
+        <div>
+          <p className={columnTitle}>{COPY.footer.contact}</p>
+          <ul className="mt-5 space-y-3">
+            <li>
+              <a className={link} href={`mailto:${COPY.footer.contactEmail}`}>
+                {COPY.footer.contactEmail}
+              </a>
+            </li>
+            <li>
+              <a className={link} href={PUBLIC_SITE_URL}>
+                {COPY.footer.site}
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div className="border-t border-line">
+        <div className={`flex flex-col gap-4 py-7 sm:flex-row sm:items-center sm:justify-between ${WRAP}`}>
+          <p className="text-[0.8125rem] text-ink-faint">
+            © {CURRENT_YEAR} {fr.appName}. {COPY.footer.rights}
+          </p>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <LegalLinks />
-            <p className="text-xs text-ink-faint">
-              © {CURRENT_YEAR} {fr.appName}. {fr.landing.footer.rights}
-            </p>
+            <a href="#contenu" className="text-xs text-ink-soft underline decoration-line-strong underline-offset-4 hover:text-ink">
+              {COPY.footer.backToTop}
+            </a>
           </div>
         </div>
-      </footer>
+      </div>
+    </footer>
+  )
+}
+
+/* ------------------------------------------------------------------- page */
+
+export function LandingPage() {
+  const qrDataUrl = useQrDataUrl(`${PUBLIC_SITE_URL}/`)
+  return (
+    <div className="min-h-svh bg-paper text-ink">
+      <a
+        href="#contenu"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-40 focus:rounded-md focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-white"
+      >
+        {COPY.nav.skipToContent}
+      </a>
+      <SiteHeader />
+      <main id="contenu">
+        <Hero qrDataUrl={qrDataUrl} />
+        <FactsBand />
+        <ProblemSolution />
+        <GuestJourney qrDataUrl={qrDataUrl} />
+        <Features />
+        <HowItWorks />
+        <Showcase />
+        <Occasions />
+        <Verification qrDataUrl={qrDataUrl} />
+        <Faq />
+        <FinalCta />
+      </main>
+      <SiteFooter />
     </div>
   )
 }
