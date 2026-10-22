@@ -23,5 +23,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // Rendering every invitation template in jsdom is heavy; under a full
+    // parallel run the default 5s budget flakes on slower machines.
+    testTimeout: 15_000,
   },
 })

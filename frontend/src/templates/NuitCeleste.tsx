@@ -122,7 +122,7 @@ export function NuitCeleste({ draft }: TemplateProps) {
   const dateEm = isEmphasized(draft, 'date')
   const venueEm = isEmphasized(draft, 'venue')
   return (
-    <InvitationPaper texture="cotton-dark" style={{ backgroundImage: PAPER_BG, color: STAR }}>
+    <InvitationPaper style={{ backgroundImage: PAPER_BG, color: STAR }}>
       <CoverHero
         draft={draft}
         bandColor="rgba(11,18,40,0.6)"

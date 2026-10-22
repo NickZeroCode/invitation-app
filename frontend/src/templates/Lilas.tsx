@@ -6,8 +6,8 @@
  * flourish, letterspaced caps chrome, the month above a rule-flanked
  * « SAMEDI —— 29 —— » date row and caps venue lines.
  */
-import { PaperGrain } from './florals.tsx'
-import { LuxePattern, VellumHalo } from './luxeMotifs.tsx'
+import { Bouquet } from './paintedFlora.tsx'
+import type { FloraItem } from './paintedFlora.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
 import {
@@ -23,31 +23,41 @@ import {
   isEmphasized,
 } from './shared.tsx'
 import {
-  FloralWreath,
-  LILAC,
   SCRIPT_FONT,
   formatMonthOnly,
 } from './referenceMotifs.tsx'
 import type { TemplateProps } from './types.ts'
 
+const SERIF = "'Cormorant Garamond', 'Playfair Display', Georgia, serif"
 const PAPER = '#FCFBF9'
 const INK = '#2E3B33'
 const PLUM = '#7C6AA8'
 
-/** Long calligraphic swash trailing under the name. */
-function NameFlourish({ color }: { color: string }) {
-  return (
-    <svg viewBox="0 0 260 40" className="h-[1.6em] w-[16em]" aria-hidden="true">
-      <path
-        d="M 22 26 C 70 8, 150 6, 214 20 C 238 25, 236 36, 218 33 C 206 31, 210 22, 226 24"
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
+/**
+ * The open floral ring of the reference: one arc over the top-left, one
+ * under the bottom-right, each a run of clematis, violet roses, buds and
+ * leaves following the circle (center 100,100 · radius 72 in a 200 box).
+ */
+function arcItems(from: number, to: number): FloraItem[] {
+  const leaves: FloraItem[] = []
+  const blooms: FloraItem[] = []
+  const steps = 9
+  for (let i = 0; i <= steps; i += 1) {
+    const deg = from + ((to - from) * i) / steps
+    const rad = (deg * Math.PI) / 180
+    const x = 100 + Math.cos(rad) * 72
+    const y = 100 + Math.sin(rad) * 72
+    const tangent = deg + 90
+    leaves.push({ k: 'leaf', x, y, s: 0.42, r: tangent + (i % 2 === 0 ? 40 : -140), p: 'olive' })
+    const kind = i % 3
+    if (kind === 0) blooms.push({ k: 'clematis', x, y, s: 0.36 - (i % 2) * 0.05, r: deg, p: i % 2 ? 'lilac' : 'violet' })
+    else if (kind === 1) blooms.push({ k: 'rose', x, y, s: 0.3, r: deg, p: 'lilac' })
+    else blooms.push({ k: 'forget', x, y, s: 0.9, p: 'violet' })
+  }
+  return [...leaves, ...blooms]
 }
+
+const WREATH: FloraItem[] = [...arcItems(160, 290), ...arcItems(-20, 110)]
 
 export function Lilas({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
@@ -55,9 +65,6 @@ export function Lilas({ draft }: TemplateProps) {
   const venueEm = isEmphasized(draft, 'venue')
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: INK }}>
-      <PaperGrain opacity={0.045} />
-      <LuxePattern templateKey="lilas" />
-      <VellumHalo color={PAPER} />
 
       <CoverHero
         draft={draft}
@@ -73,31 +80,22 @@ export function Lilas({ draft }: TemplateProps) {
         }}
       />
 
-      {/* Purple clematis wreaths wrapping the diagonal */}
-      <FloralWreath
-        palette={LILAC}
-        className="pointer-events-none absolute -left-[10em] -top-[10em] h-[27em] w-[28.5em]"
-        style={{ transform: 'rotate(-12deg)' }}
-      />
-      <FloralWreath
-        palette={LILAC}
-        className="pointer-events-none absolute -bottom-[11.5em] -right-[13em] h-[26em] w-[27em]"
-        style={{ transform: 'rotate(168deg)' }}
-      />
-
-      <div className="relative flex flex-1 flex-col items-center px-[6em] pb-[3.8em] pt-[5.6em] text-center">
-        <h1
-          className="break-words leading-[1.1]"
-          style={{
-            fontFamily: SCRIPT_FONT,
-            fontSize: titleEm ? '6.5em' : '5.3em',
-            color: INK,
-            transform: 'rotate(-3deg)',
-          }}
-        >
-          {draft.title}
-        </h1>
-        <NameFlourish color={PLUM} />
+      <div className="relative flex flex-1 flex-col items-center px-[6em] pb-[4em] pt-[3.5em] text-center">
+        {/* The name cuts diagonally across the open floral ring. */}
+        <div className="relative flex h-[24em] w-[24em] items-center justify-center">
+          <Bouquet items={WREATH} viewBox="0 0 200 200" className="absolute inset-0 h-full w-full" />
+          <h1
+            className="relative break-words leading-[1.05]"
+            style={{
+              fontFamily: SCRIPT_FONT,
+              fontSize: titleEm ? '7em' : '6.2em',
+              color: INK,
+              transform: 'rotate(-12deg)',
+            }}
+          >
+            {draft.title}
+          </h1>
+        </div>
 
         {draft.guestName?.trim() ? (
           <p className="mt-[0.6em] font-display italic" style={{ fontSize: '1.12em', color: PLUM }}>
@@ -106,8 +104,8 @@ export function Lilas({ draft }: TemplateProps) {
         ) : null}
 
         <p
-          className="mt-[1.4em] uppercase"
-          style={{ fontSize: '1em', letterSpacing: '0.32em', lineHeight: 2.1 }}
+          className="mt-[0.6em] uppercase"
+          style={{ fontFamily: SERIF, fontWeight: 500, fontSize: '1.3em', letterSpacing: '0.1em', lineHeight: 1.7 }}
         >
           Célébration d'anniversaire
           <br />
@@ -124,25 +122,24 @@ export function Lilas({ draft }: TemplateProps) {
         ) : null}
 
         <p
-          className="mt-[1.9em] uppercase"
-          style={{ letterSpacing: '0.42em', fontSize: '1.15em' }}
+          className="mt-[1.4em] uppercase"
+          style={{ fontFamily: SERIF, fontWeight: 500, letterSpacing: '0.1em', fontSize: '1.35em' }}
         >
           {formatMonthOnly(draft.event_date)}
         </p>
 
+        {/* WEEKDAY | DAY | TIME — rules frame the side words, as in the reference. */}
         <div
-          className="mt-[1.1em] flex w-full max-w-[20em] items-center gap-[0.8em]"
-          style={{ transform: dateEm ? 'scale(1.12)' : undefined }}
+          className="mt-[0.6em] grid w-full max-w-[24em] grid-cols-[1fr_auto_1fr] items-center gap-[0.8em]"
+          style={{ transform: dateEm ? 'scale(1.12)' : undefined, fontFamily: SERIF, fontWeight: 500, fontSize: '1.25em' }}
         >
-          <p className="whitespace-nowrap uppercase" style={{ letterSpacing: '0.22em' }}>
+          <p className="whitespace-nowrap py-[0.3em] text-center uppercase" style={{ borderTop: `1px solid ${INK}`, borderBottom: `1px solid ${INK}`, letterSpacing: '0.1em' }}>
             {formatWeekday(draft.event_date)}
           </p>
-          <div className="h-[1px] flex-1" style={{ backgroundColor: INK, opacity: 0.5 }} />
-          <p className="font-display leading-none" style={{ fontSize: '2.4em', fontWeight: 600 }}>
+          <p className="leading-none" style={{ fontFamily: SERIF, fontSize: '2.6em', fontWeight: 600 }}>
             {formatDayNumber(draft.event_date)}
           </p>
-          <div className="h-[1px] flex-1" style={{ backgroundColor: INK, opacity: 0.5 }} />
-          <p className="whitespace-nowrap uppercase" style={{ letterSpacing: '0.22em' }}>
+          <p className="whitespace-nowrap py-[0.3em] text-center uppercase" style={{ borderTop: `1px solid ${INK}`, borderBottom: `1px solid ${INK}`, letterSpacing: '0.1em' }}>
             {formatEventTime(draft.event_time)}
           </p>
         </div>
@@ -150,7 +147,7 @@ export function Lilas({ draft }: TemplateProps) {
         {draft.venue_name || draft.venue_address ? (
           <div
             className="mt-[1.6em] uppercase"
-            style={{ fontSize: venueEm ? '1.12em' : '0.98em', letterSpacing: '0.2em', lineHeight: 2 }}
+            style={{ fontFamily: SERIF, fontWeight: 500, fontSize: venueEm ? '1.4em' : '1.25em', letterSpacing: '0.1em', lineHeight: 1.6 }}
           >
             {draft.venue_name ? <p>{draft.venue_name}</p> : null}
             {draft.venue_address ? <p>{draft.venue_address}</p> : null}

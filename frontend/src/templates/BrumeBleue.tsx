@@ -6,7 +6,6 @@
  * an ornamental ampersand, a rule-divided « SAM | 28 | AOÛT » date row and a
  * script « réception à suivre » sign-off.
  */
-import { LuxePattern, VellumHalo } from './luxeMotifs.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
 import {
@@ -22,7 +21,6 @@ import {
   isEmphasized,
 } from './shared.tsx'
 import {
-  FoliageCascade,
   ROMAN_FONT,
   SCRIPT_FONT,
   formatMonthShort,
@@ -30,10 +28,40 @@ import {
   splitNames,
 } from './referenceMotifs.tsx'
 import type { TemplateProps } from './types.ts'
+import { Bouquet } from './paintedFlora.tsx'
+import type { FloraItem } from './paintedFlora.tsx'
 
 const PAPER = '#FBFCFD'
 const INK = '#3D4E6B'
 const SOFT = '#7A8FB4'
+
+const FOLIAGE_TOP_RIGHT: FloraItem[] = [
+  { k: 'spray', x: 120, y: 10, s: 1.05, r: 200, p: 'eucalyptus', len: 120, n: 9, round: true, curve: 0.3 },
+  { k: 'spray', x: 160, y: 0, s: 1.1, r: 170, p: 'blueLeaf', len: 140, n: 9, curve: -0.2 },
+  { k: 'spray', x: 200, y: 30, s: 1, r: 230, p: 'dustyBlue', len: 130, n: 8, curve: 0.25 },
+  { k: 'spray', x: 90, y: 0, s: 0.8, r: 150, p: 'blueLeaf', len: 110, n: 8 },
+  { k: 'spray', x: 210, y: 90, s: 0.8, r: 250, p: 'eucalyptus', len: 100, n: 7, round: true },
+  { k: 'spray', x: 140, y: 0, s: 0.9, r: 185, p: 'dustyBlue', len: 120, n: 8, round: true, curve: -0.3 },
+  { k: 'spray', x: 220, y: 60, s: 0.9, r: 215, p: 'blueLeaf', len: 120, n: 8 },
+  { k: 'berries', x: 150, y: 120, s: 1.3, r: 160, p: 'dustyBlue' },
+  { k: 'berries', x: 104, y: 92, s: 1, r: 200, p: 'blueLeaf' },
+  { k: 'berries', x: 196, y: 150, s: 1.1, r: 140, p: 'dustyBlue' },
+]
+
+const FOLIAGE_TOP_LEFT: FloraItem[] = [
+  { k: 'spray', x: 50, y: 0, s: 0.8, r: 165, p: 'blueLeaf', len: 110, n: 7 },
+  { k: 'spray', x: 80, y: 0, s: 0.55, r: 200, p: 'eucalyptus', len: 90, n: 6, round: true },
+  { k: 'berries', x: 30, y: 70, s: 0.9, r: 190, p: 'dustyBlue' },
+]
+
+const FOLIAGE_BOTTOM_LEFT: FloraItem[] = [
+  { k: 'spray', x: 20, y: 220, s: 1.15, r: 25, p: 'blueLeaf', len: 150, n: 9, curve: 0.25 },
+  { k: 'spray', x: 0, y: 200, s: 1, r: 55, p: 'eucalyptus', len: 120, n: 8, round: true },
+  { k: 'spray', x: 50, y: 220, s: 0.95, r: 5, p: 'dustyBlue', len: 130, n: 8, curve: -0.2 },
+  { k: 'spray', x: 0, y: 150, s: 0.7, r: 70, p: 'blueLeaf', len: 100, n: 7 },
+  { k: 'spray', x: 30, y: 220, s: 0.9, r: 40, p: 'dustyBlue', len: 120, n: 8, round: true },
+  { k: 'berries', x: 70, y: 120, s: 1.1, r: 20, p: 'dustyBlue' },
+]
 
 export function BrumeBleue({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
@@ -42,8 +70,6 @@ export function BrumeBleue({ draft }: TemplateProps) {
   const names = splitNames(draft.title)
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: INK }}>
-      <LuxePattern templateKey="brume-bleue" />
-      <VellumHalo color={PAPER} />
 
       <CoverHero
         draft={draft}
@@ -59,24 +85,18 @@ export function BrumeBleue({ draft }: TemplateProps) {
         }}
       />
 
-      {/* Dusty-blue foliage: spill from the top, cluster at bottom-left */}
-      <FoliageCascade
-        className="pointer-events-none absolute -top-[5.4em] right-[0.5em] h-[19.5em] w-[15.5em]"
-        style={{ transform: 'rotate(8deg)' }}
-      />
-      <FoliageCascade
-        className="pointer-events-none absolute -top-[4em] left-[5em] h-[15em] w-[11em]"
-        style={{ transform: 'rotate(-14deg)' }}
-      />
-      <FoliageCascade
-        className="pointer-events-none absolute -bottom-[3em] -left-[2em] h-[21.5em] w-[16em]"
-        style={{ transform: 'rotate(180deg)' }}
-      />
+      {/* Painted dusty-blue eucalyptus: a dense spill at top-right, a
+          lighter sprig top-left, a rising cluster at bottom-left. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <Bouquet items={FOLIAGE_TOP_RIGHT} viewBox="0 0 220 200" className="absolute -right-[1em] -top-[1em] h-[19em] w-[21em]" />
+        <Bouquet items={FOLIAGE_TOP_LEFT} viewBox="0 0 120 120" className="absolute left-[6em] -top-[0.8em] h-[9em] w-[9em]" />
+        <Bouquet items={FOLIAGE_BOTTOM_LEFT} viewBox="0 0 200 220" className="absolute -bottom-[1em] -left-[1em] h-[20em] w-[18em]" />
+      </div>
 
-      <div className="relative flex flex-1 flex-col items-center px-[6.2em] pb-[3.8em] pt-[9.5em] text-center">
+      <div className="relative flex flex-1 flex-col items-center px-[6.2em] pb-[9em] pt-[12em] text-center">
         <p
           className="uppercase"
-          style={{ fontSize: '1.02em', letterSpacing: '0.36em', color: INK }}
+          style={{ fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: '1.2em', letterSpacing: '0.16em', color: INK }}
         >
           Avec leurs familles
         </p>
@@ -120,11 +140,11 @@ export function BrumeBleue({ draft }: TemplateProps) {
 
         <p
           className="mt-[1.7em] uppercase"
-          style={{ fontSize: '1.02em', letterSpacing: '0.34em', color: INK }}
+          style={{ fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: '1.2em', letterSpacing: '0.16em', color: INK }}
         >
           On vous convie à nous rejoindre
         </p>
-        <p className="mt-[0.6em] font-display" style={{ fontSize: '1.16em', color: INK }}>
+        <p className="mt-[0.3em] italic" style={{ fontFamily: ROMAN_FONT, fontSize: '1.35em', color: INK }}>
           pour célébrer notre mariage
         </p>
 
@@ -139,35 +159,35 @@ export function BrumeBleue({ draft }: TemplateProps) {
 
         <div
           className="mt-[1.8em] flex items-stretch justify-center"
-          style={{ transform: dateEm ? 'scale(1.12)' : undefined, color: INK }}
+          style={{ transform: dateEm ? 'scale(1.12)' : undefined, color: SOFT, fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: '1.25em' }}
         >
           <p className="flex items-center px-[0.85em] uppercase" style={{ letterSpacing: '0.22em' }}>
             {formatWeekday(draft.event_date).slice(0, 3)}
           </p>
-          <span style={{ width: 1, backgroundColor: INK, opacity: 0.45 }} />
+          <span style={{ width: 2, backgroundColor: SOFT }} />
           <p
-            className="flex items-center px-[0.9em] font-display leading-none"
-            style={{ fontSize: '2.6em' }}
+            className="flex items-center px-[0.5em] leading-none"
+            style={{ fontSize: '2.3em' }}
           >
             {formatDayNumber(draft.event_date)}
           </p>
-          <span style={{ width: 1, backgroundColor: INK, opacity: 0.45 }} />
+          <span style={{ width: 2, backgroundColor: SOFT }} />
           <p className="flex items-center px-[0.85em] uppercase" style={{ letterSpacing: '0.22em' }}>
             {formatMonthShort(draft.event_date)}
           </p>
         </div>
 
-        <p className="mt-[1em] uppercase" style={{ letterSpacing: '0.42em', color: INK }}>
+        <p className="mt-[1em] uppercase" style={{ fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: '1.2em', letterSpacing: '0.16em', color: INK }}>
           {formatYearOnly(draft.event_date)}
         </p>
-        <p className="mt-[0.45em] font-display italic" style={{ fontSize: '1.14em', color: INK }}>
+        <p className="mt-[0.2em] italic" style={{ fontFamily: ROMAN_FONT, fontSize: '1.35em', color: INK }}>
           à {formatEventTime(draft.event_time)}
         </p>
 
         {draft.venue_name || draft.venue_address ? (
           <div
-            className="mt-[1.7em] uppercase"
-            style={{ fontSize: venueEm ? '1.14em' : '1em', color: INK, lineHeight: 1.9 }}
+            className="mt-[1.5em] uppercase"
+            style={{ fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: venueEm ? '1.3em' : '1.15em', color: INK, lineHeight: 1.6 }}
           >
             {draft.venue_name ? (
               <p style={{ letterSpacing: '0.26em', fontWeight: 600 }}>{draft.venue_name}</p>
@@ -185,11 +205,11 @@ export function BrumeBleue({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        <p
-          className="mt-[1.5em]"
-          style={{ fontFamily: SCRIPT_FONT, fontSize: '1.9em', color: SOFT }}
-        >
+        <p className="mt-[1.2em] flex flex-col items-center" style={{ fontFamily: SCRIPT_FONT, fontSize: '2em', color: SOFT }}>
           réception à suivre
+          <svg viewBox="0 0 200 14" className="-mt-[0.35em] h-[0.45em] w-[5.4em]" aria-hidden="true">
+            <path d="M2 10 C 50 2, 120 14, 198 4" fill="none" stroke={SOFT} strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
         </p>
 
         <NoteSection draft={draft} ink={INK} />

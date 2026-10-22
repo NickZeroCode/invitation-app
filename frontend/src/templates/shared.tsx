@@ -18,64 +18,12 @@ import type { InvitationDraft } from './types.ts'
 
 export const PAPER_FONT_SIZE = '2.6cqw'
 
-/**
- * Cotton-paper material shared by every sheet: a very low-frequency mottle
- * (the cloudiness of pressed cotton pulp) plus sparse fibres. Two tiles of
- * different sizes so the repeat never lines up. It lies over the template's
- * own artwork so ink and florals read as printed INTO the sheet. Plain alpha
- * compositing (no blend mode): a full-sheet blend layer costs a phone a
- * repaint on every scroll, and tinted low-alpha noise looks the same.
- */
-function cottonBackground(rgb: [number, number, number]): string {
-  const [r, g, b] = rgb.map((channel) => (channel / 255).toFixed(3))
-  const tint = `0 0 0 0 ${r}  0 0 0 0 ${g}  0 0 0 0 ${b}`
-  const mottle =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="420" height="420">' +
-    '<filter id="m"><feTurbulence type="fractalNoise" baseFrequency="0.011" numOctaves="3" seed="7" stitchTiles="stitch"/>' +
-    `<feColorMatrix values="${tint}  0 0 0 0.55 -0.2"/></filter>` +
-    '<rect width="420" height="420" filter="url(#m)"/></svg>'
-  const fibre =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260">' +
-    '<filter id="f"><feTurbulence type="fractalNoise" baseFrequency="0.018 0.42" numOctaves="2" seed="3" stitchTiles="stitch"/>' +
-    `<feColorMatrix values="${tint}  0 0 0 1.6 -0.98"/></filter>` +
-    '<rect width="260" height="260" filter="url(#f)"/></svg>'
-  return [fibre, mottle].map((svg) => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`).join(', ')
-}
-
-/** Light papers take a warm umber shadow; dark papers a cream lift. */
-const COTTON_LIGHT = cottonBackground([107, 92, 69])
-const COTTON_DARK = cottonBackground([236, 224, 200])
-
-export type PaperTexture = 'cotton' | 'cotton-dark' | 'none'
-
-function CottonTexture({ texture }: { texture: PaperTexture }) {
-  if (texture === 'none') return null
-  const dark = texture === 'cotton-dark'
-  return (
-    <div
-      aria-hidden="true"
-      data-paper-texture=""
-      className="pointer-events-none absolute inset-0 z-30"
-      style={{
-        backgroundImage: dark ? COTTON_DARK : COTTON_LIGHT,
-        // Tile sizes in em: the material scales with the sheet, so a gallery
-        // thumbnail and the full invitation show the same paper.
-        backgroundSize: '19em 19em, 31em 31em',
-        opacity: dark ? 0.16 : 0.2,
-      }}
-    />
-  )
-}
-
 export function InvitationPaper({
   children,
   style,
-  texture = 'cotton',
 }: {
   children: ReactNode
   style?: CSSProperties
-  /** Paper material laid over the sheet; dark papers pass 'cotton-dark'. */
-  texture?: PaperTexture
 }) {
   return (
     <div className="h-full w-full" style={{ containerType: 'inline-size' }}>
@@ -107,7 +55,6 @@ export function InvitationPaper({
         }}
       >
         {children}
-        <CottonTexture texture={texture} />
       </article>
     </div>
   )

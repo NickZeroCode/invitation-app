@@ -37,7 +37,7 @@ export function SceauAcademique({ draft }: TemplateProps) {
   const dateEm = isEmphasized(draft, 'date')
   const venueEm = isEmphasized(draft, 'venue')
   return (
-    <InvitationPaper texture="cotton-dark" style={{ backgroundColor: NAVY, color: '#F4EFE4' }}>
+    <InvitationPaper style={{ backgroundColor: NAVY, color: '#F4EFE4' }}>
       <CoverHero
         draft={draft}
         bandColor="rgba(13,23,41,0.62)"

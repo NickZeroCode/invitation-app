@@ -18,28 +18,25 @@ import {
   formatShortDate,
   isEmphasized,
 } from './shared.tsx'
-import {
-  CradleIcon,
-  DamaskPattern,
-  FleuronDivider,
-  HangingOrnaments,
-  MandalaRosette,
-} from './referenceMotifs.tsx'
+import { FloralDamask, LaceMandala, MarigoldToran } from './festiveMotifs.tsx'
+import { CradleIcon, FleuronDivider } from './referenceMotifs.tsx'
 import type { CSSProperties } from 'react'
 import type { TemplateProps } from './types.ts'
 
-const PAPER = '#8E1F2B'
-const GOLD = '#E8C06A'
-const CREAM = '#F5E6C8'
+const PAPER = '#9E1B22'
+const GOLD = '#E9C77B'
+const CREAM = '#F3DCA8'
 
+/** Small ceremonial capitals — a classic book serif, lightly tracked. */
 const CEREMONIAL: CSSProperties = {
-  fontFamily: "'Cinzel Decorative', 'Playfair Display', ui-serif, serif",
+  fontFamily: "'Cormorant Garamond', 'Playfair Display', ui-serif, serif",
+  fontWeight: 600,
 }
 
 /** Title-case classic serif for names, occasion and date (gold type on red). */
 const ROYAL: CSSProperties = {
-  fontFamily: "'Cormorant Garamond', ui-serif, serif",
-  fontWeight: 600,
+  fontFamily: "'Playfair Display', ui-serif, serif",
+  fontWeight: 400,
 }
 
 export function Mandala({ draft }: TemplateProps) {
@@ -47,8 +44,15 @@ export function Mandala({ draft }: TemplateProps) {
   const dateEm = isEmphasized(draft, 'date')
   const venueEm = isEmphasized(draft, 'venue')
   return (
-    <InvitationPaper texture="cotton-dark" style={{ backgroundColor: PAPER, color: CREAM }}>
-      <DamaskPattern color={GOLD} opacity={0.14} />
+    <InvitationPaper
+      style={{
+        backgroundColor: PAPER,
+        // Velvet red: lit at the heart, deepening toward the edges.
+        backgroundImage: 'radial-gradient(ellipse 80% 65% at 50% 48%, #B8262C, #9A1A21 55%, #7E1218)',
+        color: CREAM,
+      }}
+    >
+      <FloralDamask color="#6E0F15" opacity={0.42} />
 
       <CoverHero
         draft={draft}
@@ -67,25 +71,16 @@ export function Mandala({ draft }: TemplateProps) {
       />
 
       {/* Gold toran along the top edge */}
-      <HangingOrnaments
-        color={GOLD}
-        className="pointer-events-none absolute inset-x-0 top-0 h-[5.6em] w-full"
-      />
+      <MarigoldToran color={GOLD} className="pointer-events-none absolute inset-x-0 top-0 h-[9.5em] w-full" />
 
       {/* Rosettes flanking the sheet */}
-      <MandalaRosette
-        color={GOLD}
-        className="pointer-events-none absolute -left-[13em] top-[16.5em] h-[19em] w-[19em]"
-      />
-      <MandalaRosette
-        color={GOLD}
-        className="pointer-events-none absolute -right-[13em] top-[16.5em] h-[19em] w-[19em]"
-      />
+      <LaceMandala color={GOLD} className="pointer-events-none absolute -left-[11.5em] top-[38%] h-[19em] w-[19em]" />
+      <LaceMandala color={GOLD} className="pointer-events-none absolute -right-[11.5em] top-[38%] h-[19em] w-[19em]" />
 
-      <div className="relative flex flex-1 flex-col items-center px-[5.6em] pb-[3.6em] pt-[6.4em] text-center">
+      <div className="relative flex flex-1 flex-col items-center px-[8.5em] pb-[5em] pt-[10em] text-center">
         <h1
           className="break-words text-balance leading-[1.28]"
-          style={{ ...ROYAL, fontSize: titleEm ? '3.6em' : '2.9em', color: GOLD }}
+          style={{ ...ROYAL, fontSize: titleEm ? '3.6em' : '3em', color: CREAM }}
         >
           {draft.title}
         </h1>
@@ -100,9 +95,9 @@ export function Mandala({ draft }: TemplateProps) {
           className="mt-[1.6em] uppercase"
           style={{
             ...CEREMONIAL,
-            fontSize: '0.98em',
-            letterSpacing: '0.3em',
-            lineHeight: 2.1,
+            fontSize: '1.15em',
+            letterSpacing: '0.06em',
+            lineHeight: 1.6,
             color: CREAM,
           }}
         >
@@ -113,7 +108,7 @@ export function Mandala({ draft }: TemplateProps) {
 
         <p
           className="mt-[1.3em] break-words"
-          style={{ ...ROYAL, fontSize: titleEm ? '2.6em' : '2.1em', color: CREAM }}
+          style={{ ...ROYAL, fontSize: titleEm ? '2.8em' : '2.4em', color: CREAM }}
         >
           Cérémonie de naissance
         </p>
@@ -139,7 +134,9 @@ export function Mandala({ draft }: TemplateProps) {
             color: CREAM,
           }}
         >
-          {formatShortDate(draft.event_date)} · {formatEventTime(draft.event_time)}
+          {formatShortDate(draft.event_date)}
+          <span className="mx-[0.45em] opacity-80">|</span>
+          {formatEventTime(draft.event_time)}
         </p>
 
         <FleuronDivider className="mt-[1.2em] h-[1.3em] w-[12em]" color={GOLD} />
@@ -149,9 +146,9 @@ export function Mandala({ draft }: TemplateProps) {
             className="mt-[1.4em] uppercase"
             style={{
               ...CEREMONIAL,
-              fontSize: venueEm ? '1.08em' : '0.94em',
-              letterSpacing: '0.24em',
-              lineHeight: 1.9,
+              fontSize: venueEm ? '1.2em' : '1.05em',
+              letterSpacing: '0.08em',
+              lineHeight: 1.6,
               color: CREAM,
             }}
           >

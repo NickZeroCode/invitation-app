@@ -6,12 +6,14 @@
  * stacked behind a giant ghost ampersand, a fleuron divider, dark script
  * occasion line and a three-cell date row divided by thin rules.
  */
-import { GoldRoseCorner, PaperGrain } from './florals.tsx'
+import { EngravedBouquet } from './engravedFlora.tsx'
+import type { EngravedItem } from './engravedFlora.tsx'
 import { FiligreeCorner } from './FiligreeCorner.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
 import {
   CoverHero,
+  FoilText,
   DressCodeSection,
   InvitationPaper,
   NoteSection,
@@ -29,21 +31,46 @@ import {
   formatYearOnly,
   splitNames,
 } from './referenceMotifs.tsx'
-import { LuxePattern, VellumHalo } from './luxeMotifs.tsx'
-import type { CSSProperties } from 'react'
 import type { TemplateProps } from './types.ts'
 
-const PAPER = '#F4F2ED'
+const PAPER = '#F2F1EE'
 const INK = '#7A6A55'
 const DARK = '#4E4234'
 
-const GOLD_GRADIENT: CSSProperties = {
-  backgroundImage:
-    'linear-gradient(155deg, #96702F 0%, #E2C27C 34%, #A98543 58%, #E7CE96 78%, #8C6B2F 100%)',
-  WebkitBackgroundClip: 'text',
-  backgroundClip: 'text',
-  color: 'transparent',
-}
+const NAME_GOLD = 'linear-gradient(155deg, #8C6A2C 0%, #C99E52 34%, #9C7634 58%, #D2AE6A 78%, #84622A 100%)'
+const SERIF = "'Playfair Display', Georgia, serif"
+const SANS = "'Montserrat', 'Inter', sans-serif"
+
+const TOP_LEFT: EngravedItem[] = [
+  { k: 'stem', d: 'M 10 150 C 30 120, 60 90, 90 40' },
+  { k: 'leaf', x: 60, y: 96, s: 1.1, r: 60 },
+  { k: 'leaf', x: 30, y: 130, s: 1, r: -20 },
+  { k: 'leaf', x: 140, y: 40, s: 0.9, r: 110 },
+  { k: 'rose', x: 50, y: 44, s: 1.05, r: -10 },
+  { k: 'rose', x: 122, y: 30, s: 0.9, r: 20 },
+  { k: 'rose', x: 40, y: 112, s: 0.55, r: 30 },
+  { k: 'lavender', x: 6, y: 210, s: 1, r: 4, len: 70 },
+  { k: 'lavender', x: 16, y: 200, s: 0.8, r: 14, len: 60 },
+]
+
+const BOTTOM_LEFT: EngravedItem[] = [
+  { k: 'stem', d: 'M 0 100 C 40 110, 90 130, 160 200' },
+  { k: 'leaf', x: 60, y: 120, s: 1.2, r: 120 },
+  { k: 'leaf', x: 30, y: 160, s: 1.1, r: 70 },
+  { k: 'lily', x: 64, y: 176, s: 1.2, r: -30 },
+  { k: 'lavender', x: 100, y: 200, s: 1, r: 30, len: 80 },
+  { k: 'lavender', x: 120, y: 200, s: 0.9, r: 44, len: 70 },
+  { k: 'lavender', x: 6, y: 90, s: 0.8, r: -6, len: 60 },
+]
+
+const BOTTOM_RIGHT: EngravedItem[] = [
+  { k: 'stem', d: 'M 160 60 C 140 100, 120 140, 70 190' },
+  { k: 'leaf', x: 120, y: 120, s: 1.2, r: -120 },
+  { k: 'leaf', x: 70, y: 170, s: 1, r: -60 },
+  { k: 'rose', x: 104, y: 160, s: 1.3, r: 10 },
+  { k: 'rose', x: 150, y: 96, s: 0.6, r: -20 },
+  { k: 'lavender', x: 170, y: 40, s: 0.8, r: -14, len: 60 },
+]
 
 export function RosesDor({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
@@ -52,9 +79,6 @@ export function RosesDor({ draft }: TemplateProps) {
   const names = splitNames(draft.title)
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: INK }}>
-      <PaperGrain opacity={0.05} blend="multiply" />
-      <LuxePattern templateKey="roses-dor" />
-      <VellumHalo color={PAPER} />
 
       <CoverHero
         draft={draft}
@@ -70,32 +94,20 @@ export function RosesDor({ draft }: TemplateProps) {
         }}
       />
 
-      {/* Engraved gold roses + filigree corner with hanging charm */}
-      <GoldRoseCorner
-        className="pointer-events-none absolute -left-[1.2em] -top-[1.2em] h-[17em] w-[20.5em]"
-        strokeWidth={1.6}
-      />
-      <GoldRoseCorner
-        className="pointer-events-none absolute -bottom-[2.8em] -left-[2.8em] h-[18.5em] w-[22em]"
-        strokeWidth={1.6}
-        style={{ transform: 'scaleY(-1)' }}
-      />
-      <GoldRoseCorner
-        className="pointer-events-none absolute -bottom-[2.8em] -right-[2.8em] h-[18.5em] w-[22em]"
-        strokeWidth={1.6}
-        style={{ transform: 'rotate(180deg)' }}
-      />
-      <FiligreeCorner corner="tr" color={GOLD} opacity={0.85} />
+      {/* Engraved gold rose clusters (top-left, bottom-left, bottom-right) and
+          a fine gold corner frame top-right, as in the reference. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <EngravedBouquet items={TOP_LEFT} viewBox="0 0 180 220" className="absolute -left-[0.4em] -top-[0.4em] h-[27em] w-[22em]" />
+        <EngravedBouquet items={BOTTOM_LEFT} viewBox="0 0 180 210" className="absolute -bottom-[0.4em] -left-[0.4em] h-[24em] w-[20.5em]" />
+        <EngravedBouquet items={BOTTOM_RIGHT} viewBox="0 0 190 200" className="absolute -bottom-[0.4em] -right-[0.4em] h-[23em] w-[22em]" />
+        <div className="absolute right-[1.4em] top-[1.4em] h-[45%] w-[55%]" style={{ borderTop: `1px solid ${GOLD}`, borderRight: `1px solid ${GOLD}` }} />
+      </div>
+      <FiligreeCorner corner="tr" color={GOLD} opacity={0.9} />
 
-      <div className="relative flex flex-1 flex-col items-center px-[6.4em] pb-[4em] pt-[5em] text-center">
-        <p className="font-display italic" style={{ fontSize: '1.12em', color: INK }}>
-          Nous vous invitons à célébrer
-        </p>
+      <div className="relative flex flex-1 flex-col items-center px-[6.4em] pb-[12em] pt-[7em] text-center">
+        <p style={{ fontFamily: SERIF, fontSize: '1.2em', color: INK }}>Nous vous invitons à célébrer</p>
 
-        <p
-          className="mt-[0.55em] uppercase"
-          style={{ fontSize: titleEm ? '1.85em' : '1.5em', letterSpacing: '0.32em', color: DARK }}
-        >
+        <p className="mt-[0.3em] uppercase" style={{ fontFamily: SERIF, fontSize: titleEm ? '2.4em' : '2.1em', letterSpacing: '0.04em', color: DARK }}>
           Réservez la date
         </p>
 
@@ -118,34 +130,16 @@ export function RosesDor({ draft }: TemplateProps) {
             <span className="sr-only">{draft.title}</span>
             {names ? (
               <span aria-hidden="true" className="flex flex-col items-center">
-                <span
-                  style={{
-                    fontFamily: SCRIPT_FONT,
-                    fontSize: titleEm ? '5.4em' : '4.5em',
-                    ...GOLD_GRADIENT,
-                  }}
-                >
-                  {names[0]}
+                <span className="-translate-x-[0.9em]" style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '6em' : '5.2em', filter: 'drop-shadow(0 0.04em 0.04em rgba(60,40,10,0.35))' }}>
+                  <FoilText gradient={NAME_GOLD}>{names[0]}</FoilText>
                 </span>
-                <span
-                  style={{
-                    fontFamily: SCRIPT_FONT,
-                    fontSize: titleEm ? '5.4em' : '4.5em',
-                    ...GOLD_GRADIENT,
-                  }}
-                >
-                  {names[1]}
+                <span className="-mt-[0.35em] translate-x-[0.9em]" style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '6em' : '5.2em', filter: 'drop-shadow(0 0.04em 0.04em rgba(60,40,10,0.35))' }}>
+                  <FoilText gradient={NAME_GOLD}>{names[1]}</FoilText>
                 </span>
               </span>
             ) : (
-              <span
-                style={{
-                  fontFamily: SCRIPT_FONT,
-                  fontSize: titleEm ? '5.4em' : '4.5em',
-                  ...GOLD_GRADIENT,
-                }}
-              >
-                {draft.title}
+              <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '5.4em' : '4.5em' }}>
+                <FoilText gradient={NAME_GOLD}>{draft.title}</FoilText>
               </span>
             )}
           </h1>
@@ -179,34 +173,36 @@ export function RosesDor({ draft }: TemplateProps) {
           className="mt-[1.7em] flex items-stretch justify-center"
           style={{ transform: dateEm ? 'scale(1.12)' : undefined, color: DARK }}
         >
-          <p className="flex items-center px-[1em] font-display" style={{ fontSize: '1.35em', fontWeight: 600 }}>
-            {formatEventTime(draft.event_time)}
+          <p className="flex items-end px-[0.8em] pb-[0.15em]" style={{ fontFamily: SANS, fontSize: '1.5em', fontWeight: 600 }}>
+            <span className="mr-[0.2em] self-start text-[0.45em] font-normal">à</span>
+            {formatEventTime(draft.event_time).replace(':', '.')}
           </p>
           <span style={{ width: 1, backgroundColor: DARK, opacity: 0.5 }} />
           <div className="flex flex-col items-center px-[1.1em]">
-            <p className="font-display leading-none" style={{ fontSize: '2.35em', fontWeight: 700 }}>
+            <p className="leading-none" style={{ fontFamily: SANS, fontSize: '1.9em', fontWeight: 700 }}>
               {formatDayNumber(draft.event_date)}
             </p>
-            <p className="mt-[0.25em] uppercase" style={{ letterSpacing: '0.18em', fontSize: '0.95em' }}>
+            <p className="lowercase" style={{ fontFamily: SANS, fontSize: '1.3em', fontWeight: 600, lineHeight: 1.1 }}>
               {formatMonthShort(draft.event_date)}
             </p>
           </div>
           <span style={{ width: 1, backgroundColor: DARK, opacity: 0.5 }} />
-          <p className="flex items-center px-[1em] font-display" style={{ fontSize: '1.35em', fontWeight: 600 }}>
-            {formatYearOnly(draft.event_date)}
+          <p className="flex items-end px-[0.8em] pb-[0.15em]" style={{ fontFamily: SANS, fontSize: '1.5em' }}>
+            <span>{formatYearOnly(draft.event_date).slice(0, 2)}</span>
+            <span style={{ fontWeight: 700 }}>{formatYearOnly(draft.event_date).slice(2)}</span>
           </p>
         </div>
 
         {draft.venue_name || draft.venue_address ? (
           <div
             className="mt-[1.5em] uppercase"
-            style={{ fontSize: venueEm ? '1.12em' : '0.98em', color: DARK, lineHeight: 1.9 }}
+            style={{ fontFamily: SERIF, fontSize: venueEm ? '1.25em' : '1.1em', color: DARK, lineHeight: 1.5 }}
           >
             {draft.venue_name ? (
-              <p style={{ letterSpacing: '0.28em', fontWeight: 600 }}>{draft.venue_name}</p>
+              <p style={{ letterSpacing: '0.04em', fontWeight: 700 }}>{draft.venue_name}</p>
             ) : null}
             {draft.venue_address ? (
-              <p style={{ letterSpacing: '0.22em', fontSize: '0.88em', opacity: 0.85 }}>
+              <p style={{ letterSpacing: '0.04em', color: INK }}>
                 {draft.venue_address}
               </p>
             ) : null}

@@ -62,3 +62,7 @@ backend/_tmp_probe3.py
 
 # Local preview server config (machine-specific)
 .claude/launch.json
+
+# Local template QA harness (dev only)
+frontend/qa/
+frontend/qa.html

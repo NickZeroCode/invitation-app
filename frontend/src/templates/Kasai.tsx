@@ -60,16 +60,6 @@ const BAND_SVG = [
 
 const BAND_URL = `url("data:image/svg+xml,${encodeURIComponent(BAND_SVG)}")`
 
-/** Raffia ground: a fine plain weave (warp and weft at slightly different
- * pitches) under the cotton texture every sheet already receives. */
-const RAFFIA_WEAVE = [
-  // Weft at two pitches (slubbed, irregular) and a fainter warp: reads as
-  // woven fibre, never as graph paper.
-  'repeating-linear-gradient(0deg, rgba(110,78,40,0.035) 0 0.05em, transparent 0.05em 0.27em, rgba(110,78,40,0.02) 0.27em 0.31em, transparent 0.31em 0.52em)',
-  'repeating-linear-gradient(90deg, rgba(110,78,40,0.018) 0 0.04em, transparent 0.04em 0.41em)',
-  'radial-gradient(ellipse at 50% 38%, rgba(255,250,238,0.55), transparent 70%)',
-].join(', ')
-
 function InterlaceBand({ style }: { style?: CSSProperties }) {
   return (
     <div
@@ -178,7 +168,7 @@ export function Kasai({ draft }: TemplateProps) {
 
   return (
     <InvitationPaper
-      style={{ backgroundColor: KASAI_PAPER, backgroundImage: RAFFIA_WEAVE, color: KASAI_INK, fontFamily: SANS }}
+      style={{ backgroundColor: KASAI_PAPER, color: KASAI_INK, fontFamily: SANS }}
     >
       <CoverHero
         draft={draft}

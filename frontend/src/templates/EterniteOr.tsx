@@ -50,7 +50,7 @@ export function EterniteOr({ draft }: TemplateProps) {
   const dateEm = isEmphasized(draft, 'date')
   const venueEm = isEmphasized(draft, 'venue')
   return (
-    <InvitationPaper texture="cotton-dark" style={{ backgroundImage: PAPER_BG, color: IVORY }}>
+    <InvitationPaper style={{ backgroundImage: PAPER_BG, color: IVORY }}>
       <CoverHero
         draft={draft}
         bandColor="rgba(15,11,7,0.6)"

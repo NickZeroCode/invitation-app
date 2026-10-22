@@ -38,7 +38,7 @@ export function SoireeFormelle({ draft }: TemplateProps) {
   const dateEm = isEmphasized(draft, 'date')
   const venueEm = isEmphasized(draft, 'venue')
   return (
-    <InvitationPaper texture="cotton-dark" style={{ backgroundColor: EMERALD, color: CHAMPAGNE }}>
+    <InvitationPaper style={{ backgroundColor: EMERALD, color: CHAMPAGNE }}>
       <CoverHero
         draft={draft}
         bandColor="rgba(14,42,34,0.6)"

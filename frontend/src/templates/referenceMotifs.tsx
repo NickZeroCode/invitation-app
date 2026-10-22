@@ -11,6 +11,8 @@
 /* oxlint-disable react/only-export-components -- decorative primitives */
 import { useId } from 'react'
 import type { CSSProperties } from 'react'
+import { Bouquet, sprayPalettes } from './paintedFlora.tsx'
+import type { FloraItem } from './paintedFlora.tsx'
 
 import type { SprayPalette } from './florals.tsx'
 
@@ -323,87 +325,35 @@ export function RibbonField({
 /* Botanical motifs                                                    */
 /* ------------------------------------------------------------------ */
 
-interface PeonyColors {
-  light: string
-  mid: string
-  deep: string
-}
-
-function peonyHead(cx: number, cy: number, r: number, colors: PeonyColors, keyBase: string) {
-  const petals = Array.from({ length: 9 }, (_, k) => (k * 360) / 9)
-  const inner = Array.from({ length: 7 }, (_, k) => 24 + (k * 360) / 7)
-  return (
-    <g key={keyBase}>
-      {petals.map((a) => (
-        <path
-          key={`o${keyBase}-${a}`}
-          d="M 0 0 C -16 -13 -17 -33 0 -48 C 17 -33 16 -13 0 0 Z"
-          fill={colors.light}
-          opacity="0.92"
-          transform={`translate(${cx} ${cy}) rotate(${a}) scale(${r / 48})`}
-        />
-      ))}
-      {inner.map((a) => (
-        <path
-          key={`m${keyBase}-${a}`}
-          d="M 0 0 C -11 -9 -12 -25 0 -35 C 12 -25 11 -9 0 0 Z"
-          fill={colors.mid}
-          opacity="0.92"
-          transform={`translate(${cx} ${cy}) rotate(${a}) scale(${r / 56})`}
-        />
-      ))}
-      <circle cx={cx} cy={cy} r={r * 0.15} fill={colors.deep} opacity="0.85" />
-    </g>
-  )
-}
 
 /**
  * Large layered peony cluster with eucalyptus sprigs — the corner bouquets
  * of Arche Pivoine.
  */
+const PEONY_ITEMS: FloraItem[] = [
+  { k: 'spray', x: 40, y: 200, s: 1, r: 30, p: 'leaf', len: 150, n: 8, round: true },
+  { k: 'spray', x: 220, y: 60, s: 0.9, r: -120, p: 'leaf', len: 130, n: 7 },
+  { k: 'peony', x: 110, y: 110, s: 1.25, r: -10, p: 'flower' },
+  { k: 'rose', x: 190, y: 80, s: 0.6, r: 20, p: 'flower' },
+  { k: 'rose', x: 70, y: 180, s: 0.55, r: -20, p: 'flower' },
+  { k: 'bud', x: 200, y: 150, s: 0.7, r: 120, p: 'flower' },
+  { k: 'forget', x: 40, y: 90, s: 1, p: 'flower' },
+]
+
+/** Painted peony cluster with eucalyptus (corner bouquet). */
 export function PeonyCluster({
   palette = AZURE,
   className,
   style,
 }: MotifProps & { palette?: SprayPalette }) {
-  const colors: PeonyColors = {
-    light: palette.petalLight,
-    mid: palette.petal,
-    deep: palette.petalDeep,
-  }
-  return (
-    <svg viewBox="0 0 260 240" className={className} style={style} aria-hidden="true">
-      {/* one fan of stems reaching each head, so the bouquet reads as a single
-          gathered bunch (stems end exactly where the heads sit) */}
-      <g stroke={palette.leafDeep} strokeLinecap="round" fill="none" opacity="0.8">
-        <path d="M 132 216 C 128 178 126 138 128 96" strokeWidth="2.4" />
-        <path d="M 132 216 C 108 184 84 168 68 154" strokeWidth="2.2" />
-        <path d="M 132 216 C 158 182 182 140 196 100" strokeWidth="2.2" />
-      </g>
-      {/* leaves cupped at the stem nodes, not scattered */}
-      <g fill={palette.leaf} opacity="0.85">
-        <ellipse cx="116" cy="176" rx="15" ry="8.5" transform="rotate(-38 116 176)" />
-        <ellipse cx="150" cy="172" rx="14" ry="8" transform="rotate(28 150 172)" />
-        <ellipse cx="100" cy="178" rx="12" ry="7" transform="rotate(-64 100 178)" />
-        <ellipse cx="166" cy="150" rx="13" ry="7.5" transform="rotate(-24 166 150)" />
-      </g>
-      {peonyHead(128, 92, 62, colors, 'a')}
-      {peonyHead(66, 152, 42, colors, 'b')}
-      {peonyHead(196, 96, 32, colors, 'c')}
-      {/* a few accent buds tucked beside the heads only */}
-      <g fill={palette.accent} opacity="0.9">
-        <circle cx="212" cy="128" r="4.4" />
-        <circle cx="220" cy="140" r="3" />
-        <circle cx="46" cy="124" r="3.8" />
-      </g>
-    </svg>
-  )
+  return <Bouquet items={PEONY_ITEMS} palettes={sprayPalettes(palette)} viewBox="0 0 260 240" className={className} style={style} />
 }
 
 /**
  * Eucalyptus watercolor cascade spilling along a curve — the foliage of
  * Brume Bleue (top spill and bottom-left cluster).
  */
+/** Painted eucalyptus cascade spilling down a curve. */
 export function FoliageCascade({
   leaf = '#93A7BD',
   leafDeep = '#66768C',
@@ -411,196 +361,66 @@ export function FoliageCascade({
   className,
   style,
 }: MotifProps & { leaf?: string; leafDeep?: string; bud?: string }) {
-  const leaves: Array<[number, number, number, number]> = [
-    [186, 34, -38, 1],
-    [166, 72, -58, 0.92],
-    [146, 106, -34, 1],
-    [124, 142, -56, 0.9],
-    [104, 176, -30, 0.95],
-    [84, 210, -52, 0.88],
-    [64, 244, -32, 0.92],
-    [46, 276, -56, 0.85],
-    [168, 40, 142, 0.78],
-    [142, 84, 158, 0.8],
-    [118, 118, 136, 0.75],
-    [96, 154, 156, 0.78],
-    [76, 188, 138, 0.72],
-    [56, 222, 158, 0.75],
-    [196, 16, -22, 0.72],
-    [176, 54, 168, 0.68],
-    [134, 124, -68, 0.7],
-    [112, 158, 122, 0.66],
-    [92, 194, -62, 0.72],
-    [50, 258, 172, 0.66],
+  const palettes = {
+    leaf: { light: bud, mid: leaf, dark: leafDeep, deep: leafDeep },
+  }
+  const items: FloraItem[] = [
+    { k: 'spray', x: 110, y: 0, s: 1.2, r: 175, p: 'leaf', len: 230, n: 12, round: true, curve: 0.2 },
+    { k: 'spray', x: 150, y: 10, s: 1, r: 200, p: 'leaf', len: 200, n: 10, curve: -0.2 },
+    { k: 'spray', x: 70, y: 0, s: 0.9, r: 150, p: 'leaf', len: 180, n: 9, round: true },
+    { k: 'berries', x: 120, y: 200, s: 1.4, r: 180, p: 'leaf' },
   ]
-  return (
-    <svg viewBox="0 0 220 300" className={className} style={style} aria-hidden="true">
-      <path
-        d="M 198 10 C 152 62 132 122 102 178 C 80 218 60 252 34 294"
-        fill="none"
-        stroke={leafDeep}
-        strokeWidth="3"
-        strokeLinecap="round"
-        opacity="0.7"
-      />
-      {leaves.map(([x, y, rot, s]) => (
-        <g key={`${x}-${y}`} transform={`translate(${x} ${y}) rotate(${rot}) scale(${s})`}>
-          <path d="M 0 0 C 14 -17 41 -21 60 -6 C 41 12 14 14 0 0 Z" fill={leaf} opacity="0.82" />
-          <path
-            d="M 5 0 C 21 -6 40 -7 55 -6"
-            fill="none"
-            stroke={leafDeep}
-            strokeWidth="1.3"
-            opacity="0.55"
-          />
-        </g>
-      ))}
-      <g fill={bud} opacity="0.9">
-        <circle cx="192" cy="16" r="6" />
-        <circle cx="206" cy="28" r="4.2" />
-        <circle cx="198" cy="42" r="3.2" />
-        <circle cx="42" cy="284" r="5.4" />
-        <circle cx="28" cy="270" r="3.8" />
-        <circle cx="36" cy="258" r="2.8" />
-      </g>
-    </svg>
-  )
+  return <Bouquet items={items} palettes={palettes} viewBox="0 0 220 300" className={className} style={style} />
 }
 
 /**
  * Purple clematis wreath — two dense arcs (top-left and bottom-right) that
  * wrap around a hero name (Lilas).
  */
+function wreathArc(from: number, to: number): FloraItem[] {
+  const items: FloraItem[] = []
+  for (let i = 0; i <= 8; i += 1) {
+    const deg = from + ((to - from) * i) / 8
+    const rad = (deg * Math.PI) / 180
+    const x = 160 + Math.cos(rad) * 110
+    const y = 150 + Math.sin(rad) * 100
+    items.push({ k: 'leaf', x, y, s: 0.5, r: deg + 90 + (i % 2 ? 40 : -140), p: 'leaf' })
+    items.push(i % 3 === 0 ? { k: 'clematis', x, y, s: 0.42, r: deg, p: 'flower' } : i % 3 === 1 ? { k: 'rose', x, y, s: 0.34, r: deg, p: 'flower' } : { k: 'forget', x, y, s: 1, p: 'flower' })
+  }
+  return items
+}
+
+const WREATH_ITEMS: FloraItem[] = [...wreathArc(150, 300), ...wreathArc(-30, 120)]
+
+/** Painted open floral wreath (clematis, roses, fillers, leaves). */
 export function FloralWreath({
   palette = LILAC,
   className,
   style,
 }: MotifProps & { palette?: SprayPalette }) {
-  const blooms: Array<[number, number, number]> = [
-    [86, 62, 25],
-    [128, 44, 19],
-    [172, 52, 26],
-    [212, 84, 18],
-    [64, 104, 16],
-    [238, 118, 23],
-    [262, 168, 18],
-    [240, 214, 25],
-    [204, 252, 19],
-    [162, 268, 26],
-    [118, 262, 16],
-    [88, 232, 21],
-    [110, 96, 14],
-    [196, 118, 15],
-    [222, 176, 13],
-    [178, 226, 15],
-    [132, 206, 13],
-    [70, 158, 15],
-  ]
-  const leaves: Array<[number, number, number, number]> = [
-    [64, 74, -40, 1],
-    [104, 48, -18, 0.9],
-    [150, 38, 8, 1],
-    [194, 62, 34, 0.85],
-    [226, 98, 58, 0.95],
-    [252, 142, 82, 0.85],
-    [258, 192, 108, 1],
-    [228, 236, 132, 0.9],
-    [186, 262, 158, 0.95],
-    [138, 272, 188, 0.85],
-    [98, 252, 214, 1],
-    [72, 210, 238, 0.85],
-  ]
-  return (
-    <svg viewBox="0 0 320 300" className={className} style={style} aria-hidden="true">
-      <path
-        d="M 92 58 C 150 30 214 44 252 96 C 292 150 288 216 236 258 C 190 294 122 292 82 250"
-        fill="none"
-        stroke={palette.leafDeep}
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        opacity="0.55"
-      />
-      {leaves.map(([x, y, rot, s]) => (
-        <g key={`l-${x}-${y}`} transform={`translate(${x} ${y}) rotate(${rot}) scale(${s})`}>
-          <path d="M 0 0 C 10 -12 28 -14 40 -4 C 28 8 10 10 0 0 Z" fill={palette.leaf} opacity="0.8" />
-          <path d="M 3 0 C 14 -4 28 -5 37 -4" fill="none" stroke={palette.leafDeep} strokeWidth="1.1" opacity="0.5" />
-        </g>
-      ))}
-      {blooms.map(([x, y, r], k) => (
-        <g key={`b-${x}-${y}`} opacity="0.92">
-          {Array.from({ length: 5 }, (_, p) => (
-            <ellipse
-              key={p}
-              cx={x}
-              cy={y - r * 0.58}
-              rx={r * 0.4}
-              ry={r * 0.6}
-              fill={k % 3 === 0 ? palette.petalDeep : palette.petal}
-              transform={`rotate(${(p * 360) / 5} ${x} ${y})`}
-            />
-          ))}
-          <circle cx={x} cy={y} r={r * 0.24} fill={palette.petalLight} />
-        </g>
-      ))}
-      <g fill={palette.petalDeep} opacity="0.8">
-        <circle cx="222" cy="66" r="3.4" />
-        <circle cx="232" cy="78" r="2.4" />
-        <circle cx="238" cy="64" r="2" />
-        <circle cx="100" cy="240" r="3.2" />
-        <circle cx="110" cy="250" r="2.2" />
-      </g>
-    </svg>
-  )
+  return <Bouquet items={WREATH_ITEMS} palettes={sprayPalettes(palette)} viewBox="0 0 320 300" className={className} style={style} />
 }
 
 /**
  * Burgundy rose cluster with gold leaves and sparkles (Grenat corners).
  */
+const ROSE_ITEMS: FloraItem[] = [
+  { k: 'spray', x: 30, y: 30, s: 1, r: 130, p: 'leaf', len: 140, n: 8 },
+  { k: 'spray', x: 140, y: 20, s: 0.9, r: 100, p: 'leaf', len: 120, n: 7 },
+  { k: 'rose', x: 70, y: 70, s: 1.05, r: -10, p: 'flower' },
+  { k: 'rose', x: 150, y: 50, s: 0.7, r: 20, p: 'flower' },
+  { k: 'bud', x: 40, y: 150, s: 0.8, r: 190, p: 'flower' },
+  { k: 'bud', x: 100, y: 150, s: 0.7, r: 160, p: 'flower' },
+  { k: 'berries', x: 200, y: 90, s: 1.3, r: 120, p: 'flower' },
+]
+
+/** Painted rose cluster with leaves, buds and berries. */
 export function RoseCluster({
   palette = GRENAT,
   className,
   style,
 }: MotifProps & { palette?: SprayPalette }) {
-  const colors: PeonyColors = {
-    light: palette.petalLight,
-    mid: palette.petal,
-    deep: palette.petalDeep,
-  }
-  return (
-    <svg viewBox="0 0 240 210" className={className} style={style} aria-hidden="true">
-      {/* one gathered fan of stems, each ending exactly beneath its rose */}
-      <g stroke={palette.leafDeep} strokeLinecap="round" fill="none" opacity="0.85">
-        <path d="M 118 190 C 112 156 110 120 112 86" strokeWidth="2.4" />
-        <path d="M 118 190 C 94 166 70 150 58 140" strokeWidth="2.2" />
-        <path d="M 118 190 C 146 162 166 132 178 106" strokeWidth="2.2" />
-      </g>
-      {/* foliage cupped at the stem nodes */}
-      <g fill={palette.leaf} opacity="0.9">
-        <path d="M 104 158 C 90 146 70 144 56 152 C 70 164 90 166 104 158 Z" />
-        <path d="M 134 152 C 148 140 168 138 182 146 C 168 158 148 160 134 152 Z" />
-        <path d="M 110 170 C 100 158 82 158 70 166 C 82 176 98 176 110 170 Z" />
-      </g>
-      {peonyHead(112, 82, 56, colors, 'r1')}
-      {peonyHead(56, 138, 38, colors, 'r2')}
-      {peonyHead(178, 104, 30, colors, 'r3')}
-      {/* a couple of sparkles kept to the open corners only */}
-      <g fill={palette.accent}>
-        {[
-          [36, 40, 7],
-          [202, 44, 6],
-          [210, 170, 5],
-        ].map(([x, y, s]) => (
-          <path
-            key={`${x}-${y}`}
-            d="M 0 -10 C 1.6 -3.2 3.2 -1.6 10 0 C 3.2 1.6 1.6 3.2 0 10 C -1.6 3.2 -3.2 1.6 -10 0 C -3.2 -1.6 -1.6 -3.2 0 -10 Z"
-            fill={palette.accent}
-            opacity="0.9"
-            transform={`translate(${x} ${y}) scale(${(s ?? 6) / 10})`}
-          />
-        ))}
-      </g>
-    </svg>
-  )
+  return <Bouquet items={ROSE_ITEMS} palettes={sprayPalettes(palette)} viewBox="0 0 240 210" className={className} style={style} />
 }
 
 /** Scattered four-point sparkles (Grenat). */
@@ -889,9 +709,12 @@ export function DamaskPattern({
 export function ArchText({
   text,
   color = '#3A4A6B',
+  fontSize = 16.5,
+  fontFamily = "'Montserrat', 'Inter', sans-serif",
+  letterSpacing = 3.4,
   className,
   style,
-}: MotifProps & { text: string; color?: string }) {
+}: MotifProps & { text: string; color?: string; fontSize?: number; fontFamily?: string; letterSpacing?: number }) {
   const rawId = useId()
   const id = `arch-${rawId.replace(/[^a-zA-Z0-9_-]/gu, '')}`
   return (
@@ -901,11 +724,11 @@ export function ArchText({
       </defs>
       <text
         fill={color}
-        fontSize="16.5"
+        fontSize={fontSize}
         fontWeight="500"
-        letterSpacing="3.4"
+        letterSpacing={letterSpacing}
         textAnchor="middle"
-        fontFamily="'Montserrat', 'Inter', sans-serif"
+        fontFamily={fontFamily}
       >
         <textPath href={`#${id}`} startOffset="50%">
           {text}
