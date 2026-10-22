@@ -158,7 +158,7 @@ MAILERS = {
     "default": {"BACKEND": "django.core.mail.backends.smtp.EmailBackend", "OPTIONS": SMTP_OPTIONS},
 }
 # Must be on a domain verified in Resend (SPF/DKIM) — malaikaevent.com.
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "MalaikaEvents <invitations@malaikaevent.com>")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "MalaikaEvents <info@malaikaevent.com>")
 INVITATION_EMAIL_ENABLED = bool(RESEND_API_KEY or SMTP_HOST)
 
 # Public brand site, shown in e-mail footers.

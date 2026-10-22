@@ -211,14 +211,14 @@ class TestShareEmailPdfAndProvider:
 
     def test_sends_through_resend_when_the_key_is_set(self, auth_client, invitation, organizer, settings):
         settings.RESEND_API_KEY = "re_test_key"
-        settings.DEFAULT_FROM_EMAIL = "MalaikaEvents <invitations@malaikaevent.com>"
+        settings.DEFAULT_FROM_EMAIL = "MalaikaEvents <info@malaikaevent.com>"
         with mock.patch("resend.Emails.send", return_value={"id": "email_123"}) as send:
             response = auth_client.post(
                 email_url(invitation), {"recipient": "invite@example.com", "pdf": pdf_b64()}
             )
         assert response.status_code == 200
         params = send.call_args.args[0]
-        assert params["from"] == "MalaikaEvents <invitations@malaikaevent.com>"
+        assert params["from"] == "MalaikaEvents <info@malaikaevent.com>"
         assert params["to"] == ["invite@example.com"]
         assert params["reply_to"] == organizer.email
         assert f"/i/{invitation.token}" in params["html"]
