@@ -21,13 +21,13 @@ const CONTEXT = {
   default_message: `Bonjour M. Éric Mukendi,\n\nVotre invitation :\n${URL}`,
 }
 
-function renderDialog() {
+function renderDialog(buildPdf?: () => Promise<Blob>) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })
   return render(
     <QueryClientProvider client={queryClient}>
-      <ShareInvitationDialog token="tok-1" open onClose={() => {}} />
+      <ShareInvitationDialog token="tok-1" open onClose={() => {}} buildPdf={buildPdf} />
     </QueryClientProvider>,
   )
 }
@@ -134,5 +134,41 @@ describe('ShareInvitationDialog', () => {
     mockFetch([{ url: '/api/share/invitations/tok-1/', body: { can_share: false } }])
     renderDialog()
     expect(await screen.findByText(/Seul l’organisateur/)).toBeInTheDocument()
+  })
+
+  it('attaches the invitation PDF to the e-mail', async () => {
+    const api = mockFetch([
+      { url: '/api/share/invitations/tok-1/email/', method: 'POST', body: { status: 'accepted' } },
+      { url: '/api/share/invitations/tok-1/', body: CONTEXT },
+      { url: '/api/auth/csrf/', status: 204, onRequest: () => (document.cookie = 'csrftoken=tok') },
+    ])
+    const buildPdf = vi.fn(async () => new Blob(['%PDF-1.7 test'], { type: 'application/pdf' }))
+    const user = userEvent.setup()
+    renderDialog(buildPdf)
+
+    await user.click(await screen.findByRole('tab', { name: /E-mail/ }))
+    expect(screen.getByLabelText(/Joindre l’invitation en PDF/)).toBeChecked()
+    await user.type(screen.getByLabelText('Adresse e-mail de l’invité'), 'invite@example.com')
+    await user.click(screen.getByRole('button', { name: /Envoyer l’e-mail/ }))
+
+    expect(await screen.findByText(/avec l’invitation en PDF/)).toBeInTheDocument()
+    expect(buildPdf).toHaveBeenCalledTimes(1)
+    const [call] = api.callsTo('/email/', 'POST')
+    expect(atob(String((call.body as { pdf: string }).pdf))).toBe('%PDF-1.7 test')
+  })
+
+  it('reports a PDF build failure without sending anything', async () => {
+    const api = mockFetch([{ url: '/api/share/invitations/tok-1/', body: CONTEXT }])
+    const user = userEvent.setup()
+    renderDialog(async () => {
+      throw new Error('canvas tainted')
+    })
+
+    await user.click(await screen.findByRole('tab', { name: /E-mail/ }))
+    await user.type(screen.getByLabelText('Adresse e-mail de l’invité'), 'invite@example.com')
+    await user.click(screen.getByRole('button', { name: /Envoyer l’e-mail/ }))
+
+    expect(await screen.findByText(/Le PDF de l’invitation n’a pas pu être préparé/)).toBeInTheDocument()
+    expect(api.callsTo('/email/', 'POST')).toHaveLength(0)
   })
 })

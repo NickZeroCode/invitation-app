@@ -532,4 +532,6 @@ export interface ShareEmailPayload {
   recipient: string
   subject?: string
   message?: string
+  /** The guest's invitation PDF, base64-encoded (attached to the e-mail). */
+  pdf?: string
 }

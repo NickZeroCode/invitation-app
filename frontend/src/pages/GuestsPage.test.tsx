@@ -217,7 +217,7 @@ describe('GuestsPage', () => {
     })
   })
 
-  it('copies the unique invitation link', async () => {
+  it('copies the unique invitation link from the send dialog (no row copy button)', async () => {
     const user = userEvent.setup()
     const writeText = vi.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
@@ -225,12 +225,30 @@ describe('GuestsPage', () => {
       { url: '/api/auth/me/', body: ORGANIZER },
       { url: '/api/events/7/invitations/', body: PAGE },
       { url: '/api/events/7/', body: EVENT },
+      {
+        url: '/api/share/invitations/tok-abc123/',
+        body: {
+          can_share: true,
+          shareable: true,
+          status: 'active',
+          invitation_id: 41,
+          display_name: 'M. Éric Mukendi',
+          public_url: 'https://www.malaikaevent.com/i/tok-abc123',
+          email_enabled: true,
+          event: { title: 'Mariage', event_date: '2026-12-12', event_time: '15:00:00', venue_name: '' },
+          default_subject: 'Invitation',
+          default_message: 'https://www.malaikaevent.com/i/tok-abc123',
+        },
+      },
     ])
 
-    await user.click(await screen.findByRole('button', { name: 'Copier le lien' }))
+    await user.click(await screen.findByRole('button', { name: 'Envoyer' }))
+    expect(screen.queryAllByRole('button', { name: 'Copier le lien' }).length).toBe(0)
+    await user.click(await screen.findByRole('tab', { name: /Lien/ }))
+    await user.click(screen.getByRole('button', { name: /Copier le lien/ }))
 
-    expect(writeText).toHaveBeenCalledWith(expect.stringContaining('/i/tok-abc123'))
-    expect(screen.getByRole('button', { name: 'Lien copié.' })).toBeInTheDocument()
+    expect(writeText).toHaveBeenCalledWith('https://www.malaikaevent.com/i/tok-abc123')
+    expect(screen.getByRole('button', { name: /Lien copié/ })).toBeInTheDocument()
   })
 
   it('revokes an invitation after confirmation', async () => {

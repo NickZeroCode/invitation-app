@@ -7,9 +7,6 @@
  * (reply card, practical details, programme, access card) set beside it in
  * the same paper and accent. Data flow and every guest interaction (preference
  * answers, presence confirmation, QR verification) are unchanged.
- *
- * When the signed-in organizer views one of their own invitations, a quiet
- * bar offers « Envoyer l'invitation » (WhatsApp / e-mail / lien).
  */
 import { useCallback, useEffect, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
@@ -17,13 +14,13 @@ import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import QRCode from 'qrcode'
 
-import { ShareInvitationDialog } from '../components/ShareInvitationDialog.tsx'
 import { Button } from '../design-system/Button.tsx'
-import { IconCalendar, IconCheck, IconPin, IconSend } from '../design-system/icons.tsx'
+import { IconCalendar, IconCheck } from '../design-system/icons.tsx'
 import { LogoMark } from '../design-system/Logo.tsx'
 import { ErrorState, LoadingState } from '../design-system/states.tsx'
-import { ApiError, publicApi, shareApi } from '../lib/api.ts'
-import { directionsUrl, downloadIcs } from '../lib/calendar.ts'
+import { ApiError, publicApi } from '../lib/api.ts'
+import { downloadIcs } from '../lib/calendar.ts'
+import { invitationUrl } from '../lib/publicUrl.ts'
 import type {
   GuestResponseSubmission,
   PublicInvitationPayload,
@@ -203,16 +200,6 @@ export function PublicInvitationPage() {
     retry: false,
   })
 
-  // Organizer-only: a guest simply gets `can_share: false` (never an error).
-  const shareQuery = useQuery({
-    queryKey: ['share-context', publicToken],
-    queryFn: () => shareApi.context(publicToken),
-    enabled: publicToken.length > 0,
-    retry: false,
-    staleTime: 60_000,
-  })
-  const canShare = shareQuery.data?.can_share === true
-
   const [qrDataUrl, setQrDataUrl] = useState('')
   const [answerOverrides, setAnswerOverrides] = useState<Record<number, number[]> | null>(null)
   const [submitMessage, setSubmitMessage] = useState('')
@@ -222,7 +209,6 @@ export function PublicInvitationPage() {
   const [presenceStamped, setPresenceStamped] = useState<string | null>(null)
   const [presenceError, setPresenceError] = useState('')
   const [revealed, setRevealed] = useState(false)
-  const [sharing, setSharing] = useState(false)
   const onOpened = useCallback(() => setRevealed(true), [])
 
   // Saved answers seed the form; guest edits layer on top as explicit
@@ -272,7 +258,7 @@ export function PublicInvitationPage() {
     if (!publicToken) return
     let cancelled = false
 
-    QRCode.toDataURL(`${window.location.origin}/i/${publicToken}`, {
+    QRCode.toDataURL(invitationUrl(publicToken), {
       width: 340,
       margin: 1,
       color: { dark: '#1a261f', light: '#ffffff' },
@@ -364,7 +350,6 @@ export function PublicInvitationPage() {
     return <LifecycleStateScreen lifecycle={lifecycle} />
   }
 
-  const mapsUrl = directionsUrl(data.event.venue_name, data.event.venue_address)
   const confirmedAt = presenceStamped ?? data.presence?.confirmed_at ?? null
   const accentButton: CSSProperties = {
     backgroundColor: skin.accent,
@@ -398,19 +383,6 @@ export function PublicInvitationPage() {
             <LogoMark className="h-6 w-6 rounded-md" />
             MalaikaEvents
           </p>
-          {canShare ? (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setSharing(true)}
-              style={accentButton}
-            >
-              <span className="inline-flex items-center gap-2">
-                <IconSend className="h-4 w-4" />
-                Envoyer l’invitation
-              </span>
-            </Button>
-          ) : null}
         </header>
         <h1 className="sr-only">Invitation — {data.event.title}</h1>
 
@@ -626,18 +598,6 @@ export function PublicInvitationPage() {
                 ) : null}
               </dl>
               <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2" style={{ color: skin.ink }}>
-                {mapsUrl ? (
-                  <a
-                    href={mapsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={quietLink}
-                    style={{ textDecorationColor: skin.accent }}
-                  >
-                    <IconPin className="h-4 w-4" />
-                    Itinéraire
-                  </a>
-                ) : null}
                 <button
                   type="button"
                   className={quietLink}
@@ -650,7 +610,7 @@ export function PublicInvitationPage() {
                       timezone: data.event.timezone,
                       location: [data.event.venue_name, data.event.venue_address].filter(Boolean).join(', '),
                       description: data.event.message,
-                      url: `${window.location.origin}/i/${publicToken}`,
+                      url: invitationUrl(publicToken),
                     })
                   }
                 >
@@ -776,9 +736,6 @@ export function PublicInvitationPage() {
         </div>
       </div>
 
-      {canShare ? (
-        <ShareInvitationDialog token={publicToken} open={sharing} onClose={() => setSharing(false)} />
-      ) : null}
     </div>
   )
 }

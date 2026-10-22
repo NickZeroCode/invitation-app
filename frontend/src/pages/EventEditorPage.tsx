@@ -25,6 +25,7 @@ import type {
 } from '../lib/types.ts'
 import { fr } from '../locales/fr.ts'
 import { InvitationDownloadButton } from '../templates/InvitationDownloadButton.tsx'
+import { PUBLIC_SITE_URL } from '../lib/publicUrl.ts'
 import { MESSAGE_FONTS } from '../templates/messageFonts.ts'
 import { FONT_SIZES, fontScaleStyle } from '../templates/fontSizes.ts'
 import { TEMPLATES, emptyDraft, getTemplate } from '../templates/registry.tsx'
@@ -1077,7 +1078,7 @@ export function EventEditorPage() {
                   ? eventsApi.coverFileUrl(eventId as number)
                   : undefined
               }
-              qrText={`${window.location.origin}/`}
+              qrText={`${PUBLIC_SITE_URL}/`}
             />
           </div>
           <div className="flex flex-1 justify-center px-4 py-6 lg:px-8 lg:py-10">

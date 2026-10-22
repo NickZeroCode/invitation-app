@@ -22,11 +22,14 @@ never the address.
 """
 from __future__ import annotations
 
+import base64
+import binascii
 import logging
+import re
+import unicodedata
 from datetime import date, time
 
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from rest_framework import serializers, status
 from rest_framework.exceptions import APIException, NotFound
@@ -36,6 +39,7 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from core.exceptions import DomainValidationError
+from invitations.mailer import Attachment, DeliveryError, send_invitation_email
 from invitations.models import Invitation
 
 logger = logging.getLogger(__name__)
@@ -48,13 +52,16 @@ _MONTHS = [
 
 MESSAGE_MAX_LENGTH = 1500
 SUBJECT_MAX_LENGTH = 150
+# The client builds the PDF with the same pipeline as the download (capped
+# at ~1 MB); 3 MB leaves headroom while keeping abuse bounded.
+PDF_MAX_BYTES = 3 * 1024 * 1024
 
 
 class EmailDeliveryUnavailable(APIException):
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     default_code = "email_unavailable"
     default_detail = (
-        "L’envoi d’e-mails n’est pas encore configuré sur NickEvents. "
+        "L’envoi d’e-mails n’est pas encore configuré sur MalaikaEvents. "
         "Utilisez votre messagerie ou WhatsApp en attendant."
     )
 
@@ -156,6 +163,31 @@ class ShareEmailSerializer(serializers.Serializer):
     recipient = serializers.EmailField(max_length=254)
     subject = serializers.CharField(max_length=SUBJECT_MAX_LENGTH, required=False, allow_blank=True)
     message = serializers.CharField(max_length=MESSAGE_MAX_LENGTH, required=False, allow_blank=True)
+    # The guest's invitation PDF, base64 (optional). Never stored: it is
+    # decoded, checked and attached to this one e-mail only.
+    pdf = serializers.CharField(required=False, allow_blank=True, max_length=PDF_MAX_BYTES * 4 // 3 + 16)
+
+    def validate_pdf(self, value: str) -> bytes | None:
+        if not value:
+            return None
+        try:
+            content = base64.b64decode(value, validate=True)
+        except (binascii.Error, ValueError):
+            raise serializers.ValidationError("Le PDF joint est illisible.")
+        if not content.startswith(b"%PDF-"):
+            raise serializers.ValidationError("Le fichier joint n’est pas un PDF.")
+        if len(content) > PDF_MAX_BYTES:
+            raise serializers.ValidationError("Le PDF joint est trop volumineux (3 Mo maximum).")
+        return content
+
+
+def pdf_filename(invitation: Invitation) -> str:
+    """« Invitation - Grace et Eric - M. Eric Mukendi.pdf », ASCII-safe."""
+    raw = f"Invitation - {invitation.event_model.title} - {invitation.display_name}"
+    ascii_name = unicodedata.normalize("NFKD", raw).encode("ascii", "ignore").decode("ascii")
+    ascii_name = re.sub(r"[^A-Za-z0-9 ._&-]+", "", ascii_name).strip()
+    ascii_name = re.sub(r"\s+", " ", ascii_name)[:120] or "Invitation"
+    return f"{ascii_name}.pdf"
 
 
 class ShareEmailView(APIView):
@@ -196,23 +228,23 @@ class ShareEmailView(APIView):
             "venue_name": event.venue_name,
             "venue_address": event.venue_address,
             "guest_name": invitation.display_name,
+            "site_url": getattr(settings, "SITE_URL", "https://www.malaikaevent.com"),
+            "site_label": getattr(settings, "SITE_URL", "https://www.malaikaevent.com").split("://")[-1],
         }
 
-        email = EmailMultiAlternatives(
-            subject=subject,
-            body=render_to_string("invitations/email/invitation.txt", context),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[serializer.validated_data["recipient"]],
-            reply_to=[request.user.email] if request.user.email else None,
-        )
-        email.attach_alternative(render_to_string("invitations/email/invitation.html", context), "text/html")
+        pdf = serializer.validated_data.get("pdf")
+        context["has_pdf"] = bool(pdf)
         try:
-            sent = email.send(fail_silently=False)
-        except Exception:  # provider/network failure: never report success
-            logger.exception("Invitation e-mail failed (invitation=%s)", invitation.pk)
-            raise EmailDeliveryFailed()
-        if sent != 1:
-            logger.warning("Invitation e-mail not accepted (invitation=%s)", invitation.pk)
+            send_invitation_email(
+                to=serializer.validated_data["recipient"],
+                subject=subject,
+                html=render_to_string("invitations/email/invitation.html", context),
+                text=render_to_string("invitations/email/invitation.txt", context),
+                reply_to=request.user.email or None,
+                attachments=[Attachment(pdf_filename(invitation), pdf)] if pdf else [],
+            )
+        except DeliveryError:  # provider/network failure: never report success
+            logger.warning("Invitation e-mail failed (invitation=%s)", invitation.pk)
             raise EmailDeliveryFailed()
 
         logger.info("Invitation e-mail accepted by provider (invitation=%s)", invitation.pk)

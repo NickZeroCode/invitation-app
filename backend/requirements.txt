@@ -7,6 +7,8 @@ psycopg[binary]==3.3.6
 Pillow==12.3.0
 # S3-compatible media storage (cover images) — required in production.
 django-storages[s3]==1.14.6
+# Transactional e-mail (invitation delivery) — RESEND_API_KEY in production.
+resend==2.50.0
 
 # Testing
 pytest==9.1.1

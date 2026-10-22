@@ -12,3 +12,7 @@ from .dev import *  # noqa: F401,F403
 DATABASES = {
     "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"},
 }
+
+# Tests never reach a real e-mail provider, even if the developer's
+# environment carries a Resend key: the mailer falls back to locmem.
+RESEND_API_KEY = ""

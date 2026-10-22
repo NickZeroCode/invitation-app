@@ -315,16 +315,20 @@ the guest page and the guest list share one contract.
 
 ### E-mail request
 
-`{"recipient": "invite@example.com", "subject": "…", "message": "…"}` —
+`{"recipient": "invite@example.com", "subject": "…", "message": "…", "pdf": "<base64>"}` —
 `subject` (≤ 150) and `message` (≤ 1500) are optional and default to the
-context values. The HTML e-mail always carries an « Ouvrir mon invitation »
+context values. `pdf` (optional) is the guest's invitation PDF built in the
+browser by the same pipeline as the download; the server checks it decodes,
+starts with `%PDF-` and is ≤ 3 MB, then attaches it (never stored).
+Delivery goes through Resend when `RESEND_API_KEY` is set (Django mailer
+otherwise). The HTML e-mail always carries an « Ouvrir mon invitation »
 button with the public URL; a plain-text alternative is included and
 `Reply-To` is the organizer's address. Recipients are not stored.
 
 | Status | `error.code` | Meaning |
 | --- | --- | --- |
 | 200 | — | `{"status": "accepted"}` — the provider accepted the message. Delivery and opening are **not** tracked. |
-| 400 | `validation_error` | Invalid address (`fields.recipient`) or inactive invitation. |
+| 400 | `validation_error` | Invalid address (`fields.recipient`), invalid PDF (`fields.pdf`) or inactive invitation. |
 | 404 | `not_found` | Not the organizer's invitation. |
 | 429 | `throttled` | Rate limit reached. |
 | 502 | `email_failed` | The provider refused or failed; nothing was sent. |

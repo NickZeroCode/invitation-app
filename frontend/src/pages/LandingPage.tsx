@@ -9,6 +9,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import QRCode from 'qrcode'
 
+import { PUBLIC_SITE_URL } from '../lib/publicUrl.ts'
+
 import {
   Badge,
   BrandLockup,
@@ -68,7 +70,7 @@ export function LandingPage() {
 
   useEffect(() => {
     let cancelled = false
-    QRCode.toDataURL(`${window.location.origin}/`, {
+    QRCode.toDataURL(`${PUBLIC_SITE_URL}/`, {
       width: 340,
       margin: 1,
       color: { dark: '#1a261f', light: '#ffffff' },

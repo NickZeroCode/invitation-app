@@ -136,10 +136,11 @@ REST_FRAMEWORK = {
 }
 
 # --- Outgoing e-mail (invitation delivery) ----------------------------------
-# Delivery is enabled only when an SMTP relay is configured (any provider:
-# Brevo, Mailgun, SES, Postmark…). Without EMAIL_HOST the share dialog falls
-# back to the organizer's own mail app and the API refuses to pretend it sent
-# anything. Credentials live only in the server environment.
+# Production sends through Resend (RESEND_API_KEY). An SMTP relay (EMAIL_HOST)
+# is the alternative. With neither, the share dialog falls back to the
+# organizer's own mail app and the API refuses to pretend it sent anything.
+# Credentials live only in the server environment.
+RESEND_API_KEY = env("RESEND_API_KEY", "")
 SMTP_HOST = env("EMAIL_HOST", "")
 SMTP_OPTIONS = {
     "host": SMTP_HOST,
@@ -156,12 +157,16 @@ SMTP_OPTIONS = {
 MAILERS = {
     "default": {"BACKEND": "django.core.mail.backends.smtp.EmailBackend", "OPTIONS": SMTP_OPTIONS},
 }
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "NickEvents <invitations@nickevents.com>")
-INVITATION_EMAIL_ENABLED = bool(SMTP_HOST)
+# Must be on a domain verified in Resend (SPF/DKIM) — malaikaevent.com.
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "MalaikaEvents <invitations@malaikaevent.com>")
+INVITATION_EMAIL_ENABLED = bool(RESEND_API_KEY or SMTP_HOST)
+
+# Public brand site, shown in e-mail footers.
+SITE_URL = env("SITE_URL", "https://www.malaikaevent.com").rstrip("/")
 
 # Absolute origin of the guest-facing SPA, used to build the invitation link
-# placed in outgoing messages (e.g. https://www.nickevents.com). Empty =
-# derive it from the request host (the SPA and API share one origin).
+# placed in outgoing messages (and encoded in QR codes client-side). Empty =
+# derive it from the request host; production defaults to malaikaevent.com.
 PUBLIC_APP_URL = env("PUBLIC_APP_URL", "").rstrip("/")
 
 # --- Logging --------------------------------------------------------------

@@ -23,12 +23,10 @@ import {
   Field,
   IconBan,
   IconChart,
-  IconCheck,
   IconChevronDown,
   IconChevronUp,
   IconDownload,
   IconEdit,
-  IconLink,
   IconSend,
   IconPlus,
   IconQr,
@@ -53,6 +51,7 @@ import { ApiError, eventsApi, invitationsApi } from '../lib/api.ts'
 import type { RefreshedImageUrls } from '../lib/pdfImages.ts'
 import { ExportImagesError, exportInvitationPdf, yieldToBrowser } from '../lib/exportInvitationPdf.ts'
 import { formatDate } from '../lib/format.ts'
+import { invitationUrl } from '../lib/publicUrl.ts'
 import type {
   EventModel,
   EventTable,
@@ -221,7 +220,8 @@ async function exportOneInvitation(
   invitation: Invitation,
   onFileProgress?: (percent: number) => void,
   sourceOverride?: EventModel,
-): Promise<void> {
+  download = true,
+): Promise<Blob> {
   const fresh = sourceOverride ?? (await eventsApi.get(event.id).catch(() => null))
   const source = fresh ?? event
   const refreshExportImages = async (): Promise<RefreshedImageUrls | null> => {
@@ -233,7 +233,7 @@ async function exportOneInvitation(
         }
       : null
   }
-  await exportInvitationPdf({
+  return exportInvitationPdf({
     templateKey: source.template,
     draft: emptyDraft({
       title: source.title,
@@ -270,7 +270,8 @@ async function exportOneInvitation(
       : undefined,
     title: source.title,
     guestName: invitation.display_name,
-    qrText: `${window.location.origin}/i/${invitation.token}`,
+    qrText: invitationUrl(invitation.token),
+    download,
     refresh: refreshExportImages,
     coverFileUrl: source.cover_url ? eventsApi.coverFileUrl(source.id) : undefined,
     onProgress: onFileProgress
@@ -771,7 +772,6 @@ function GuestRow({
   const [editing, setEditing] = useState(false)
   const [confirmingRevoke, setConfirmingRevoke] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
-  const [copied, setCopied] = useState(false)
   const [sharing, setSharing] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -863,16 +863,6 @@ function GuestRow({
     },
   })
 
-  async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(`${window.location.origin}/i/${invitation.token}`)
-      setCopied(true)
-      setError(null)
-      window.setTimeout(() => setCopied(false), 2400)
-    } catch {
-      setError(fr.common.unexpectedError)
-    }
-  }
 
   function saveEdit(event: FormEvent) {
     event.preventDefault()
@@ -970,21 +960,6 @@ function GuestRow({
               <span className="sr-only sm:not-sr-only">{fr.guests.send}</span>
             </button>
           ) : null}
-          <button
-            type="button"
-            onClick={() => void copyLink()}
-            title={copied ? fr.guests.linkCopied : fr.guests.copyLink}
-            className={buttonClasses(
-              'secondary',
-              'sm',
-              `mr-1 h-9 w-9 px-0 sm:w-auto sm:px-3 ${copied ? 'text-success' : ''}`,
-            )}
-          >
-            {copied ? <IconCheck className="h-4 w-4" /> : <IconLink className="h-4 w-4" />}
-            <span className="sr-only sm:not-sr-only">
-              {copied ? fr.guests.linkCopied : fr.guests.copyLink}
-            </span>
-          </button>
           <RowAction
             label={fr.guests.export}
             icon={<IconDownload className="h-4 w-4" />}
@@ -1013,7 +988,12 @@ function GuestRow({
         </div>
       </div>
 
-      <ShareInvitationDialog token={invitation.token} open={sharing} onClose={() => setSharing(false)} />
+      <ShareInvitationDialog
+        token={invitation.token}
+        open={sharing}
+        onClose={() => setSharing(false)}
+        buildPdf={event ? () => exportOneInvitation(event, invitation, undefined, undefined, false) : undefined}
+      />
 
       {/* While the edit dialog is open its own alert carries the message —
           keeping this one hidden avoids duplicate role="alert" announcements. */}

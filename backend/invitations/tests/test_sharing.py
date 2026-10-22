@@ -163,3 +163,73 @@ class TestShareEmail:
                 for _ in range(3)
             ]
         assert codes == [200, 200, 429]
+
+
+PDF_BYTES = b"%PDF-1.7\n% invitation\n1 0 obj << >> endobj\ntrailer << >>\n%%EOF\n"
+
+
+def pdf_b64(content: bytes = PDF_BYTES) -> str:
+    import base64
+
+    return base64.b64encode(content).decode("ascii")
+
+
+@pytest.mark.django_db
+class TestShareEmailPdfAndProvider:
+    def test_attaches_the_invitation_pdf(self, auth_client, invitation):
+        response = auth_client.post(
+            email_url(invitation), {"recipient": "invite@example.com", "pdf": pdf_b64()}
+        )
+        assert response.status_code == 200
+        message = mail.outbox[0]
+        filename, content, mimetype = message.attachments[0]
+        assert filename == "Invitation - Mariage de Grace et Eric - M. Eric Mukendi.pdf"
+        assert content == PDF_BYTES
+        assert mimetype == "application/pdf"
+        assert "jointe à cet e-mail en PDF" in message.alternatives[0][0]
+
+    def test_rejects_a_non_pdf_attachment(self, auth_client, invitation):
+        response = auth_client.post(
+            email_url(invitation), {"recipient": "invite@example.com", "pdf": pdf_b64(b"<html>nope</html>")}
+        )
+        assert response.status_code == 400
+        assert "pdf" in response.json()["error"]["fields"]
+        assert mail.outbox == []
+
+    def test_rejects_invalid_base64(self, auth_client, invitation):
+        response = auth_client.post(email_url(invitation), {"recipient": "invite@example.com", "pdf": "%%%"})
+        assert response.status_code == 400
+        assert mail.outbox == []
+
+    def test_footer_links_the_brand_site(self, auth_client, invitation, settings):
+        settings.SITE_URL = "https://www.malaikaevent.com"
+        auth_client.post(email_url(invitation), {"recipient": "invite@example.com"})
+        html = mail.outbox[0].alternatives[0][0]
+        assert 'href="https://www.malaikaevent.com"' in html
+        assert "www.malaikaevent.com" in mail.outbox[0].body
+        assert "NickEvents" not in html
+
+    def test_sends_through_resend_when_the_key_is_set(self, auth_client, invitation, organizer, settings):
+        settings.RESEND_API_KEY = "re_test_key"
+        settings.DEFAULT_FROM_EMAIL = "MalaikaEvents <invitations@malaikaevent.com>"
+        with mock.patch("resend.Emails.send", return_value={"id": "email_123"}) as send:
+            response = auth_client.post(
+                email_url(invitation), {"recipient": "invite@example.com", "pdf": pdf_b64()}
+            )
+        assert response.status_code == 200
+        params = send.call_args.args[0]
+        assert params["from"] == "MalaikaEvents <invitations@malaikaevent.com>"
+        assert params["to"] == ["invite@example.com"]
+        assert params["reply_to"] == organizer.email
+        assert f"/i/{invitation.token}" in params["html"]
+        attachment = params["attachments"][0]
+        assert attachment["filename"].endswith(".pdf")
+        assert attachment["content"] == pdf_b64()
+        assert mail.outbox == []  # Resend path, not the Django mailer
+
+    def test_resend_failure_is_reported_not_hidden(self, auth_client, invitation, settings):
+        settings.RESEND_API_KEY = "re_test_key"
+        with mock.patch("resend.Emails.send", side_effect=RuntimeError("domain not verified")):
+            response = auth_client.post(email_url(invitation), {"recipient": "invite@example.com"})
+        assert response.status_code == 502
+        assert response.json()["error"]["code"] == "email_failed"

@@ -13,19 +13,17 @@ DEBUG = False
 
 # Required in production — env() raises when absent.
 SECRET_KEY = env("DJANGO_SECRET_KEY")
-# nickevents.com is always allowed/ trusted, even when the Vercel env vars
+# The brand domains are always allowed/trusted, even when the Vercel env vars
 # are empty or stale (they can only extend these lists, never shrink them).
-ALLOWED_HOSTS = sorted(
-    set(env_list("DJANGO_ALLOWED_HOSTS")) | {"nickevents.com", "www.nickevents.com"}
-)
-CSRF_TRUSTED_ORIGINS = sorted(
-    set(env_list("CSRF_TRUSTED_ORIGINS"))
-    | {"https://nickevents.com", "https://www.nickevents.com"}
-)
-CORS_ALLOWED_ORIGINS = sorted(
-    set(env_list("CORS_ALLOWED_ORIGINS"))
-    | {"https://nickevents.com", "https://www.nickevents.com"}
-)
+# malaikaevent.com is the guest-facing domain (QR codes, shared links);
+# nickevents.com stays valid so links already sent keep working.
+_DOMAINS = {"malaikaevent.com", "www.malaikaevent.com", "nickevents.com", "www.nickevents.com"}
+ALLOWED_HOSTS = sorted(set(env_list("DJANGO_ALLOWED_HOSTS")) | _DOMAINS)
+CSRF_TRUSTED_ORIGINS = sorted(set(env_list("CSRF_TRUSTED_ORIGINS")) | {f"https://{d}" for d in _DOMAINS})
+CORS_ALLOWED_ORIGINS = sorted(set(env_list("CORS_ALLOWED_ORIGINS")) | {f"https://{d}" for d in _DOMAINS})
+
+# Links placed in e-mails and WhatsApp messages point at the brand domain.
+PUBLIC_APP_URL = env("PUBLIC_APP_URL", "https://www.malaikaevent.com").rstrip("/")
 
 # HTTPS hardening (Vercel terminates TLS and sets X-Forwarded-Proto).
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

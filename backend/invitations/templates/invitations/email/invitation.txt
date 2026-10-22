@@ -8,5 +8,10 @@ Votre invitation : {{ url }}
 {{ venue_name }}{% endif %}{% if venue_address %}
 {{ venue_address }}{% endif %}
 
-Envoyé avec NickEvents à la demande de l’organisateur. Répondez à cet e-mail pour lui écrire.
+{% if has_pdf %}Votre invitation est jointe à cet e-mail en PDF.
+
+{% endif %}——
+MalaikaEvents · Invitations d’exception pour vos grands moments
+{{ site_url }}
+Cette invitation vous a été envoyée par l’organisateur via MalaikaEvents. Répondez à cet e-mail pour lui écrire.
 {% endautoescape %}

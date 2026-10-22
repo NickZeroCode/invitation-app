@@ -552,6 +552,28 @@ function createBackend(initialFixtures: Record<string, PublicFixture> = {}): Bac
       },
     },
     {
+      // Organizer share context (send dialog): the server builds the link.
+      method: 'GET',
+      pattern: /^\/api\/share\/invitations\/([^/]+)\/$/,
+      handle: (match) => {
+        const invitation = state.invitations.find((entry) => entry.token === match[1])
+        if (!invitation) return json(200, { can_share: false })
+        const url = `https://www.malaikaevent.com/i/${invitation.token}`
+        return json(200, {
+          can_share: true,
+          shareable: true,
+          status: invitation.status,
+          invitation_id: invitation.id,
+          display_name: invitation.display_name,
+          public_url: url,
+          email_enabled: true,
+          event: { title: '', event_date: '', event_time: '', venue_name: '' },
+          default_subject: 'Invitation',
+          default_message: `Bonjour,\n\n${url}`,
+        })
+      },
+    },
+    {
       method: 'GET',
       pattern: /^\/api\/public\/invitations\/([^/]+)\/verify\/$/,
       handle: (match) => {
@@ -825,11 +847,14 @@ describe('Parcours complet (E2E)', () => {
       expect(await screen.findByText('Invitation créée.')).toBeInTheDocument()
       expect((await screen.findAllByText('M. Éric Mukendi')).length).toBeGreaterThan(0)
 
-      // 6. Copy the unique invitation link.
-      await user.click(screen.getByRole('button', { name: 'Copier le lien' }))
+      // 6. Copy the unique invitation link from the send dialog.
+      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+      await user.click(await screen.findByRole('tab', { name: /Lien/ }))
+      await user.click(screen.getByRole('button', { name: /Copier le lien/ }))
       await waitFor(() => expect(writeText).toHaveBeenCalled())
       const copiedLink = String(writeText.mock.calls.at(-1)?.[0] ?? '')
-      expect(copiedLink).toContain('/i/tok-e2e-001')
+      expect(copiedLink).toBe('https://www.malaikaevent.com/i/tok-e2e-001')
+      await user.click(screen.getByRole('button', { name: 'Fermer' }))
 
       // 7. The guest opens the unique link.
       await router.navigate(new URL(copiedLink, window.location.origin).pathname)

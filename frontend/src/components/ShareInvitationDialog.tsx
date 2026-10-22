@@ -49,10 +49,14 @@ export function ShareInvitationDialog({
   token,
   open,
   onClose,
+  buildPdf,
 }: {
   token: string
   open: boolean
   onClose: () => void
+  /** Builds this guest's invitation PDF (same pipeline as the download) so
+   * the e-mail can carry it as an attachment. Absent = link only. */
+  buildPdf?: () => Promise<Blob>
 }) {
   const contextQuery = useQuery({
     queryKey: ['share-context', token],
@@ -87,19 +91,34 @@ export function ShareInvitationDialog({
         ) : (
           // Keyed by token: reopening for another guest starts from that
           // guest's own prefilled message.
-          <ShareForm key={token} token={token} context={context} />
+          <ShareForm key={token} token={token} context={context} buildPdf={buildPdf} />
         )}
       </div>
     </Modal>
   )
 }
 
+/** Raised when the invitation PDF could not be built in the browser. */
+class PdfBuildError extends Error {}
+
+/** Blob → bare base64 (no data: prefix), for the JSON request body. */
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result).split(',', 2)[1] ?? '')
+    reader.onerror = () => reject(reader.error ?? new Error('read failed'))
+    reader.readAsDataURL(blob)
+  })
+}
+
 function ShareForm({
   token,
   context,
+  buildPdf,
 }: {
   token: string
   context: Extract<ShareContext, { can_share: true }>
+  buildPdf?: () => Promise<Blob>
 }) {
   const ids = useId()
   const [channel, setChannel] = useState<Channel>('whatsapp')
@@ -113,6 +132,9 @@ function ShareForm({
   const [subject, setSubject] = useState(context.default_subject)
   const [sentTo, setSentTo] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [attachPdf, setAttachPdf] = useState(Boolean(buildPdf))
+  const [sendPhase, setSendPhase] = useState<'idle' | 'pdf' | 'sending'>('idle')
+  const [sentWithPdf, setSentWithPdf] = useState(false)
 
   const phoneResult = normalizePhone(phone, country)
   const phoneError =
@@ -123,16 +145,40 @@ function ShareForm({
   const linkMissing = !message.includes(context.public_url)
 
   const emailMutation = useMutation({
-    mutationFn: () =>
-      shareApi.email(token, { recipient: recipient.trim(), subject: subject.trim(), message: message.trim() }),
-    onSuccess: () => setSentTo(recipient.trim()),
+    mutationFn: async () => {
+      let pdf: string | undefined
+      const withPdf = attachPdf && Boolean(buildPdf)
+      if (withPdf && buildPdf) {
+        setSendPhase('pdf')
+        try {
+          pdf = await blobToBase64(await buildPdf())
+        } catch {
+          throw new PdfBuildError()
+        }
+      }
+      setSendPhase('sending')
+      await shareApi.email(token, {
+        recipient: recipient.trim(),
+        subject: subject.trim(),
+        message: message.trim(),
+        ...(pdf ? { pdf } : {}),
+      })
+      return withPdf
+    },
+    onSuccess: (withPdf) => {
+      setSentTo(recipient.trim())
+      setSentWithPdf(withPdf)
+    },
+    onSettled: () => setSendPhase('idle'),
   })
   const emailError =
     emailMutation.error instanceof ApiError
       ? (emailMutation.error.fields.recipient?.[0] ?? emailMutation.error.message)
-      : emailMutation.error
-        ? 'L’e-mail n’a pas pu être envoyé. Vérifiez votre connexion et réessayez.'
-        : null
+      : emailMutation.error instanceof PdfBuildError
+        ? 'Le PDF de l’invitation n’a pas pu être préparé. Réessayez, ou décochez la pièce jointe pour envoyer le lien seul.'
+        : emailMutation.error
+          ? 'L’e-mail n’a pas pu être envoyé. Vérifiez votre connexion et réessayez.'
+          : null
 
   async function copyLink() {
     try {
@@ -249,7 +295,7 @@ function ShareForm({
             {handedOff ? (
               <Alert tone="info">
                 WhatsApp s’ouvre avec votre message. Appuyez sur « Envoyer » dans WhatsApp pour le
-                transmettre — NickEvents ne peut pas confirmer sa réception. Rien ne s’ouvre ? Vérifiez
+                transmettre — MalaikaEvents ne peut pas confirmer sa réception. Rien ne s’ouvre ? Vérifiez
                 que WhatsApp est installé ou utilisez l’onglet Lien.
               </Alert>
             ) : null}
@@ -290,10 +336,28 @@ function ShareForm({
             <MessageField id={`${ids}-email-message`} value={message} onChange={setMessage} linkMissing={false} url={context.public_url} emailNote />
             {context.email_enabled ? (
               <>
+                {buildPdf ? (
+                  <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-line bg-surface-muted/60 px-3 py-2.5 text-sm text-ink">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5 h-4 w-4 accent-brand"
+                      checked={attachPdf}
+                      disabled={emailMutation.isPending}
+                      onChange={(event) => setAttachPdf(event.target.checked)}
+                    />
+                    <span>
+                      Joindre l’invitation en PDF
+                      <span className="block text-[0.75rem] text-ink-soft">
+                        Le même fichier que le téléchargement : carte, détails et QR code de l’invité.
+                      </span>
+                    </span>
+                  </label>
+                ) : null}
                 {sentTo ? (
                   <Alert tone="success">
-                    E-mail remis au service d’envoi pour {sentTo}. La réception et l’ouverture ne sont pas
-                    suivies.
+                    E-mail remis au service d’envoi pour {sentTo}
+                    {sentWithPdf ? ', avec l’invitation en PDF' : ''}. La réception et l’ouverture ne sont
+                    pas suivies.
                   </Alert>
                 ) : null}
                 {emailError ? <Alert tone="danger">{emailError}</Alert> : null}
@@ -315,7 +379,11 @@ function ShareForm({
                   ) : (
                     <span className="inline-flex items-center gap-2">
                       <IconMail className="h-4 w-4" />
-                      Envoyer l’e-mail
+                      {sendPhase === 'pdf'
+                        ? 'Préparation du PDF…'
+                        : sendPhase === 'sending'
+                          ? 'Envoi en cours…'
+                          : 'Envoyer l’e-mail'}
                     </span>
                   )}
                 </Button>
@@ -323,7 +391,7 @@ function ShareForm({
             ) : (
               <>
                 <Alert tone="info">
-                  L’envoi direct d’e-mails n’est pas encore activé sur NickEvents. Ouvrez votre messagerie
+                  L’envoi direct d’e-mails n’est pas encore activé sur MalaikaEvents. Ouvrez votre messagerie
                   avec le message prêt : vous l’enverrez vous-même.
                 </Alert>
                 <a

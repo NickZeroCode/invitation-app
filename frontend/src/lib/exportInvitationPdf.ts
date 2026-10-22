@@ -107,6 +107,8 @@ export interface InvitationPdfContent {
   guestName?: string
   /** Verification URL encoded on the final QR page. */
   qrText?: string
+  /** false = build the PDF and return it without downloading (e.g. to attach it to an e-mail). */
+  download?: boolean
   /** Page decoder of the compression engine — injectable for tests. */
   pageDecoder?: PageDecoder
   /** Re-reads the event so expired storage URLs can be replaced (used once). */
@@ -726,7 +728,7 @@ async function timed<T>(phase: string, task: () => Promise<T>): Promise<T> {
  * sheet — the cover hero melting into the card — then the dress code and
  * programme when set, and the last page the centered verification QR code.
  */
-export async function exportInvitationPdf(content: InvitationPdfContent): Promise<void> {
+export async function exportInvitationPdf(content: InvitationPdfContent): Promise<Blob> {
   const pages: PageRaster[] = []
   let offscreen: { node: HTMLElement; dispose: () => void } | null = null
 
@@ -976,11 +978,15 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       }
       report('assemble', weights.assemble)
 
-      triggerDownload(doc, invitationPdfFileName(content.title, content.guestName), blob ?? undefined)
+      const pdf: Blob = blob ?? doc.output('blob')
+      if (content.download !== false) {
+        triggerDownload(doc, invitationPdfFileName(content.title, content.guestName), pdf)
+      }
       // Snap to 100 regardless of rounding drift so the bar always completes.
       report('done', 100 - completed)
       // Let the browser start the download (and paint) before any next export.
       await yieldToBrowser()
+      return pdf
     } finally {
       compressor.dispose()
     }
