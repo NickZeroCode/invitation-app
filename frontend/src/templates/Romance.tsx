@@ -80,125 +80,129 @@ export function Romance({ draft }: TemplateProps) {
         }}
       />
 
-      {/* Blush peonies with dusty-blue and gilded leaves at top-left and
-          bottom-right, a blue watercolour mist top-right, the couple at
-          bottom-left — the composition of the reference. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -right-[4em] -top-[4em] h-[18em] w-[22em] rounded-full" style={{ background: 'radial-gradient(closest-side, rgba(150,175,215,0.28), transparent)' }} />
-        <Bouquet items={BLUSH_TOP_LEFT} viewBox="0 0 140 170" className="absolute -left-[0.5em] -top-[0.5em] h-[19em] w-[15.5em]" />
-        <Bouquet items={BLUSH_BOTTOM_RIGHT} viewBox="0 0 170 220" className="absolute -bottom-[0.5em] -right-[0.5em] h-[22em] w-[17em]" />
-        <CoupleArt className="absolute bottom-0 left-[0.8em] h-[19em] w-[12.4em]" />
-      </div>
-
-      <div className="relative flex flex-1 flex-col items-center px-[8em] pb-[16em] pt-[8.5em] text-center">
-        <p className="uppercase" style={{ fontFamily: SERIF, fontWeight: 500, fontSize: '1.15em', letterSpacing: '0.08em', lineHeight: 1.6, color: '#6B6F7A' }}>
-          Vous êtes invités à être nos hôtes
-          <br />
-          à notre cérémonie de mariage
-        </p>
-
-        <h1 className="mt-[1.2em] break-words text-balance leading-[1.14]" style={{ color: INK }}>
-          <span className="sr-only">{draft.title}</span>
-          {names ? (
-            <span aria-hidden="true" className="flex flex-col items-center">
-              <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '4.3em' : '3.5em' }}>
-                {names[0]}
-              </span>
-              <span
-                style={{
-                  fontFamily: SCRIPT_FONT,
-                  fontSize: titleEm ? '3.2em' : '2.8em',
-                  color: INK,
-                  lineHeight: 1,
-                  margin: '0.02em 0',
-                }}
-              >
-                &amp;
-              </span>
-              <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '4.3em' : '3.5em' }}>
-                {names[1]}
-              </span>
-            </span>
-          ) : (
-            <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '4.3em' : '3.5em' }}>
-              {draft.title}
-            </span>
-          )}
-        </h1>
-
-        {draft.guestName?.trim() ? (
-          <p className="mt-[1em] font-display italic" style={{ fontSize: '1.12em', opacity: 0.85 }}>
-            {draft.guestName}
-          </p>
-        ) : null}
-
-        {draft.message ? (
-          <p
-            className="mt-[1.1em] max-w-[25em] text-pretty leading-[1.7] break-words"
-            style={{ fontSize: '1.1em', fontFamily: messageFontCss(draft.messageFont) }}
-          >
-            {draft.message}
-          </p>
-        ) : null}
-
-        <p className="mt-[1.6em] uppercase" style={{ fontFamily: SERIF, fontWeight: 600, letterSpacing: '0.14em', fontSize: '1.35em' }}>
-          {formatMonthOnly(draft.event_date)}
-        </p>
-
-        {/* WEEKDAY | gold DAY | TIME between double tan rules, year beneath. */}
-        <div
-          className="mt-[0.5em] grid w-full max-w-[26em] grid-cols-[1fr_auto_1fr] items-center gap-[1.2em]"
-          style={{ transform: dateEm ? 'scale(1.12)' : undefined, fontFamily: SERIF, fontWeight: 600, fontSize: '1.25em' }}
-        >
-          <div className="flex flex-col gap-[0.2em]">
-            <span className="h-[1.5px]" style={{ backgroundColor: TAN }} />
-            <span className="whitespace-nowrap py-[0.2em] uppercase" style={{ letterSpacing: '0.1em' }}>{formatWeekday(draft.event_date).slice(0, 3)}</span>
-            <span className="h-[1.5px]" style={{ backgroundColor: TAN }} />
-          </div>
-          <p className="leading-none" style={{ fontSize: '2.4em', color: GOLD }}>
-            {formatDayNumber(draft.event_date)}
-          </p>
-          <div className="flex flex-col gap-[0.2em]">
-            <span className="h-[1.5px]" style={{ backgroundColor: TAN }} />
-            <span className="whitespace-nowrap py-[0.2em] uppercase" style={{ letterSpacing: '0.1em' }}>à {formatEventTime(draft.event_time)}</span>
-            <span className="h-[1.5px]" style={{ backgroundColor: TAN }} />
-          </div>
+      {/* Everything below the cover lives in its own frame, so the
+          ornaments start under the photo instead of hiding behind it. */}
+      <div className="relative flex flex-1 flex-col">
+        {/* Blush peonies with dusty-blue and gilded leaves at top-left and
+            bottom-right, a blue watercolour mist top-right, the couple at
+            bottom-left — the composition of the reference. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -right-[4em] -top-[4em] h-[18em] w-[22em] rounded-full" style={{ background: 'radial-gradient(closest-side, rgba(150,175,215,0.28), transparent)' }} />
+          <Bouquet items={BLUSH_TOP_LEFT} viewBox="0 0 140 170" className="absolute -left-[0.5em] -top-[0.5em] h-[19em] w-[15.5em]" />
+          <Bouquet items={BLUSH_BOTTOM_RIGHT} viewBox="0 0 170 220" className="absolute -bottom-[0.5em] -right-[0.5em] h-[22em] w-[17em]" />
+          <CoupleArt className="absolute bottom-0 left-[0.8em] h-[19em] w-[12.4em]" />
         </div>
 
-        <p className="mt-[0.5em] uppercase" style={{ fontFamily: SERIF, fontWeight: 600, letterSpacing: '0.14em', fontSize: '1.2em' }}>
-          {formatYearOnly(draft.event_date)}
-        </p>
+        <div className="relative flex flex-1 flex-col items-center px-[8em] pb-[16em] pt-[8.5em] text-center">
+          <p className="uppercase" style={{ fontFamily: SERIF, fontWeight: 500, fontSize: '1.15em', letterSpacing: '0.08em', lineHeight: 1.6, color: '#6B6F7A' }}>
+            Vous êtes invités à être nos hôtes
+            <br />
+            à notre cérémonie de mariage
+          </p>
 
-        {draft.venue_name || draft.venue_address ? (
+          <h1 className="mt-[1.2em] break-words text-balance leading-[1.14]" style={{ color: INK }}>
+            <span className="sr-only">{draft.title}</span>
+            {names ? (
+              <span aria-hidden="true" className="flex flex-col items-center">
+                <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '4.3em' : '3.5em' }}>
+                  {names[0]}
+                </span>
+                <span
+                  style={{
+                    fontFamily: SCRIPT_FONT,
+                    fontSize: titleEm ? '3.2em' : '2.8em',
+                    color: INK,
+                    lineHeight: 1,
+                    margin: '0.02em 0',
+                  }}
+                >
+                  &amp;
+                </span>
+                <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '4.3em' : '3.5em' }}>
+                  {names[1]}
+                </span>
+              </span>
+            ) : (
+              <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '4.3em' : '3.5em' }}>
+                {draft.title}
+              </span>
+            )}
+          </h1>
+
+          {draft.guestName?.trim() ? (
+            <p className="mt-[1em] font-display italic" style={{ fontSize: '1.12em', opacity: 0.85 }}>
+              {draft.guestName}
+            </p>
+          ) : null}
+
+          {draft.message ? (
+            <p
+              className="mt-[1.1em] max-w-[25em] text-pretty leading-[1.7] break-words"
+              style={{ fontSize: '1.1em', fontFamily: messageFontCss(draft.messageFont) }}
+            >
+              {draft.message}
+            </p>
+          ) : null}
+
+          <p className="mt-[1.6em] uppercase" style={{ fontFamily: SERIF, fontWeight: 600, letterSpacing: '0.14em', fontSize: '1.35em' }}>
+            {formatMonthOnly(draft.event_date)}
+          </p>
+
+          {/* WEEKDAY | gold DAY | TIME between double tan rules, year beneath. */}
           <div
-            className="mt-[1.3em]"
-            style={{ fontFamily: SERIF, fontSize: venueEm ? '1.4em' : '1.25em', lineHeight: 1.5, color: '#6B6F7A' }}
+            className="mt-[0.5em] grid w-full max-w-[26em] grid-cols-[1fr_auto_1fr] items-center gap-[1.2em]"
+            style={{ transform: dateEm ? 'scale(1.12)' : undefined, fontFamily: SERIF, fontWeight: 600, fontSize: '1.25em' }}
           >
-            {draft.venue_name ? <p>{draft.venue_name}</p> : null}
-            {draft.venue_address ? <p className="opacity-85">{draft.venue_address}</p> : null}
-            {draft.venue_details ? <p className="italic opacity-75">{draft.venue_details}</p> : null}
+            <div className="flex flex-col gap-[0.2em]">
+              <span className="h-[1.5px]" style={{ backgroundColor: TAN }} />
+              <span className="whitespace-nowrap py-[0.2em] uppercase" style={{ letterSpacing: '0.1em' }}>{formatWeekday(draft.event_date).slice(0, 3)}</span>
+              <span className="h-[1.5px]" style={{ backgroundColor: TAN }} />
+            </div>
+            <p className="leading-none" style={{ fontSize: '2.4em', color: GOLD }}>
+              {formatDayNumber(draft.event_date)}
+            </p>
+            <div className="flex flex-col gap-[0.2em]">
+              <span className="h-[1.5px]" style={{ backgroundColor: TAN }} />
+              <span className="whitespace-nowrap py-[0.2em] uppercase" style={{ letterSpacing: '0.1em' }}>à {formatEventTime(draft.event_time)}</span>
+              <span className="h-[1.5px]" style={{ backgroundColor: TAN }} />
+            </div>
           </div>
-        ) : null}
 
-        <NoteSection draft={draft} ink={INK} />
-        <ProgramSection
-          draft={draft}
-          accent={GOLD}
-          ink={INK}
-          ornament={<TemplateOrnament templateKey="romance" color={GOLD} />}
-        />
-        <TableSection
-          draft={draft}
-          accent={GOLD}
-          ink={INK}
-          ornament={<TemplateOrnament templateKey="romance" color={GOLD} />}
-        />
-        <DressCodeSection
-          draft={draft}
-          accent={GOLD}
-          ink={INK}
-          ornament={<TemplateOrnament templateKey="romance" color={GOLD} />}
-        />
+          <p className="mt-[0.5em] uppercase" style={{ fontFamily: SERIF, fontWeight: 600, letterSpacing: '0.14em', fontSize: '1.2em' }}>
+            {formatYearOnly(draft.event_date)}
+          </p>
+
+          {draft.venue_name || draft.venue_address ? (
+            <div
+              className="mt-[1.3em]"
+              style={{ fontFamily: SERIF, fontSize: venueEm ? '1.4em' : '1.25em', lineHeight: 1.5, color: '#6B6F7A' }}
+            >
+              {draft.venue_name ? <p>{draft.venue_name}</p> : null}
+              {draft.venue_address ? <p className="opacity-85">{draft.venue_address}</p> : null}
+              {draft.venue_details ? <p className="italic opacity-75">{draft.venue_details}</p> : null}
+            </div>
+          ) : null}
+
+          <NoteSection draft={draft} ink={INK} />
+          <ProgramSection
+            draft={draft}
+            accent={GOLD}
+            ink={INK}
+            ornament={<TemplateOrnament templateKey="romance" color={GOLD} />}
+          />
+          <TableSection
+            draft={draft}
+            accent={GOLD}
+            ink={INK}
+            ornament={<TemplateOrnament templateKey="romance" color={GOLD} />}
+          />
+          <DressCodeSection
+            draft={draft}
+            accent={GOLD}
+            ink={INK}
+            ornament={<TemplateOrnament templateKey="romance" color={GOLD} />}
+          />
+        </div>
       </div>
     </InvitationPaper>
   )

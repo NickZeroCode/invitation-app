@@ -10,6 +10,7 @@
  * thumbnail to a full editor preview — no transform hacks.
  */
 /* oxlint-disable react/only-export-components -- pure helpers + one primitive component */
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 
 import { CoverSheen } from './florals.tsx'
@@ -17,6 +18,36 @@ import { LuxuryTable } from './tableScene.tsx'
 import type { InvitationDraft } from './types.ts'
 
 export const PAPER_FONT_SIZE = '2.6cqw'
+const PAPER_FONT_RATIO = 0.026
+
+/**
+ * Container units arrived in Chrome 105 / Safari 16. Older phones — still
+ * common among guests — drop the whole `cqw` declaration, so the paper fell
+ * back to 16px body text and every invitation overflowed its frame. There,
+ * the paper measures its own width and sets the same size in pixels.
+ */
+const SUPPORTS_CONTAINER_UNITS =
+  typeof CSS === 'undefined' || typeof CSS.supports !== 'function' || CSS.supports('width', '1cqw')
+
+function usePaperFontFallback() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState<number | null>(null)
+  useLayoutEffect(() => {
+    const node = ref.current
+    if (SUPPORTS_CONTAINER_UNITS || !node) return undefined
+    const measure = () => setWidth(node.clientWidth)
+    measure()
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', measure)
+      return () => window.removeEventListener('resize', measure)
+    }
+    const observer = new ResizeObserver(measure)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+  const base = width === null ? PAPER_FONT_SIZE : `${width * PAPER_FONT_RATIO}px`
+  return { ref, base }
+}
 
 export function InvitationPaper({
   children,
@@ -25,8 +56,9 @@ export function InvitationPaper({
   children: ReactNode
   style?: CSSProperties
 }) {
+  const { ref, base } = usePaperFontFallback()
   return (
-    <div className="h-full w-full" style={{ containerType: 'inline-size' }}>
+    <div ref={ref} className="h-full w-full" style={{ containerType: 'inline-size' }}>
       <article
         className="relative flex min-h-full w-full flex-col overflow-hidden"
         style={{
@@ -34,7 +66,7 @@ export function InvitationPaper({
           // `--invitation-scale` (see fontSizes.ts) multiplies the paper's
           // base size; every internal measure is `em`, so the whole
           // invitation scales together with the chosen text size.
-          fontSize: `calc(var(--invitation-scale, 1) * ${PAPER_FONT_SIZE})`,
+          fontSize: `calc(var(--invitation-scale, 1) * ${base})`,
           // Long unbreakable tokens (map links, phone numbers, WhatsApp
           // handles) must wrap inside the paper instead of running past the
           // right frame and being clipped. `anywhere` breaks them at the

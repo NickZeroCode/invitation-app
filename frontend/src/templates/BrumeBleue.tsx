@@ -85,152 +85,156 @@ export function BrumeBleue({ draft }: TemplateProps) {
         }}
       />
 
-      {/* Painted dusty-blue eucalyptus: a dense spill at top-right, a
-          lighter sprig top-left, a rising cluster at bottom-left. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <Bouquet items={FOLIAGE_TOP_RIGHT} viewBox="0 0 220 200" className="absolute -right-[1em] -top-[1em] h-[19em] w-[21em]" />
-        <Bouquet items={FOLIAGE_TOP_LEFT} viewBox="0 0 120 120" className="absolute left-[6em] -top-[0.8em] h-[9em] w-[9em]" />
-        <Bouquet items={FOLIAGE_BOTTOM_LEFT} viewBox="0 0 200 220" className="absolute -bottom-[1em] -left-[1em] h-[20em] w-[18em]" />
-      </div>
-
-      <div className="relative flex flex-1 flex-col items-center px-[6.2em] pb-[9em] pt-[12em] text-center">
-        <p
-          className="uppercase"
-          style={{ fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: '1.2em', letterSpacing: '0.16em', color: INK }}
-        >
-          Avec leurs familles
-        </p>
-
-        <h1 className="mt-[1.5em] break-words text-balance leading-[1.2]" style={{ color: SOFT }}>
-          <span className="sr-only">{draft.title}</span>
-          {names ? (
-            <span
-              aria-hidden="true"
-              className="inline-flex flex-wrap items-baseline justify-center gap-x-[0.45em]"
-            >
-              <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '3.9em' : '3.2em' }}>
-                {names[0]}
-              </span>
-              <span
-                className="italic"
-                style={{
-                  fontFamily: ROMAN_FONT,
-                  fontSize: titleEm ? '2.6em' : '2.2em',
-                  color: INK,
-                }}
-              >
-                &amp;
-              </span>
-              <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '3.9em' : '3.2em' }}>
-                {names[1]}
-              </span>
-            </span>
-          ) : (
-            <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '3.9em' : '3.2em' }}>
-              {draft.title}
-            </span>
-          )}
-        </h1>
-
-        {draft.guestName?.trim() ? (
-          <p className="mt-[1em] font-display italic" style={{ fontSize: '1.12em', color: SOFT }}>
-            {draft.guestName}
-          </p>
-        ) : null}
-
-        <p
-          className="mt-[1.7em] uppercase"
-          style={{ fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: '1.2em', letterSpacing: '0.16em', color: INK }}
-        >
-          On vous convie à nous rejoindre
-        </p>
-        <p className="mt-[0.3em] italic" style={{ fontFamily: ROMAN_FONT, fontSize: '1.35em', color: INK }}>
-          pour célébrer notre mariage
-        </p>
-
-        {draft.message ? (
-          <p
-            className="mt-[1.1em] max-w-[26em] text-pretty leading-[1.7] break-words"
-            style={{ fontSize: '1.1em', fontFamily: messageFontCss(draft.messageFont) }}
-          >
-            {draft.message}
-          </p>
-        ) : null}
-
-        <div
-          className="mt-[1.8em] flex items-stretch justify-center"
-          style={{ transform: dateEm ? 'scale(1.12)' : undefined, color: SOFT, fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: '1.25em' }}
-        >
-          <p className="flex items-center px-[0.85em] uppercase" style={{ letterSpacing: '0.22em' }}>
-            {formatWeekday(draft.event_date).slice(0, 3)}
-          </p>
-          <span style={{ width: 2, backgroundColor: SOFT }} />
-          <p
-            className="flex items-center px-[0.5em] leading-none"
-            style={{ fontSize: '2.3em' }}
-          >
-            {formatDayNumber(draft.event_date)}
-          </p>
-          <span style={{ width: 2, backgroundColor: SOFT }} />
-          <p className="flex items-center px-[0.85em] uppercase" style={{ letterSpacing: '0.22em' }}>
-            {formatMonthShort(draft.event_date)}
-          </p>
+      {/* Everything below the cover lives in its own frame, so the
+          ornaments start under the photo instead of hiding behind it. */}
+      <div className="relative flex flex-1 flex-col">
+        {/* Painted dusty-blue eucalyptus: a dense spill at top-right, a
+            lighter sprig top-left, a rising cluster at bottom-left. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+          <Bouquet items={FOLIAGE_TOP_RIGHT} viewBox="0 0 220 200" className="absolute -right-[1em] -top-[1em] h-[19em] w-[21em]" />
+          <Bouquet items={FOLIAGE_TOP_LEFT} viewBox="0 0 120 120" className="absolute left-[6em] -top-[0.8em] h-[9em] w-[9em]" />
+          <Bouquet items={FOLIAGE_BOTTOM_LEFT} viewBox="0 0 200 220" className="absolute -bottom-[1em] -left-[1em] h-[20em] w-[18em]" />
         </div>
 
-        <p className="mt-[1em] uppercase" style={{ fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: '1.2em', letterSpacing: '0.16em', color: INK }}>
-          {formatYearOnly(draft.event_date)}
-        </p>
-        <p className="mt-[0.2em] italic" style={{ fontFamily: ROMAN_FONT, fontSize: '1.35em', color: INK }}>
-          à {formatEventTime(draft.event_time)}
-        </p>
-
-        {draft.venue_name || draft.venue_address ? (
-          <div
-            className="mt-[1.5em] uppercase"
-            style={{ fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: venueEm ? '1.3em' : '1.15em', color: INK, lineHeight: 1.6 }}
+        <div className="relative flex flex-1 flex-col items-center px-[6.2em] pb-[9em] pt-[12em] text-center">
+          <p
+            className="uppercase"
+            style={{ fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: '1.2em', letterSpacing: '0.16em', color: INK }}
           >
-            {draft.venue_name ? (
-              <p style={{ letterSpacing: '0.26em', fontWeight: 600 }}>{draft.venue_name}</p>
-            ) : null}
-            {draft.venue_address ? (
-              <p style={{ letterSpacing: '0.22em', fontSize: '0.86em', opacity: 0.85 }}>
-                {draft.venue_address}
-              </p>
-            ) : null}
-            {draft.venue_details ? (
-              <p className="text-[0.82em] italic opacity-75" style={{ letterSpacing: '0.06em' }}>
-                {draft.venue_details}
-              </p>
-            ) : null}
+            Avec leurs familles
+          </p>
+
+          <h1 className="mt-[1.5em] break-words text-balance leading-[1.2]" style={{ color: SOFT }}>
+            <span className="sr-only">{draft.title}</span>
+            {names ? (
+              <span
+                aria-hidden="true"
+                className="inline-flex flex-wrap items-baseline justify-center gap-x-[0.45em]"
+              >
+                <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '3.9em' : '3.2em' }}>
+                  {names[0]}
+                </span>
+                <span
+                  className="italic"
+                  style={{
+                    fontFamily: ROMAN_FONT,
+                    fontSize: titleEm ? '2.6em' : '2.2em',
+                    color: INK,
+                  }}
+                >
+                  &amp;
+                </span>
+                <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '3.9em' : '3.2em' }}>
+                  {names[1]}
+                </span>
+              </span>
+            ) : (
+              <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '3.9em' : '3.2em' }}>
+                {draft.title}
+              </span>
+            )}
+          </h1>
+
+          {draft.guestName?.trim() ? (
+            <p className="mt-[1em] font-display italic" style={{ fontSize: '1.12em', color: SOFT }}>
+              {draft.guestName}
+            </p>
+          ) : null}
+
+          <p
+            className="mt-[1.7em] uppercase"
+            style={{ fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: '1.2em', letterSpacing: '0.16em', color: INK }}
+          >
+            On vous convie à nous rejoindre
+          </p>
+          <p className="mt-[0.3em] italic" style={{ fontFamily: ROMAN_FONT, fontSize: '1.35em', color: INK }}>
+            pour célébrer notre mariage
+          </p>
+
+          {draft.message ? (
+            <p
+              className="mt-[1.1em] max-w-[26em] text-pretty leading-[1.7] break-words"
+              style={{ fontSize: '1.1em', fontFamily: messageFontCss(draft.messageFont) }}
+            >
+              {draft.message}
+            </p>
+          ) : null}
+
+          <div
+            className="mt-[1.8em] flex items-stretch justify-center"
+            style={{ transform: dateEm ? 'scale(1.12)' : undefined, color: SOFT, fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: '1.25em' }}
+          >
+            <p className="flex items-center px-[0.85em] uppercase" style={{ letterSpacing: '0.22em' }}>
+              {formatWeekday(draft.event_date).slice(0, 3)}
+            </p>
+            <span style={{ width: 2, backgroundColor: SOFT }} />
+            <p
+              className="flex items-center px-[0.5em] leading-none"
+              style={{ fontSize: '2.3em' }}
+            >
+              {formatDayNumber(draft.event_date)}
+            </p>
+            <span style={{ width: 2, backgroundColor: SOFT }} />
+            <p className="flex items-center px-[0.85em] uppercase" style={{ letterSpacing: '0.22em' }}>
+              {formatMonthShort(draft.event_date)}
+            </p>
           </div>
-        ) : null}
 
-        <p className="mt-[1.2em] flex flex-col items-center" style={{ fontFamily: SCRIPT_FONT, fontSize: '2em', color: SOFT }}>
-          réception à suivre
-          <svg viewBox="0 0 200 14" className="-mt-[0.35em] h-[0.45em] w-[5.4em]" aria-hidden="true">
-            <path d="M2 10 C 50 2, 120 14, 198 4" fill="none" stroke={SOFT} strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
-        </p>
+          <p className="mt-[1em] uppercase" style={{ fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: '1.2em', letterSpacing: '0.16em', color: INK }}>
+            {formatYearOnly(draft.event_date)}
+          </p>
+          <p className="mt-[0.2em] italic" style={{ fontFamily: ROMAN_FONT, fontSize: '1.35em', color: INK }}>
+            à {formatEventTime(draft.event_time)}
+          </p>
 
-        <NoteSection draft={draft} ink={INK} />
-        <ProgramSection
-          draft={draft}
-          accent={SOFT}
-          ink={INK}
-          ornament={<TemplateOrnament templateKey="brume-bleue" color={SOFT} />}
-        />
-        <TableSection
-          draft={draft}
-          accent={SOFT}
-          ink={INK}
-          ornament={<TemplateOrnament templateKey="brume-bleue" color={SOFT} />}
-        />
-        <DressCodeSection
-          draft={draft}
-          accent={SOFT}
-          ink={INK}
-          ornament={<TemplateOrnament templateKey="brume-bleue" color={SOFT} />}
-        />
+          {draft.venue_name || draft.venue_address ? (
+            <div
+              className="mt-[1.5em] uppercase"
+              style={{ fontFamily: ROMAN_FONT, fontWeight: 600, fontSize: venueEm ? '1.3em' : '1.15em', color: INK, lineHeight: 1.6 }}
+            >
+              {draft.venue_name ? (
+                <p style={{ letterSpacing: '0.26em', fontWeight: 600 }}>{draft.venue_name}</p>
+              ) : null}
+              {draft.venue_address ? (
+                <p style={{ letterSpacing: '0.22em', fontSize: '0.86em', opacity: 0.85 }}>
+                  {draft.venue_address}
+                </p>
+              ) : null}
+              {draft.venue_details ? (
+                <p className="text-[0.82em] italic opacity-75" style={{ letterSpacing: '0.06em' }}>
+                  {draft.venue_details}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          <p className="mt-[1.2em] flex flex-col items-center" style={{ fontFamily: SCRIPT_FONT, fontSize: '2em', color: SOFT }}>
+            réception à suivre
+            <svg viewBox="0 0 200 14" className="-mt-[0.35em] h-[0.45em] w-[5.4em]" aria-hidden="true">
+              <path d="M2 10 C 50 2, 120 14, 198 4" fill="none" stroke={SOFT} strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </p>
+
+          <NoteSection draft={draft} ink={INK} />
+          <ProgramSection
+            draft={draft}
+            accent={SOFT}
+            ink={INK}
+            ornament={<TemplateOrnament templateKey="brume-bleue" color={SOFT} />}
+          />
+          <TableSection
+            draft={draft}
+            accent={SOFT}
+            ink={INK}
+            ornament={<TemplateOrnament templateKey="brume-bleue" color={SOFT} />}
+          />
+          <DressCodeSection
+            draft={draft}
+            accent={SOFT}
+            ink={INK}
+            ornament={<TemplateOrnament templateKey="brume-bleue" color={SOFT} />}
+          />
+        </div>
       </div>
     </InvitationPaper>
   )

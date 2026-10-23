@@ -108,7 +108,7 @@ export function SignupPage() {
           <LogoMark plate={false} className="h-28 w-28 xl:h-32 xl:w-32" />
         </div>
         <div>
-          <h1 className="font-display text-4xl font-semibold leading-tight">{fr.login.heroTitle}</h1>
+          <h1 className="font-brand text-[2.75rem] font-semibold leading-[1.05] tracking-[-0.01em]">{fr.login.heroTitle}</h1>
           <p className="mt-4 max-w-md text-sm leading-relaxed text-white/70">{fr.login.heroText}</p>
           <ul className="mt-8 space-y-2.5">
             {[fr.login.heroPoint1, fr.login.heroPoint2, fr.login.heroPoint3].map((point) => (
@@ -131,7 +131,7 @@ export function SignupPage() {
             <BrandLockup />
           </div>
 
-          <h2 className="mt-8 text-2xl font-semibold tracking-tight text-ink lg:mt-0">
+          <h2 className="mt-8 font-brand text-[2.25rem] font-semibold leading-tight text-ink lg:mt-0">
             {fr.signup.title}
           </h2>
           <p className="mt-1.5 text-sm text-ink-soft">{fr.signup.subtitle}</p>

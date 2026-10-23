@@ -62,7 +62,7 @@ export function BrandLockup({
     <span className="flex items-center gap-2.5">
       <LogoMark />
       {compact ? null : (
-        <span className="font-display text-lg font-semibold tracking-tight">
+        <span className="font-brand text-[1.375rem] font-semibold leading-none">
           <span className={dark ? 'text-white' : 'text-ink'}>Malaika</span>
           <span className={dark ? 'text-gold' : 'text-brand'}>Events</span>
         </span>

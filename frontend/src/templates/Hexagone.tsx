@@ -120,117 +120,121 @@ export function Hexagone({ draft }: TemplateProps) {
         }}
       />
 
-      <GemFrame />
+      {/* Everything below the cover lives in its own frame, so the
+          ornaments start under the photo instead of hiding behind it. */}
+      <div className="relative flex flex-1 flex-col">
+        <GemFrame />
 
-      {/* Dried bouquets: cream and blush roses, taupe anemones, tan plumes,
-          burgundy leaves and red berries, at all four corners. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <Bouquet items={DRIED_TOP_LEFT} viewBox="0 0 140 140" className="absolute -left-[0.6em] -top-[0.6em] h-[14em] w-[14em]" />
-        <Bouquet items={DRIED_TOP_RIGHT} viewBox="0 0 180 160" className="absolute -right-[0.6em] -top-[0.4em] h-[16em] w-[18em]" />
-        <Bouquet items={DRIED_BOTTOM} viewBox="0 0 160 170" className="absolute -bottom-[0.6em] -left-[0.6em] h-[15em] w-[14em]" />
-        <Bouquet items={DRIED_BOTTOM} viewBox="0 0 160 170" className="absolute -bottom-[0.6em] -right-[0.6em] h-[16em] w-[15em]" style={{ transform: 'scaleX(-1)' }} />
-      </div>
-
-      <div className="relative flex flex-1 flex-col items-center px-[6.8em] pb-[10em] pt-[10.5em] text-center">
-        <p className="font-display" style={{ fontSize: '1.32em', lineHeight: 1.5 }}>
-          Rejoignez-nous pour
-          <br />
-          le mariage de
-        </p>
-
-        <h1 className="mt-[1.1em] break-words text-balance leading-[1.12]" style={{ color: '#6B4A3A' }}>
-          <span className="sr-only">{draft.title}</span>
-          {names ? (
-            <span aria-hidden="true" className="flex flex-col items-center">
-              <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '4.8em' : '3.8em' }}>
-                {names[0]}
-              </span>
-              <span
-                style={{
-                  fontFamily: SCRIPT_FONT,
-                  fontSize: titleEm ? '3.5em' : '2.9em',
-                  lineHeight: 1,
-                  margin: '0.05em 0',
-                }}
-              >
-                &amp;
-              </span>
-              <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '4.8em' : '3.8em' }}>
-                {names[1]}
-              </span>
-            </span>
-          ) : (
-            <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '4.8em' : '3.8em' }}>
-              {draft.title}
-            </span>
-          )}
-        </h1>
-
-        {draft.guestName?.trim() ? (
-          <p className="mt-[1em] font-display italic" style={{ fontSize: '1.12em', opacity: 0.85 }}>
-            {draft.guestName}
-          </p>
-        ) : null}
-
-        {draft.message ? (
-          <p
-            className="mt-[1.1em] max-w-[25em] text-pretty leading-[1.7] break-words"
-            style={{ fontSize: '1.12em', fontFamily: messageFontCss(draft.messageFont) }}
-          >
-            {draft.message}
-          </p>
-        ) : null}
-
-        {/* MONTH | DAY | TIME: rules frame the side words only. */}
-        <div
-          className="mt-[1.7em] grid w-full max-w-[25em] grid-cols-[1fr_auto_1fr] items-center gap-[1.2em]"
-          style={{ transform: dateEm ? 'scale(1.12)' : undefined, fontFamily: SERIF_CAPS }}
-        >
-          <p className="whitespace-nowrap py-[0.35em] text-center uppercase" style={{ borderTop: `1px solid ${INK}`, borderBottom: `1px solid ${INK}`, fontSize: '1.3em', fontWeight: 600, letterSpacing: '0.05em' }}>
-            {formatMonthOnly(draft.event_date)}
-          </p>
-          <p className="leading-none" style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '3.4em', fontWeight: 500 }}>
-            {formatDayNumber(draft.event_date)}
-          </p>
-          <p className="whitespace-nowrap py-[0.35em] text-center" style={{ borderTop: `1px solid ${INK}`, borderBottom: `1px solid ${INK}`, fontSize: '1.3em', fontWeight: 600, letterSpacing: '0.05em' }}>
-            {formatEventTime(draft.event_time)}
-          </p>
+        {/* Dried bouquets: cream and blush roses, taupe anemones, tan plumes,
+            burgundy leaves and red berries, at all four corners. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+          <Bouquet items={DRIED_TOP_LEFT} viewBox="0 0 140 140" className="absolute -left-[0.6em] -top-[0.6em] h-[14em] w-[14em]" />
+          <Bouquet items={DRIED_TOP_RIGHT} viewBox="0 0 180 160" className="absolute -right-[0.6em] -top-[0.4em] h-[16em] w-[18em]" />
+          <Bouquet items={DRIED_BOTTOM} viewBox="0 0 160 170" className="absolute -bottom-[0.6em] -left-[0.6em] h-[15em] w-[14em]" />
+          <Bouquet items={DRIED_BOTTOM} viewBox="0 0 160 170" className="absolute -bottom-[0.6em] -right-[0.6em] h-[16em] w-[15em]" style={{ transform: 'scaleX(-1)' }} />
         </div>
 
-        {draft.venue_name || draft.venue_address ? (
-          <div
-            className="mt-[1.4em] uppercase"
-            style={{ fontFamily: SERIF_CAPS, fontWeight: 600, fontSize: venueEm ? '1.3em' : '1.15em', letterSpacing: '0.05em', lineHeight: 1.5 }}
-          >
-            {draft.venue_name ? <p>{draft.venue_name}</p> : null}
-            {draft.venue_address ? <p>{draft.venue_address}</p> : null}
-            {draft.venue_details ? (
-              <p className="text-[0.92em] italic opacity-80" style={{ letterSpacing: '0.08em' }}>
-                {draft.venue_details}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
+        <div className="relative flex flex-1 flex-col items-center px-[6.8em] pb-[10em] pt-[10.5em] text-center">
+          <p className="font-display" style={{ fontSize: '1.32em', lineHeight: 1.5 }}>
+            Rejoignez-nous pour
+            <br />
+            le mariage de
+          </p>
 
-        <NoteSection draft={draft} ink={INK} />
-        <ProgramSection
-          draft={draft}
-          accent={GOLD}
-          ink={INK}
-          ornament={<TemplateOrnament templateKey="hexagone" color={GOLD} />}
-        />
-        <TableSection
-          draft={draft}
-          accent={GOLD}
-          ink={INK}
-          ornament={<TemplateOrnament templateKey="hexagone" color={GOLD} />}
-        />
-        <DressCodeSection
-          draft={draft}
-          accent={GOLD}
-          ink={INK}
-          ornament={<TemplateOrnament templateKey="hexagone" color={GOLD} />}
-        />
+          <h1 className="mt-[1.1em] break-words text-balance leading-[1.12]" style={{ color: '#6B4A3A' }}>
+            <span className="sr-only">{draft.title}</span>
+            {names ? (
+              <span aria-hidden="true" className="flex flex-col items-center">
+                <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '4.8em' : '3.8em' }}>
+                  {names[0]}
+                </span>
+                <span
+                  style={{
+                    fontFamily: SCRIPT_FONT,
+                    fontSize: titleEm ? '3.5em' : '2.9em',
+                    lineHeight: 1,
+                    margin: '0.05em 0',
+                  }}
+                >
+                  &amp;
+                </span>
+                <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '4.8em' : '3.8em' }}>
+                  {names[1]}
+                </span>
+              </span>
+            ) : (
+              <span style={{ fontFamily: SCRIPT_FONT, fontSize: titleEm ? '4.8em' : '3.8em' }}>
+                {draft.title}
+              </span>
+            )}
+          </h1>
+
+          {draft.guestName?.trim() ? (
+            <p className="mt-[1em] font-display italic" style={{ fontSize: '1.12em', opacity: 0.85 }}>
+              {draft.guestName}
+            </p>
+          ) : null}
+
+          {draft.message ? (
+            <p
+              className="mt-[1.1em] max-w-[25em] text-pretty leading-[1.7] break-words"
+              style={{ fontSize: '1.12em', fontFamily: messageFontCss(draft.messageFont) }}
+            >
+              {draft.message}
+            </p>
+          ) : null}
+
+          {/* MONTH | DAY | TIME: rules frame the side words only. */}
+          <div
+            className="mt-[1.7em] grid w-full max-w-[25em] grid-cols-[1fr_auto_1fr] items-center gap-[1.2em]"
+            style={{ transform: dateEm ? 'scale(1.12)' : undefined, fontFamily: SERIF_CAPS }}
+          >
+            <p className="whitespace-nowrap py-[0.35em] text-center uppercase" style={{ borderTop: `1px solid ${INK}`, borderBottom: `1px solid ${INK}`, fontSize: '1.3em', fontWeight: 600, letterSpacing: '0.05em' }}>
+              {formatMonthOnly(draft.event_date)}
+            </p>
+            <p className="leading-none" style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '3.4em', fontWeight: 500 }}>
+              {formatDayNumber(draft.event_date)}
+            </p>
+            <p className="whitespace-nowrap py-[0.35em] text-center" style={{ borderTop: `1px solid ${INK}`, borderBottom: `1px solid ${INK}`, fontSize: '1.3em', fontWeight: 600, letterSpacing: '0.05em' }}>
+              {formatEventTime(draft.event_time)}
+            </p>
+          </div>
+
+          {draft.venue_name || draft.venue_address ? (
+            <div
+              className="mt-[1.4em] uppercase"
+              style={{ fontFamily: SERIF_CAPS, fontWeight: 600, fontSize: venueEm ? '1.3em' : '1.15em', letterSpacing: '0.05em', lineHeight: 1.5 }}
+            >
+              {draft.venue_name ? <p>{draft.venue_name}</p> : null}
+              {draft.venue_address ? <p>{draft.venue_address}</p> : null}
+              {draft.venue_details ? (
+                <p className="text-[0.92em] italic opacity-80" style={{ letterSpacing: '0.08em' }}>
+                  {draft.venue_details}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          <NoteSection draft={draft} ink={INK} />
+          <ProgramSection
+            draft={draft}
+            accent={GOLD}
+            ink={INK}
+            ornament={<TemplateOrnament templateKey="hexagone" color={GOLD} />}
+          />
+          <TableSection
+            draft={draft}
+            accent={GOLD}
+            ink={INK}
+            ornament={<TemplateOrnament templateKey="hexagone" color={GOLD} />}
+          />
+          <DressCodeSection
+            draft={draft}
+            accent={GOLD}
+            ink={INK}
+            ornament={<TemplateOrnament templateKey="hexagone" color={GOLD} />}
+          />
+        </div>
       </div>
     </InvitationPaper>
   )

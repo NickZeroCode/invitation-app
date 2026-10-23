@@ -45,9 +45,9 @@ const COPY = fr.landing
 /** One measure and one padding scale for the whole page. */
 const WRAP = 'mx-auto w-full max-w-[76rem] px-5 sm:px-8 lg:px-10'
 const SECTION_Y = 'py-20 sm:py-24 lg:py-32'
-const H2 = 'font-display text-[2rem] leading-[1.1] tracking-[-0.015em] text-ink sm:text-[2.5rem] lg:text-[2.875rem]'
+const H2 = 'text-balance font-brand text-[2.375rem] font-semibold leading-[1.02] tracking-[-0.01em] text-ink sm:text-[3rem] lg:text-[3.5rem]'
 const LEAD = 'text-[1.0625rem] leading-relaxed text-ink-soft'
-const EYEBROW = 'text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-brand'
+const EYEBROW = 'font-label text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-brand'
 
 /** The curated first view of the collection (covers every event type). */
 const FEATURED_KEYS = [
@@ -203,7 +203,7 @@ function SiteHeader() {
                 key={href}
                 href={`#${href}`}
                 onClick={() => setOpen(false)}
-                className="border-b border-line/70 py-3.5 font-display text-[1.25rem] text-ink"
+                className="border-b border-line/70 py-3.5 font-brand text-[1.625rem] font-semibold text-ink"
               >
                 {label}
               </a>
@@ -233,7 +233,7 @@ function Hero({ qrDataUrl }: { qrDataUrl: string }) {
           <p className={EYEBROW}>{COPY.hero.eyebrow}</p>
           <h1
             id="hero-titre"
-            className="mt-5 font-display text-[2.6rem] leading-[1.04] tracking-[-0.02em] text-ink sm:text-[3.4rem] lg:text-[3.9rem]"
+            className="mt-5 font-brand text-[3rem] font-semibold leading-[0.98] tracking-[-0.015em] text-ink sm:text-[4rem] lg:text-[4.625rem]"
           >
             {COPY.hero.title}
           </h1>
@@ -314,7 +314,7 @@ function FactsBand() {
           >
             <dt className="sr-only">{label}</dt>
             <dd>
-              <span className="block font-display text-[2.25rem] leading-none text-ink sm:text-[2.75rem]">{value}</span>
+              <span className="block font-brand text-[2.75rem] font-semibold leading-none text-ink [font-variant-numeric:lining-nums] sm:text-[3.25rem]">{value}</span>
               <span className="mt-3 block max-w-[14rem] text-[0.875rem] leading-snug text-ink-soft">{label}</span>
             </dd>
           </div>
@@ -333,7 +333,7 @@ function ProblemSolution() {
         <SectionHeader id="pourquoi-titre" eyebrow={COPY.problem.eyebrow} title={COPY.problem.title} />
         <div className="mt-14 grid gap-px overflow-hidden rounded-lg border border-line bg-line md:grid-cols-2">
           <div className="bg-paper p-7 sm:p-10">
-            <h3 className="text-[0.75rem] font-semibold uppercase tracking-[0.18em] text-ink-faint">{COPY.problem.beforeTitle}</h3>
+            <h3 className="font-label text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-ink-faint">{COPY.problem.beforeTitle}</h3>
             <ul className="mt-6 space-y-4">
               {COPY.problem.before.map((item) => (
                 <li key={item} className="flex gap-3 text-[0.9375rem] leading-relaxed text-ink-soft">
@@ -344,7 +344,7 @@ function ProblemSolution() {
             </ul>
           </div>
           <div className="bg-surface p-7 sm:p-10">
-            <h3 className="text-[0.75rem] font-semibold uppercase tracking-[0.18em] text-brand">{COPY.problem.afterTitle}</h3>
+            <h3 className="font-label text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-brand">{COPY.problem.afterTitle}</h3>
             <ul className="mt-6 space-y-4">
               {COPY.problem.after.map((item) => (
                 <li key={item} className="flex gap-3 text-[0.9375rem] leading-relaxed text-ink">
@@ -411,10 +411,10 @@ function GuestJourney({ qrDataUrl }: { qrDataUrl: string }) {
               <div className="flex aspect-[4/3.4] items-center justify-center overflow-hidden rounded-lg border border-line bg-paper">
                 {visuals[index]}
               </div>
-              <p className="mt-6 font-display text-[1.125rem] leading-none text-gold" aria-hidden="true">
+              <p className="mt-6 font-brand text-[1.5rem] font-semibold leading-none text-gold [font-variant-numeric:lining-nums]" aria-hidden="true">
                 {String(index + 1).padStart(2, '0')}
               </p>
-              <h3 className="mt-3 text-[1rem] font-semibold tracking-[-0.005em] text-ink">{step.title}</h3>
+              <h3 className="mt-3 font-brand text-[1.375rem] font-semibold leading-tight text-ink">{step.title}</h3>
               <p className="mt-2 text-[0.9375rem] leading-relaxed text-ink-soft">{step.text}</p>
             </li>
           ))}
@@ -479,7 +479,7 @@ function Features() {
               <li key={item.title} className="grid grid-cols-[2.25rem_1fr] gap-x-4 py-7 sm:py-8">
                 <Icon className="mt-0.5 h-5 w-5 text-brand" />
                 <div>
-                  <h3 className="text-[1.0625rem] font-semibold tracking-[-0.005em] text-ink">{item.title}</h3>
+                  <h3 className="font-brand text-[1.375rem] font-semibold leading-tight text-ink">{item.title}</h3>
                   <p className="mt-2 max-w-[34rem] text-[0.9375rem] leading-relaxed text-ink-soft">{item.text}</p>
                 </div>
               </li>
@@ -507,9 +507,9 @@ function HowItWorks() {
                 <span aria-hidden="true" className="h-[1.375rem] w-[1.375rem] rounded-full border border-brand bg-surface p-[5px]">
                   <span className="block h-full w-full rounded-full bg-brand" />
                 </span>
-                <span className="font-display text-[1.125rem] leading-none text-gold">{String(index + 1).padStart(2, '0')}</span>
+                <span className="font-brand text-[1.5rem] font-semibold leading-none text-gold [font-variant-numeric:lining-nums]">{String(index + 1).padStart(2, '0')}</span>
               </span>
-              <h3 className="mt-5 text-[1.0625rem] font-semibold tracking-[-0.005em] text-ink">{step.title}</h3>
+              <h3 className="mt-5 font-brand text-[1.375rem] font-semibold leading-tight text-ink">{step.title}</h3>
               <p className="mt-2 text-[0.9375rem] leading-relaxed text-ink-soft">{step.text}</p>
             </li>
           ))}
@@ -622,7 +622,7 @@ function Showcase() {
                 <TemplatePreview templateKey={template.key} />
               </div>
               <div className="mt-5 flex items-baseline justify-between gap-3">
-                <h3 className="font-display text-[1.25rem] text-ink">{template.name}</h3>
+                <h3 className="font-brand text-[1.625rem] font-semibold leading-tight text-ink">{template.name}</h3>
                 <span className="shrink-0 text-[0.6875rem] uppercase tracking-[0.12em] text-ink-faint">{template.categoryLabel}</span>
               </div>
               <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-soft">{template.description}</p>
@@ -634,7 +634,7 @@ function Showcase() {
           <p className="max-w-[30rem] text-[0.9375rem] text-ink-soft">
             {COPY.showcase.more.replace('{count}', String(TEMPLATES.length))}
           </p>
-          <Link to="/inscription" className={buttonClasses('primary', 'lg', 'w-full justify-center gap-2 sm:w-auto')}>
+          <Link to="/inscription" className={buttonClasses('primary', 'lg', 'h-auto! min-h-11 w-full justify-center gap-2 whitespace-normal! py-3 text-center leading-snug sm:w-auto')}>
             {COPY.showcase.cta}
             <IconArrowRight className="h-4 w-4" />
           </Link>
@@ -654,7 +654,7 @@ function Occasions() {
         <ul className="grid border-t border-line sm:grid-cols-2 sm:gap-x-10">
           {COPY.categories.items.map((category) => (
             <li key={category.name} className="border-b border-line py-5">
-              <h3 className="font-display text-[1.25rem] text-ink">{category.name}</h3>
+              <h3 className="font-brand text-[1.625rem] font-semibold leading-tight text-ink">{category.name}</h3>
               <p className="mt-1 text-[0.875rem] text-ink-soft">{category.text}</p>
             </li>
           ))}
@@ -726,7 +726,7 @@ function Faq() {
           {COPY.faq.items.map((item, index) => (
             <details key={item.q} className="faq-item group border-b border-line" open={index === 0}>
               <summary className="flex cursor-pointer list-none items-start justify-between gap-6 py-6 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 [&::-webkit-details-marker]:hidden">
-                <span className="text-[1rem] font-semibold leading-snug text-ink">{item.q}</span>
+                <span className="font-brand text-[1.3125rem] font-semibold leading-snug text-ink">{item.q}</span>
                 <span aria-hidden="true" className="relative mt-1.5 h-3 w-3 shrink-0">
                   <span className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-ink" />
                   <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-ink transition-transform duration-200 group-open:scale-y-0" />
@@ -759,7 +759,7 @@ function FinalCta() {
     <section aria-labelledby="final-titre" className="bg-ink">
       <div className={`grid items-center gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] ${WRAP} py-20 sm:py-24`}>
         <div>
-          <h2 id="final-titre" className="max-w-[34rem] font-display text-[2rem] leading-[1.1] tracking-[-0.015em] text-white sm:text-[2.5rem]">
+          <h2 id="final-titre" className="max-w-[34rem] text-balance font-brand text-[2.375rem] font-semibold leading-[1.02] tracking-[-0.01em] text-white sm:text-[3rem]">
             {COPY.finalCta.title}
           </h2>
           <p className="mt-5 max-w-[30rem] text-[1.0625rem] leading-relaxed text-white/70">{COPY.finalCta.text}</p>
@@ -785,7 +785,7 @@ function FinalCta() {
 /* ----------------------------------------------------------------- footer */
 
 function SiteFooter() {
-  const columnTitle = 'text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-ink'
+  const columnTitle = 'font-label text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-ink'
   const link = 'text-[0.875rem] text-ink-soft transition-colors hover:text-ink'
   return (
     <footer className="bg-paper">
@@ -793,7 +793,7 @@ function SiteFooter() {
         <div className="col-span-2 sm:col-span-3 lg:col-span-1">
           <BrandLockup />
           <p className="mt-5 max-w-[22rem] text-[0.875rem] leading-relaxed text-ink-soft">{COPY.footer.description}</p>
-          <p className="mt-4 font-display text-[1rem] italic text-ink">{COPY.footer.tagline}</p>
+          <p className="mt-4 font-brand text-[1.25rem] italic text-ink">{COPY.footer.tagline}</p>
         </div>
         <nav aria-label={COPY.footer.product}>
           <p className={columnTitle}>{COPY.footer.product}</p>

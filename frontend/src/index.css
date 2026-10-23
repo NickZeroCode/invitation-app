@@ -43,6 +43,11 @@
   /* Type */
   --font-sans: 'Inter Variable', Inter, ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Playfair Display', ui-serif, Georgia, serif;
+  /* Brand voice (landing, auth, wordmark): the stationery serif of the
+     invitations themselves for titles, a wide geometric sans for the
+     small-caps labels. `font-display` stays the templates' face. */
+  --font-brand: 'Cormorant Garamond', 'Playfair Display', ui-serif, Georgia, serif;
+  --font-label: 'Montserrat', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
 
   /* Radii */
   --radius-sm: 6px;
