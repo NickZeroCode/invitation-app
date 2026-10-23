@@ -238,11 +238,14 @@ export const fr = {
     coverTooLarge: "L'image ne doit pas dépasser 4 Mo.",
     dressCodeTitle: 'Code vestimentaire',
     dressCodeHint:
-      'Ajoutez une ou plusieurs photos, avec une légende sous chacune. Laissé vide, cette section ne sera pas affichée.',
+      'Regroupez vos photos par catégorie (ex. : tenue des dames, tenue des messieurs) : une légende, autant de photos que vous voulez. Laissé vide, cette section ne sera pas affichée.',
     dressCodeUpload: 'Ajouter des photos',
-    dressCodeCaption: 'Légende',
-    dressCodeCaptionPlaceholder: 'Ex. : Tenue de cérémonie',
-    dressCodeRemove: "Retirer l'image",
+    dressCodeCaption: 'Légende de la catégorie',
+    dressCodeCaptionPlaceholder: 'Ex. : Tenue des dames',
+    dressCodeRemove: 'Retirer cette photo',
+    dressCodeRemoveCategory: 'Retirer cette catégorie et ses photos',
+    dressCodeAddToCategory: 'Ajouter des photos à cette catégorie',
+    dressCodeNewCategory: 'Nouvelle catégorie de tenue',
     programTitle: 'Programme',
     programHint:
       'Déroulé de l’événement : une heure (ou une plage horaire) et une description par étape. Laissé vide, cette section ne sera pas affichée.',

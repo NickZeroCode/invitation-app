@@ -11,7 +11,7 @@
  */
 import { TemplateOrnament } from './ornaments.tsx'
 import { PanelDecor, panelSkinFor } from './panelSkin.tsx'
-import { formatProgramRange } from './shared.tsx'
+import { formatProgramRange, groupDressCode } from './shared.tsx'
 import { LuxuryTable } from './tableScene.tsx'
 import type { DressCodeEntry, ProgramEntry, TableEntry } from './types.ts'
 
@@ -77,31 +77,34 @@ export function ExportDetailsPage({
               color={skin.accent}
               titleClass={skin.titleClass}
             />
-            <div className="mt-8 flex flex-wrap items-start justify-center gap-8">
-              {dressCode.map((image, index) => (
-                <figure key={index} className="w-[15rem]">
-                  <div
-                    className="overflow-hidden rounded-[10px] border"
-                    style={{ borderColor: skin.line }}
-                  >
-                    <img
-                      src={image.url}
-                      alt=""
-                      crossOrigin="anonymous"
-                      className="block h-[19rem] w-full object-cover"
-                    />
-                  </div>
-                  {image.caption ? (
-                    <figcaption
-                      className="mt-3 text-center text-[0.85rem] italic leading-[1.5]"
-                      style={{ color: skin.inkSoft }}
+            {groupDressCode(dressCode).map((group, groupIndex) => (
+              <figure key={groupIndex} className={groupIndex === 0 ? 'mt-8' : 'mt-9'}>
+                <div className="flex flex-wrap items-start justify-center gap-5">
+                  {group.images.map((image, index) => (
+                    <div
+                      key={`${image.url}-${index}`}
+                      className="w-[12.5rem] overflow-hidden rounded-[10px] border"
+                      style={{ borderColor: skin.line }}
                     >
-                      {image.caption}
-                    </figcaption>
-                  ) : null}
-                </figure>
-              ))}
-            </div>
+                      <img
+                        src={image.url}
+                        alt=""
+                        crossOrigin="anonymous"
+                        className="block h-[16rem] w-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+                {group.caption ? (
+                  <figcaption
+                    className="mt-3 text-center text-[0.85rem] italic leading-[1.5]"
+                    style={{ color: skin.inkSoft }}
+                  >
+                    {group.caption}
+                  </figcaption>
+                ) : null}
+              </figure>
+            ))}
           </section>
         ) : null}
 

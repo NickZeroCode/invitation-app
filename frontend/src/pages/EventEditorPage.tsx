@@ -65,6 +65,28 @@ interface DressCodeRow {
   file?: File
   /** Caption as stored server-side, to detect unsaved edits. */
   savedCaption?: string
+  /** Position as stored server-side, to detect a reorder. */
+  savedOrder?: number
+  /** Outfit category this photo belongs to (client-side key). Every photo
+   * of a category shares its caption; that is all the server stores. */
+  group: string
+}
+
+let dressGroupSeed = 0
+function newDressGroup() {
+  dressGroupSeed += 1
+  return `category-${dressGroupSeed}`
+}
+
+/** Photos of one outfit category, in the order they were added. */
+function dressGroups(rows: DressCodeRow[]) {
+  const groups: Array<{ key: string; caption: string; rows: Array<{ row: DressCodeRow; index: number }> }> = []
+  rows.forEach((row, index) => {
+    const group = groups.find((item) => item.key === row.group)
+    if (group) group.rows.push({ row, index })
+    else groups.push({ key: row.group, caption: row.caption, rows: [{ row, index }] })
+  })
+  return groups
 }
 
 interface ProgramRowDraft {
@@ -167,13 +189,22 @@ export function EventEditorPage() {
         options: question.options.map((option) => ({ id: option.id, label: option.label })),
       })),
     )
+    // Consecutive photos sharing a caption form one outfit category.
+    let previousCaption: string | null = null
+    let currentGroup = ''
     setDressRows(
-      data.dress_code.map((image) => ({
-        id: image.id,
-        url: image.url,
-        caption: image.caption,
-        savedCaption: image.caption,
-      })),
+      data.dress_code.map((image) => {
+        if (image.caption.trim() !== previousCaption) currentGroup = newDressGroup()
+        previousCaption = image.caption.trim()
+        return {
+          id: image.id,
+          url: image.url,
+          caption: image.caption,
+          savedCaption: image.caption,
+          savedOrder: image.order,
+          group: currentGroup,
+        }
+      }),
     )
     setRemovedDressIds([])
     setProgramRows(
@@ -203,7 +234,8 @@ export function EventEditorPage() {
         cover_url: coverPreview ?? (coverRemoved ? null : (eventQuery.data?.cover_url ?? null)),
         coverTitle: coverText,
         emphasis,
-        dressCode: dressRows.map((row) => ({
+        // In category order, as it will be saved.
+        dressCode: dressGroups(dressRows).flatMap((group) => group.rows.map(({ row }) => row)).map((row) => ({
           id: row.id,
           url: row.url,
           caption: row.caption,
@@ -302,11 +334,14 @@ export function EventEditorPage() {
       for (const removedId of removedDressIds) {
         await eventsApi.removeDressCode(saved.id, removedId)
       }
-      for (const [index, row] of dressRows.entries()) {
+      // Categories are saved contiguous, in the order shown, so a photo
+      // added to an earlier category lands beside its siblings.
+      const ordered = dressGroups(dressRows).flatMap((group) => group.rows.map(({ row }) => row))
+      for (const [index, row] of ordered.entries()) {
         if (row.file) {
           await eventsApi.uploadDressCode(saved.id, row.file, row.caption.trim(), index)
-        } else if (row.id !== undefined && row.caption !== row.savedCaption) {
-          await eventsApi.updateDressCode(saved.id, row.id, { caption: row.caption.trim() })
+        } else if (row.id !== undefined && (row.caption !== row.savedCaption || row.savedOrder !== index)) {
+          await eventsApi.updateDressCode(saved.id, row.id, { caption: row.caption.trim(), order: index })
         }
       }
       return saved
@@ -351,9 +386,12 @@ export function EventEditorPage() {
     }
   }, [coverPreview])
 
-  function handleDressFiles(files: FileList | null) {
+  /** Adds photos to an outfit category (a new one when `group` is omitted). */
+  function handleDressFiles(files: FileList | null, group?: string) {
     setDressError(null)
     if (!files) return
+    const target = group ?? newDressGroup()
+    const caption = group ? (dressRows.find((row) => row.group === group)?.caption ?? '') : ''
     const accepted: DressCodeRow[] = []
     for (const file of Array.from(files)) {
       if (!COVER_TYPES.includes(file.type)) {
@@ -364,11 +402,24 @@ export function EventEditorPage() {
         setDressError(fr.editor.coverTooLarge)
         continue
       }
-      accepted.push({ url: URL.createObjectURL(file), caption: '', file })
+      accepted.push({ url: URL.createObjectURL(file), caption, file, group: target })
     }
     if (accepted.length > 0) {
       setDressRows((current) => [...current, ...accepted])
     }
+  }
+
+  function setDressCaption(group: string, caption: string) {
+    setDressRows((current) => current.map((row) => (row.group === group ? { ...row, caption } : row)))
+  }
+
+  function removeDressGroup(group: string) {
+    for (const row of dressRows) {
+      if (row.group !== group) continue
+      if (row.id !== undefined) setRemovedDressIds((ids) => [...ids, row.id as number])
+      if (row.file) URL.revokeObjectURL(row.url)
+    }
+    setDressRows((current) => current.filter((row) => row.group !== group))
   }
 
   function removeDressRow(index: number) {
@@ -672,53 +723,67 @@ export function EventEditorPage() {
             <section className="space-y-3">
               <SectionTitle>{fr.editor.dressCodeTitle}</SectionTitle>
               <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.dressCodeHint}</p>
-              {dressRows.length === 0 ? null : (
-                <div className="grid grid-cols-1 gap-2.5">
-                  {dressRows.map((row, index) => (
-                    <div
-                      key={row.id ?? `new-${index}`}
-                      className="space-y-2.5 rounded-lg border border-line bg-surface-muted/40 p-3"
+              {dressGroups(dressRows).map((group, groupIndex) => (
+                <div key={group.key} className="space-y-3 rounded-lg border border-line bg-surface-muted/40 p-3">
+                  <div className="flex items-end gap-2">
+                    <Field
+                      id={`dress-group-${groupIndex}-caption`}
+                      label={fr.editor.dressCodeCaption}
+                      className="min-w-0 flex-1"
                     >
-                      <img
-                        src={row.url}
-                        alt=""
-                        className="h-20 w-full rounded-md border border-line object-cover"
+                      <Input
+                        id={`dress-group-${groupIndex}-caption`}
+                        controlSize="sm"
+                        value={group.caption}
+                        placeholder={fr.editor.dressCodeCaptionPlaceholder}
+                        onChange={(event) => setDressCaption(group.key, event.target.value)}
                       />
-                      <div className="flex items-end gap-2">
-                        <Field
-                          id={`dress-${index}-caption`}
-                          label={fr.editor.dressCodeCaption}
-                          className="min-w-0 flex-1"
-                        >
-                          <Input
-                            id={`dress-${index}-caption`}
-                            controlSize="sm"
-                            value={row.caption}
-                            placeholder={fr.editor.dressCodeCaptionPlaceholder}
-                            onChange={(event) =>
-                              setDressRows((current) =>
-                                current.map((item, i) =>
-                                  i === index ? { ...item, caption: event.target.value } : item,
-                                ),
-                              )
-                            }
-                          />
-                        </Field>
-                        <IconButton
-                          label={fr.editor.dressCodeRemove}
-                          variant="ghost"
-                          size="sm"
+                    </Field>
+                    <IconButton
+                      label={fr.editor.dressCodeRemoveCategory}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeDressGroup(group.key)}
+                    >
+                      <IconTrash className="h-4 w-4" />
+                    </IconButton>
+                  </div>
+                  <ul className="grid grid-cols-3 gap-2" aria-label={group.caption || fr.editor.dressCodeTitle}>
+                    {group.rows.map(({ row, index }) => (
+                      <li key={row.id ?? row.url} className="relative">
+                        <img
+                          src={row.url}
+                          alt=""
+                          className="aspect-[3/4] w-full rounded-md border border-line object-cover"
+                        />
+                        <button
+                          type="button"
+                          aria-label={fr.editor.dressCodeRemove}
                           onClick={() => removeDressRow(index)}
+                          className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink/70 text-white transition-colors hover:bg-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                         >
-                          <IconTrash className="h-4 w-4" />
-                        </IconButton>
-                      </div>
-                    </div>
-                  ))}
+                          <IconClose className="h-3.5 w-3.5" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <label className="relative inline-flex h-8 w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-md border border-dashed border-line-strong bg-surface px-3 text-[0.8125rem] font-medium text-ink-soft transition-colors duration-150 hover:bg-surface-muted hover:text-ink">
+                    {fr.editor.dressCodeAddToCategory}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      className="sr-only"
+                      onChange={(event) => {
+                        handleDressFiles(event.target.files, group.key)
+                        event.target.value = ''
+                      }}
+                    />
+                  </label>
                 </div>
-              )}
+              ))}
               <label className="relative inline-flex h-8 w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-3 text-[0.8125rem] font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
-                {fr.editor.dressCodeUpload}
+                {dressRows.length === 0 ? fr.editor.dressCodeUpload : fr.editor.dressCodeNewCategory}
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"

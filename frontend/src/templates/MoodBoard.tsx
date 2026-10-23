@@ -1,51 +1,56 @@
 /**
- * « Mood Board » — reproduction of the editorial board in
- * `Downloads/IMG_9952.png`, `IMG_9953.png` and `IMG_9954.png`.
+ * « Mood Board » — the editorial board of `Downloads/IMG_9952.png`,
+ * `IMG_9953.png` and `IMG_9954.png`, reproduced to its measurements.
  *
- * White paper, black ink. A full-bleed couple photo carries a huge monoline
- * « Save the date » and melts into the paper, where a fine gold chain ring,
- * wrapped by black line-art roses, holds the thin serif monogram. Below: the
- * names in spaced capitals, the occasion in a large signature script, the
- * quote in small capitals with its author in bold, the month and the event
- * week with the day circled in red pen, then the board itself — « MoodBoard »,
- * « THÈME : TERRACOTTA » in condensed capitals, the colour palette as five
- * tall pills, the outfits as staggered photos under script labels with a
- * hand-drawn arrow, the rings flourish, the thanks, and the couple again
- * behind a torn-paper edge.
+ * Every size below was taken from the reference as a fraction of the sheet
+ * width W and converted to the paper's em (1em = 0.026W), using the faces
+ * the board is set in: a monoline signature script (Ms Madi), Didot capitals
+ * for the monogram (Bodoni Moda), spaced old-style capitals for the names
+ * (Cormorant Garamond), Gill Sans small capitals for the quote and the thanks
+ * (Cabin), Times for the calendar (Tinos) and condensed gothic capitals for
+ * the theme line (Antonio).
+ *
+ * Top to bottom: a 1.6W couple photo under a white veil carrying « Save the
+ * date » (0.80W), the chain-ring monogram (ring 0.38W) at 78 % of the photo,
+ * the names (0.345W) on the veil; then on white the occasion (0.83W), the
+ * quote (0.56W), the month and the event week with the day circled in red
+ * pen, « MoodBoard », the theme line (0.52W), the palette (five 0.086W ×
+ * 0.345W pills), the outfit categories as edge-to-edge photo rows under
+ * script labels with a hand-drawn arrow, the rings, the thanks and the
+ * couple again behind a torn-paper edge.
  */
 import type { ReactNode } from 'react'
 
-import { EngravedBouquet } from './engravedFlora.tsx'
-import type { EngravedItem } from './engravedFlora.tsx'
 import { monogramFrom } from './luxeMotifs.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
-import { InvitationPaper, ProgramSection, TableSection, isEmphasized } from './shared.tsx'
+import { InvitationPaper, ProgramSection, TableSection, groupDressCode, isEmphasized } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 
 const PAPER = '#FFFFFF'
-const INK = '#161616'
-const SOFT = '#3A3A3A'
-const CHAIN = '#C7A15A'
-const PEN_RED = '#D3262E'
+const INK = '#111111'
+const CHAIN = '#8E6A3C'
+const PEN_RED = '#D52A2F'
+const ARROW_BLUE = '#5B79A6'
 
-/** Monoline signature script, as on the reference board. */
 const SIGNATURE = "'Ms Madi', 'Great Vibes', cursive"
-/** Thin high-contrast serif for the monogram and the month. */
-const DIDONE = "'Playfair Display', 'Bodoni Moda', Georgia, serif"
-/** Condensed display capitals for the theme line. */
-const CONDENSED = "'Oswald', 'Arial Narrow', sans-serif"
-/** Humanist small capitals for the quote. */
-const SANS = "'Montserrat', 'Inter', sans-serif"
+const DIDOT = "'Bodoni Moda', 'Didot', 'Playfair Display', serif"
+const CAPS = "'Cormorant Garamond', 'Cormorant', Georgia, serif"
+const GILL = "'Gill Sans', 'Gill Sans MT', 'Cabin', 'Lato', sans-serif"
+const TIMES = "'Tinos', 'Times New Roman', Times, serif"
+const GOTHIC = "'Antonio', 'League Gothic', 'Oswald', 'Arial Narrow', sans-serif"
 
-/** The terracotta palette, sand to burnt orange, as on the board. */
-const PALETTE = ['#C49A6C', '#FBE8CF', '#7E4535', '#5A3328', '#C47F45'] as const
+/** The terracotta palette of the board, sand to burnt orange. */
+const PALETTE = ['#B99470', '#FBE8D0', '#7E4539', '#5A352F', '#C17F48'] as const
 
 const FRENCH_MONTHS = [
   'JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN',
   'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE',
 ] as const
-const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] as const
+/** As set on the board: Lun, Mar, Mer and Ven in italic; Jeu, Sam, Dim upright. */
+const WEEKDAYS = [
+  ['Lun', true], ['Mar', true], ['Mer', true], ['Jeu', false], ['Ven', true], ['Sam', false], ['Dim', false],
+] as const
 
 function parseIso(iso: string): Date | null {
   const parts = iso.split('-').map(Number)
@@ -53,62 +58,133 @@ function parseIso(iso: string): Date | null {
   return new Date(parts[0], parts[1] - 1, parts[2])
 }
 
-/* Black line-art roses climbing the ring: one spray up the left side, one
-   across the lower right, like the reference monogram. */
-const WREATH_LEFT: EngravedItem[] = [
-  { k: 'stem', d: 'M 40 190 C 20 150, 20 90, 50 40' },
-  { k: 'leaf', x: 30, y: 150, s: 0.55, r: -50 },
-  { k: 'leaf', x: 26, y: 112, s: 0.5, r: -30 },
-  { k: 'leaf', x: 40, y: 64, s: 0.45, r: 20 },
-  { k: 'rose', x: 30, y: 96, s: 0.55, r: -20 },
-  { k: 'rose', x: 52, y: 38, s: 0.6, r: 10 },
-]
-const WREATH_RIGHT: EngravedItem[] = [
-  { k: 'stem', d: 'M 196 70 C 200 120, 180 170, 120 200' },
-  { k: 'leaf', x: 196, y: 100, s: 0.5, r: 20 },
-  { k: 'leaf', x: 186, y: 150, s: 0.5, r: 60 },
-  { k: 'leaf', x: 140, y: 196, s: 0.45, r: 110 },
-  { k: 'rose', x: 166, y: 178, s: 0.6, r: 12 },
-]
+/* ------------------------------------------------------------ monogram */
 
+/** Chain ring: small links set along the circle, alternately face-on and edge-on. */
+function ChainRing() {
+  const links: ReactNode[] = []
+  const count = 96
+  for (let i = 0; i < count; i += 1) {
+    const angle = (360 / count) * i
+    // Links overlap their neighbours: face-on ovals alternating with
+    // edge-on bars, the rope-like chain of the reference.
+    links.push(
+      <ellipse
+        key={i}
+        cx="0"
+        cy="-88"
+        rx={i % 2 ? 1 : 3.4}
+        ry={i % 2 ? 2 : 1.6}
+        transform={`rotate(${angle})`}
+        stroke={CHAIN}
+        strokeWidth="0.85"
+        fill="none"
+      />,
+    )
+  }
+  return <g transform="translate(110 110)">{links}</g>
+}
+
+/** Black line flora of the reference: two rose silhouettes and buds climbing
+ * the left of the ring, a berry branch, an open flower and a leaf at the
+ * lower right, a scatter of seeds at the bottom. */
+function RingFlora() {
+  return (
+    <g stroke={INK} strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" fill="none">
+      {/* left spray, riding the ring from ten o'clock down to seven */}
+      <g transform="translate(-26 8)">
+      <path d="M 66 182 C 46 150, 44 104, 56 70 C 62 52, 70 40, 76 30" />
+      <path d="M 54 92 C 44 86, 40 78, 41 70" />
+      <path d="M 50 128 C 40 124, 35 116, 36 108" />
+      <path d="M 52 150 C 44 150, 38 146, 36 140" />
+      {/* top rose: filled silhouette, white folds */}
+      <path d="M 66 30 C 58 24, 58 12, 63 5 L 70 12 L 77 2 L 84 12 L 91 5 C 96 12, 96 24, 88 30 C 84 35, 70 35, 66 30 Z" fill={INK} />
+      <path d="M 70 15 C 70 22, 73 27, 77 30 C 81 27, 84 22, 84 15" stroke="#FFFFFF" strokeWidth="0.9" />
+      <path d="M 66 30 C 58 30, 54 26, 54 20 M 88 30 C 96 31, 100 27, 100 21" />
+      {/* second rose, outlined, half way down */}
+      <path d="M 60 72 C 54 66, 55 56, 63 52 C 66 57, 70 57, 73 52 C 81 56, 82 66, 76 72 C 72 76, 64 76, 60 72 Z" />
+      <path d="M 63 58 C 61 64, 64 70, 68 72 M 73 58 C 75 64, 72 70, 68 72" />
+      {/* buds and leaf outlines */}
+      <path d="M 41 70 C 37 64, 38 58, 42 55 C 46 58, 46 64, 41 70 Z" />
+      <path d="M 36 108 C 32 102, 33 96, 37 93 C 41 96, 41 102, 36 108 Z" />
+      <path d="M 36 140 C 31 136, 30 130, 33 126 C 38 128, 39 134, 36 140 Z" />
+      <path d="M 56 112 C 64 104, 74 104, 78 108 C 72 116, 62 118, 56 112 Z" />
+      <path d="M 56 112 L 76 108" strokeWidth="0.6" />
+      </g>
+      {/* lower-right berry branch */}
+      <path d="M 150 196 C 170 186, 186 166, 194 140 C 198 126, 198 112, 196 100" />
+      {[
+        [196, 104, -30], [192, 118, 40], [198, 128, -40], [190, 140, 50], [196, 150, -50], [182, 156, 40], [186, 168, -60],
+      ].map(([x, y, r]) => (
+        <path key={`${x}-${y}`} d="M 0 0 C -3 -4, -3 -9, 0 -12 C 3 -9, 3 -4, 0 0 Z" fill={INK} transform={`translate(${x} ${y}) rotate(${r})`} />
+      ))}
+      {[[202, 100], [204, 112], [200, 92]].map(([x, y]) => (
+        <circle key={`b-${x}-${y}`} cx={x} cy={y} r="2.2" fill={INK} stroke="none" />
+      ))}
+      {/* open five-petal flower */}
+      <g transform="translate(168 182)">
+        {[0, 72, 144, 216, 288].map((a) => (
+          <path key={a} d="M 0 0 C -7 -4, -8 -14, 0 -17 C 8 -14, 7 -4, 0 0 Z" transform={`rotate(${a})`} fill="#FFFFFF" />
+        ))}
+        <circle r="3" fill="#FFFFFF" />
+        <path d="M -1.5 -1 l 3 2 M 1.5 -1 l -3 2" strokeWidth="0.7" />
+      </g>
+      {/* single leaf */}
+      <path d="M 138 200 C 134 190, 136 180, 142 174 C 148 182, 146 194, 138 200 Z" fill="#FFFFFF" />
+      <path d="M 138 200 C 139 190, 140 182, 142 175" strokeWidth="0.6" />
+      {/* seeds */}
+      {[[60, 160], [70, 166], [56, 170], [80, 176], [92, 190], [102, 196], [120, 198], [112, 200]].map(([x, y]) => (
+        <circle key={`s-${x}-${y}`} cx={x} cy={y} r="1.4" fill={INK} stroke="none" />
+      ))}
+    </g>
+  )
+}
+
+/** Ring 0.38W across; the monogram cap height is 0.198W (7.6em). */
 function Monogram({ initials }: { initials: [string, string] }) {
   return (
-    <div className="relative flex h-[15em] w-[15em] items-center justify-center">
-      <svg viewBox="0 0 220 220" className="absolute inset-0 h-full w-full" aria-hidden="true" fill="none">
-        {/* Gold chain: a fine ring of linked ovals. */}
-        <circle cx="110" cy="110" r="88" stroke={CHAIN} strokeWidth="1.1" />
-        <circle cx="110" cy="110" r="88" stroke={CHAIN} strokeWidth="2.6" strokeDasharray="2.2 1.6" opacity="0.55" />
-        {/* A few loose dots, the scattered seeds of the reference. */}
-        {[[60, 168], [70, 176], [52, 158], [150, 52], [160, 60]].map(([x, y]) => (
-          <circle key={`${x}-${y}`} cx={x} cy={y} r="1.3" fill={INK} />
-        ))}
+    <div className="relative flex h-[18.3em] w-[18.3em] items-center justify-center">
+      <svg viewBox="0 0 220 220" className="absolute inset-0 h-full w-full" aria-hidden="true">
+        <ChainRing />
+        <RingFlora />
       </svg>
-      <EngravedBouquet items={WREATH_LEFT} viewBox="0 0 220 220" ink={INK} strokeWidth={1} className="absolute inset-0 h-full w-full" />
-      <EngravedBouquet items={WREATH_RIGHT} viewBox="0 0 220 220" ink={INK} strokeWidth={1} className="absolute inset-0 h-full w-full" />
-      <span className="relative whitespace-nowrap leading-none" style={{ fontFamily: DIDONE, fontWeight: 400, fontSize: '5.4em', color: INK }}>
-        {initials[0]}
-        <span style={{ fontSize: '0.5em', margin: '0 0.02em', verticalAlign: '0.25em' }}>&amp;</span>
-        {initials[1]}
+      <span
+        className="relative flex items-end leading-none"
+        style={{ fontFamily: DIDOT, fontWeight: 400, fontSize: '10.15em', color: INK }}
+      >
+        <span>{initials[0]}</span>
+        <span className="relative -mx-[0.06em] mb-[0.12em]" style={{ fontSize: '0.34em' }}>
+          &amp;
+        </span>
+        <span className="translate-y-[0.08em]">{initials[1]}</span>
       </span>
     </div>
   )
 }
 
-/** The hand-drawn red pen ring around the event day. */
+/* ------------------------------------------------------------ calendar */
+
+/** Red pen ring around the event day: taller than wide, open at the top
+ * left where the pen started. */
 function PenCircle() {
   return (
-    <svg viewBox="0 0 60 64" className="pointer-events-none absolute -inset-[0.55em] h-[calc(100%+1.1em)] w-[calc(100%+1.1em)]" aria-hidden="true" fill="none">
+    <svg
+      viewBox="0 0 80 130"
+      className="pointer-events-none absolute left-1/2 top-1/2 h-[2.6em] w-[1.6em] -translate-x-1/2 -translate-y-1/2"
+      aria-hidden="true"
+      fill="none"
+    >
       <path
-        d="M 12 10 C 4 18, 3 40, 12 52 C 22 64, 44 61, 52 48 C 60 34, 55 12, 40 6 C 30 2, 20 4, 14 9"
+        d="M 22 10 C 6 24, 2 66, 10 94 C 18 122, 52 128, 66 104 C 80 80, 78 34, 62 14 C 52 2, 32 2, 20 12 M 12 20 C 8 32, 8 46, 10 56"
         stroke={PEN_RED}
-        strokeWidth="2.2"
+        strokeWidth="4"
         strokeLinecap="round"
       />
     </svg>
   )
 }
 
-/** Month in spaced serif capitals, then the event's week, Monday first. */
+/** Month in bold spaced Times capitals, then the event's week, Monday first. */
 function WeekStrip({ iso }: { iso: string }) {
   const date = parseIso(iso)
   if (!date) return null
@@ -120,21 +196,21 @@ function WeekStrip({ iso }: { iso: string }) {
     return day
   })
   return (
-    <div className="mt-[2.2em] w-full max-w-[34em]">
-      <p style={{ fontFamily: DIDONE, fontWeight: 700, fontSize: '1.9em', letterSpacing: '0.24em', color: INK }}>
+    <div className="mt-[2.4em] flex w-full flex-col items-center" style={{ fontFamily: TIMES, color: INK }}>
+      <p style={{ fontWeight: 700, fontSize: '1.45em', letterSpacing: '0.25em', lineHeight: 1 }}>
         {FRENCH_MONTHS[date.getMonth()]}
       </p>
-      <div className="mt-[1.1em] grid grid-cols-7 text-center" style={{ fontFamily: DIDONE, color: INK }}>
-        {WEEKDAYS.map((name, index) => (
-          <span key={name} className={index === 5 ? '' : 'italic'} style={{ fontSize: '1.4em' }}>
+      <div className="mt-[1.9em] grid w-[29.2em] grid-cols-7 text-center leading-none">
+        {WEEKDAYS.map(([name, italic]) => (
+          <span key={name} className={italic ? 'italic' : ''} style={{ fontSize: '1.22em' }}>
             {name}
           </span>
         ))}
         {days.map((day) => {
           const isEvent = day.getTime() === date.getTime()
           return (
-            <span key={day.toISOString()} className="mt-[0.5em] flex justify-center">
-              <span className="relative inline-block leading-none" style={{ fontSize: '1.75em' }}>
+            <span key={day.toISOString()} className="mt-[1.45em] flex justify-center">
+              <span className="relative inline-block" style={{ fontSize: '1.63em' }}>
                 {day.getDate()}
                 {isEvent ? <PenCircle /> : null}
               </span>
@@ -146,102 +222,112 @@ function WeekStrip({ iso }: { iso: string }) {
   )
 }
 
-/** Little curling hand-drawn arrow hanging off a script label. */
+/* ---------------------------------------------------------- the board */
+
+/** The little looping blue arrow hanging from the end of a script label. */
 function CurlArrow() {
   return (
-    <svg viewBox="0 0 30 46" className="h-[3.4em] w-[2.2em]" aria-hidden="true" fill="none">
+    <svg viewBox="0 0 34 64" className="h-[2.9em] w-[1.55em]" aria-hidden="true" fill="none">
       <path
-        d="M 4 4 C 18 6, 26 14, 20 22 C 15 28, 8 24, 12 19 C 16 14, 24 20, 22 30 C 21 35, 19 38, 17 41"
-        stroke="#5D6B86"
+        d="M 2 4 C 14 4, 26 10, 28 20 C 30 30, 18 34, 14 28 C 10 22, 20 16, 26 24 C 30 30, 26 42, 22 54"
+        stroke={ARROW_BLUE}
         strokeWidth="1.3"
         strokeLinecap="round"
       />
-      <path d="M 13 37 L 17 42 L 21 37" stroke="#5D6B86" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M 17 49 L 22 56 L 28 50" stroke={ARROW_BLUE} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
 
 /** Script heading with the arrow tucked under its last letter. */
-function BoardLabel({ children, size = '5em' }: { children: ReactNode; size?: string }) {
+function BoardLabel({ children, size }: { children: ReactNode; size: string }) {
   return (
-    <div className="relative inline-flex items-end">
-      <p className="leading-none" style={{ fontFamily: SIGNATURE, fontSize: size, color: INK }}>
+    <div className="relative inline-block">
+      <p className="whitespace-nowrap leading-[1.1]" style={{ fontFamily: SIGNATURE, fontSize: size, color: INK }}>
         {children}
       </p>
-      <span className="-ml-[0.1em] translate-y-[2.4em]">
+      <span className="absolute -right-[1.2em] top-[55%]">
         <CurlArrow />
       </span>
     </div>
   )
 }
 
-/** Three photos running to the paper edges, the middle one smaller and set lower. */
-function OutfitRow({ images }: { images: TemplateProps['draft']['dressCode'] }) {
+/** Photos in rows of three running to the sheet edges (0.33W each, 0.009W
+ * apart); in a full row the middle photo is shorter and set lower. */
+function OutfitRows({ images }: { images: TemplateProps['draft']['dressCode'] }) {
+  const rows: Array<typeof images> = []
+  for (let i = 0; i < images.length; i += 3) rows.push(images.slice(i, i + 3))
   return (
-    <div className="-mx-[2.6em] mt-[1.6em] grid w-[calc(100%+5.2em)] grid-cols-3 items-start gap-[0.8em]">
-      {images.map((image, index) => {
-        const middle = images.length === 3 && index === 1
-        return (
-          <figure key={`${image.url}-${index}`} className={middle ? 'mt-[1.4em] px-[0.4em]' : ''}>
-            <img
-              src={image.url}
-              alt=""
-              className="w-full object-cover"
-              style={{ aspectRatio: middle ? '3 / 4.3' : '3 / 5' }}
-            />
-            {image.caption ? (
-              <figcaption className="mt-[0.5em] text-[0.95em] leading-[1.4]" style={{ fontFamily: SANS, color: SOFT }}>
-                {image.caption}
-              </figcaption>
-            ) : null}
-          </figure>
-        )
-      })}
+    <div className="-mx-[2.6em] mt-[2.1em] flex w-[calc(100%+5.2em)] flex-col gap-[0.35em] px-[0.3em]">
+      {rows.map((row, rowIndex) => (
+        <div key={rowIndex} className="flex items-start justify-center gap-[0.35em]">
+          {row.map((image, index) => {
+            const middle = row.length === 3 && index === 1
+            return (
+              <img
+                key={`${image.url}-${index}`}
+                src={image.url}
+                alt={image.caption || ''}
+                className="w-[calc((100%-0.7em)/3)] object-cover"
+                style={{
+                  aspectRatio: middle ? '294 / 408' : '302 / 480',
+                  marginTop: middle ? '1.35em' : undefined,
+                }}
+              />
+            )
+          })}
+        </div>
+      ))}
     </div>
   )
 }
 
-/** Wedding rings between two laurel sprigs, in black line. */
+/** Wedding rings with a sparkle, between two leafy sprigs (0.38W). */
 function RingsFlourish() {
   const sprig = (
     <g>
-      <path d="M 4 30 C 30 22, 56 22, 78 30" />
-      {[12, 26, 40, 54, 66].map((x, index) => (
+      <path d="M 6 32 C 30 24, 58 24, 84 32" />
+      {[14, 28, 42, 56, 70].map((x) => (
         <g key={x}>
-          <path d={`M ${x} ${27 - index * 0.4} c -3 -6, -1 -10, 3 -12 c 2 4, 1 9, -3 12 z`} />
-          <path d={`M ${x + 2} ${28 - index * 0.4} c -2 6, 0 10, 5 11 c 1 -5, -1 -9, -5 -11 z`} />
+          <path d={`M ${x} 29 c -2 -6, 0 -11, 5 -12 c 1 5, -1 10, -5 12 z`} />
+          <path d={`M ${x + 3} 30 c -1 6, 2 10, 7 10 c 0 -5, -3 -9, -7 -10 z`} />
+          <path d={`M ${x + 2} 29 c 2 -2, 4 -2, 6 -1`} />
         </g>
       ))}
     </g>
   )
   return (
-    <svg viewBox="0 0 260 60" className="w-[19em]" aria-hidden="true" fill="none" stroke={INK} strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 280 64" className="w-[14.6em]" aria-hidden="true" fill="none" stroke={INK} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
       {sprig}
-      <g transform="translate(260 0) scale(-1 1)">{sprig}</g>
-      <circle cx="120" cy="34" r="14" />
-      <circle cx="120" cy="34" r="11" />
-      <circle cx="140" cy="34" r="14" />
-      <circle cx="140" cy="34" r="11" />
-      <path d="M 124 12 l 6 -6 l 6 6 l -6 6 z M 130 6 v -4 M 122 8 l -3 -3 M 138 8 l 3 -3" />
+      <g transform="translate(280 0) scale(-1 1)">{sprig}</g>
+      <circle cx="130" cy="36" r="15" />
+      <circle cx="130" cy="36" r="12" />
+      <circle cx="150" cy="36" r="15" />
+      <circle cx="150" cy="36" r="12" />
+      <path d="M 134 14 l 6 -6 l 6 6 l -6 6 z" />
+      <path d="M 140 4 v -3 M 131 7 l -3 -3 M 149 7 l 3 -3" strokeWidth="0.9" />
     </svg>
   )
 }
 
-/** Torn paper edge laid over the closing photo. */
+/** Torn white paper over the closing photo: ragged ridges, a soft shadow. */
 function TornEdge() {
+  const ridge =
+    'M0 0 H400 V30 L392 34 L384 26 L373 31 L366 22 L356 27 L345 16 L336 24 L326 19 L314 29 L305 24 L296 33 L286 27 L276 31 ' +
+    'L266 20 L256 26 L247 14 L238 21 L228 18 L219 27 L208 23 L198 32 L189 26 L178 30 L168 21 L160 25 L150 15 L140 22 ' +
+    'L131 19 L121 28 L110 24 L101 32 L92 27 L82 30 L72 20 L63 24 L53 13 L44 21 L35 18 L26 28 L16 24 L8 31 L0 27 Z'
   return (
-    <svg viewBox="0 0 400 40" preserveAspectRatio="none" className="absolute inset-x-0 top-0 h-[3.2em] w-full" aria-hidden="true">
-      <path
-        d="M0 0 H400 V14 L388 22 L376 12 L362 26 L350 16 L336 30 L322 18 L310 24 L296 10 L282 22 L270 14 L256 28 L242 16 L228 22 L214 12 L200 26 L186 18 L172 30 L158 14 L146 22 L132 12 L118 26 L104 16 L90 24 L76 10 L62 22 L48 14 L34 28 L20 16 L8 22 L0 14 Z"
-        fill={PAPER}
-      />
+    <svg viewBox="0 0 400 40" preserveAspectRatio="none" className="absolute inset-x-0 top-0 h-[3.6em] w-full" aria-hidden="true">
+      <path d={ridge} fill="rgba(0,0,0,0.18)" transform="translate(0 2)" />
+      <path d={ridge} fill={PAPER} />
     </svg>
   )
 }
 
-/** Splits « quote — author » so the author can sit on its own bold line. */
+/** Splits « quote — author » so the author can sit on its own bold line.
+ * Spaced dashes only: hyphenated names (Saint-Exupéry) stay whole. */
 function splitQuote(note: string): [string, string | null] {
-  // Spaced dashes only: hyphenated names (Saint-Exupéry) stay whole.
   const match = note.match(/^(.*)\s[—–]\s(.+)$/s)
   return match ? [match[1].trim(), match[2].trim()] : [note.trim(), null]
 }
@@ -251,141 +337,136 @@ export function MoodBoard({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const venueEm = isEmphasized(draft, 'venue')
   const initials = monogramFrom(draft.title)
-  const dressCode = draft.dressCode
-  const mid = Math.ceil(dressCode.length / 2)
-  const women = dressCode.slice(0, mid)
-  const men = dressCode.slice(mid)
   const [quote, author] = draft.note ? splitQuote(draft.note) : ['', null]
+
+  // Outfit categories: the organizer's captions become the script labels.
+  // Photos filed without any caption keep the board's two default rows.
+  const groups = groupDressCode(draft.dressCode)
+  const captioned = groups.some((group) => group.caption)
+  const outfits = captioned
+    ? groups.map((group) => ({ label: group.caption, images: group.images }))
+    : (() => {
+        const mid = Math.ceil(draft.dressCode.length / 2)
+        return [
+          { label: 'Outfit Women’s', images: draft.dressCode.slice(0, mid) },
+          { label: 'Outfit men’s', images: draft.dressCode.slice(mid) },
+        ].filter((group) => group.images.length)
+      })()
 
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: INK }}>
-      {/* Cover: full-bleed photo, huge « Save the date », melting to white. */}
+      {/* Cover: the couple, 1.6W tall, under a white veil that thickens
+          toward a hard bottom edge — the board's look, not a soft fade. */}
       {draft.cover_url ? (
-        <div data-export-skip="cover" className="relative z-20 w-full shrink-0 overflow-hidden" style={{ aspectRatio: '4 / 5.4' }}>
+        <div data-export-skip="cover" className="relative z-20 w-full shrink-0 overflow-hidden" style={{ aspectRatio: '1 / 1.6' }}>
           <img src={draft.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
           <div
-            className="pointer-events-none absolute inset-x-0 -bottom-px h-[46%]"
-            style={{ background: `linear-gradient(to bottom, transparent, rgba(255,255,255,0.7) 45%, ${PAPER} 82%)` }}
+            className="pointer-events-none absolute inset-0"
+            style={{ background: 'linear-gradient(to bottom, transparent 58%, rgba(255,255,255,0.35) 76%, rgba(255,255,255,0.62) 100%)' }}
             aria-hidden="true"
           />
           <p
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 top-[3%] whitespace-nowrap text-center leading-none"
-            style={{ fontFamily: SIGNATURE, fontSize: '7.2em', color: '#FFFFFF', textShadow: '0 0.04em 0.25em rgba(0,0,0,0.35)' }}
+            className="pointer-events-none absolute inset-x-0 top-[1.2%] whitespace-nowrap text-center leading-none"
+            style={{ fontFamily: SIGNATURE, fontSize: '7.54em', color: '#FFFFFF' }}
           >
             Save the date
           </p>
         </div>
       ) : (
-        <p aria-hidden="true" className="mt-[0.4em] whitespace-nowrap text-center leading-none" style={{ fontFamily: SIGNATURE, fontSize: '7.2em', color: INK }}>
+        <p aria-hidden="true" className="mt-[0.5em] whitespace-nowrap text-center leading-none" style={{ fontFamily: SIGNATURE, fontSize: '7.54em', color: INK }}>
           Save the date
         </p>
       )}
 
-      <div className="relative z-30 flex flex-1 flex-col items-center px-[2.6em] pb-[0] text-center">
+      <div className="relative z-30 flex flex-1 flex-col items-center px-[2.6em] text-center">
+        {/* Monogram centred at 78 % of the photo; the names sit on the veil. */}
         {initials ? (
-          <div className={draft.cover_url ? '-mt-[12.5em]' : 'mt-[1em]'}>
+          <div className={draft.cover_url ? '-mt-[22.6em]' : 'mt-[0.6em]'}>
             <Monogram initials={initials} />
           </div>
         ) : null}
-
         <h1
-          className="mt-[0.6em] break-words text-balance uppercase leading-[1.3]"
-          style={{ fontFamily: DIDONE, fontWeight: 600, fontSize: titleEm ? '1.9em' : '1.6em', letterSpacing: '0.32em', color: INK }}
+          className="mt-[0.4em] break-words text-balance uppercase leading-[1.2]"
+          style={{ fontFamily: CAPS, fontWeight: 600, fontSize: titleEm ? '1.4em' : '1.2em', letterSpacing: '0.35em', color: INK }}
         >
           {draft.title}
         </h1>
 
         {draft.message ? (
           <p
-            className="mt-[0.15em] break-words leading-[1.05]"
-            style={{ fontFamily: messageFontCss(draft.messageFont) ?? SIGNATURE, fontSize: '5.4em', color: INK }}
+            className="mt-[0.35em] break-words leading-[1.15]"
+            style={{ fontFamily: messageFontCss(draft.messageFont) ?? SIGNATURE, fontSize: '3.69em', color: INK }}
           >
             {draft.message}
           </p>
         ) : null}
 
         {draft.guestName?.trim() ? (
-          <p className="mt-[0.6em] italic" style={{ fontFamily: DIDONE, fontSize: '1.25em', color: SOFT }}>
+          <p className="mt-[0.6em] italic" style={{ fontFamily: TIMES, fontSize: '1.2em' }}>
             {draft.guestName}
           </p>
         ) : null}
 
         {quote ? (
-          <div className="mt-[1.4em] max-w-[34em]" style={{ fontFamily: SANS, color: SOFT }}>
-            <p className="leading-[1.9]" style={{ fontSize: '1.22em', fontVariant: 'small-caps', letterSpacing: '0.02em' }}>
-              {quote}
-            </p>
-            {author ? (
-              <p className="mt-[0.2em] font-semibold" style={{ fontSize: '1.22em', fontVariant: 'small-caps', color: INK }}>
-                {author}
-              </p>
-            ) : null}
+          <div className="mt-[0.9em] max-w-[19.8em]" style={{ fontFamily: GILL, fontSize: '1.13em', fontVariant: 'small-caps', lineHeight: 1.75, color: INK }}>
+            <p>{quote}</p>
+            {author ? <p style={{ fontWeight: 600 }}>{author}</p> : null}
           </div>
         ) : null}
 
         <WeekStrip iso={draft.event_date} />
 
-        {draft.event_time ? (
-          <p className="mt-[1.4em] uppercase" style={{ fontFamily: SANS, fontSize: '1em', letterSpacing: '0.32em', color: SOFT }}>
-            à {draft.event_time.slice(0, 5).replace(':', 'h')}
-          </p>
-        ) : null}
-        {draft.venue_name || draft.venue_address ? (
-          <div className="mt-[0.9em]" style={{ fontFamily: DIDONE, fontSize: venueEm ? '1.45em' : '1.3em', lineHeight: 1.55, color: INK }}>
-            {draft.venue_name ? <p className="font-semibold">{draft.venue_name}</p> : null}
-            {draft.venue_address ? <p style={{ color: SOFT }}>{draft.venue_address}</p> : null}
-            {draft.venue_details ? <p className="italic" style={{ color: SOFT }}>{draft.venue_details}</p> : null}
-          </div>
-        ) : null}
-
         {/* The board. */}
-        <p className="mt-[1.4em] leading-none" style={{ fontFamily: SIGNATURE, fontSize: '5.6em', color: INK }}>
+        <p className="mt-[0.87em] whitespace-nowrap leading-[1.2]" style={{ fontFamily: SIGNATURE, fontSize: '3.76em', color: INK }}>
           MoodBoard
         </p>
-        <p className="mt-[0.35em] uppercase" style={{ fontFamily: CONDENSED, fontWeight: 600, fontSize: '3em', letterSpacing: '0.01em', color: INK }}>
-          Thème :{' '}<span style={{ fontWeight: 400 }}>Terracotta</span>
+        <p className="mt-[0.93em] whitespace-nowrap uppercase leading-none" style={{ fontFamily: GOTHIC, fontSize: '2.86em', color: INK }}>
+          <span style={{ fontWeight: 700 }}>Thème :</span> <span style={{ fontWeight: 400 }}>Terracotta</span>
         </p>
-
-        <div className="mt-[1.4em]">
-          <BoardLabel size="4.4em">Palette de couleurs</BoardLabel>
+        <div className="mt-[1.3em]">
+          <BoardLabel size="2.57em">Palette de couleurs</BoardLabel>
         </div>
-        <div className="mt-[2.2em] flex w-full max-w-[32em] justify-between gap-[1.4em]" aria-hidden="true">
+        <div className="mt-[3.95em] flex gap-[2.08em]" aria-hidden="true">
           {PALETTE.map((color) => (
-            <span key={color} className="h-[15em] flex-1 rounded-full" style={{ backgroundColor: color }} />
+            <span key={color} className="block h-[13.27em] w-[3.31em] rounded-full" style={{ backgroundColor: color }} />
           ))}
         </div>
 
-        {women.length ? (
-          <div className="mt-[3em] flex w-full flex-col items-center">
-            <BoardLabel>Outfit Women&rsquo;s</BoardLabel>
-            <OutfitRow images={women} />
+        {outfits.map((group, index) => (
+          <div key={`${group.label}-${index}`} className={`flex w-full flex-col items-center ${index === 0 ? 'mt-[2.5em]' : 'mt-[0.8em]'}`}>
+            {group.label ? <BoardLabel size="3.45em">{group.label}</BoardLabel> : null}
+            <OutfitRows images={group.images} />
           </div>
-        ) : null}
-        {men.length ? (
-          <div className="mt-[2.6em] flex w-full flex-col items-center">
-            <BoardLabel>Outfit men&rsquo;s</BoardLabel>
-            <OutfitRow images={men} />
+        ))}
+
+        {/* Time and place: the board carries none up top, so they close it. */}
+        {draft.event_time || draft.venue_name || draft.venue_address ? (
+          <div className="mt-[2.2em]" style={{ fontFamily: TIMES, fontSize: venueEm ? '1.35em' : '1.22em', lineHeight: 1.5, color: INK }}>
+            {draft.event_time ? <p>à {draft.event_time.slice(0, 5).replace(':', 'h')}</p> : null}
+            {draft.venue_name ? <p style={{ fontWeight: 700 }}>{draft.venue_name}</p> : null}
+            {draft.venue_address ? <p>{draft.venue_address}</p> : null}
+            {draft.venue_details ? <p className="italic">{draft.venue_details}</p> : null}
           </div>
         ) : null}
 
         <ProgramSection draft={draft} accent={INK} ink={INK} ornament={<TemplateOrnament templateKey="mood-board" color={INK} />} />
         <TableSection draft={draft} accent={INK} ink={INK} ornament={<TemplateOrnament templateKey="mood-board" color={INK} />} />
 
-        <div className="mt-[3em] flex w-full flex-col items-center">
+        <div className="mt-[1.4em] flex w-full flex-col items-center" style={{ fontFamily: GILL, color: INK }}>
           <RingsFlourish />
-          <p className="mt-[1.2em] max-w-[34em] text-pretty leading-[1.45]" style={{ fontFamily: SANS, fontSize: '1.08em', color: INK, letterSpacing: '-0.01em' }}>
+          <p className="mt-[0.9em] max-w-[33.8em] text-pretty leading-[1.3]" style={{ fontSize: '1.08em', letterSpacing: '-0.015em' }}>
             Nous sommes ravis de vous convier à notre mariage et vous remercions chaleureusement de votre présence. Votre
             soutien et votre amour sont essentiels pour nous.
           </p>
-          <p className="mt-[1em]" style={{ fontFamily: SANS, fontSize: '1.08em', color: INK }}>
+          <p className="mt-[1.1em]" style={{ fontSize: '1.08em', letterSpacing: '-0.015em' }}>
             Merci d&rsquo;avance de partager ce moment de bonheur avec nous&nbsp;!
           </p>
         </div>
 
-        {/* Closing photo behind a torn-paper edge (bleeds to the frame). */}
+        {/* Closing photo behind a torn-paper edge, full bleed. */}
         {draft.cover_url ? (
-          <div className="relative -mx-[2.6em] mt-[2.4em] w-[calc(100%+5.2em)] overflow-hidden" style={{ aspectRatio: '16 / 10' }}>
+          <div className="relative -mx-[2.6em] mt-[1.6em] w-[calc(100%+5.2em)] overflow-hidden" style={{ aspectRatio: '1160 / 700' }}>
             <img src={draft.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover object-top" />
             <TornEdge />
           </div>

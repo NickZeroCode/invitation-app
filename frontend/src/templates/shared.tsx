@@ -736,28 +736,53 @@ export function DressCodeSection({
           <span className="block w-[10em]">{ornament}</span>
         </div>
       ) : null}
-      <div className="mt-[1.8em] flex flex-wrap items-start justify-center gap-[1.4em]">
-        {draft.dressCode.map((image, index) => (
-          <figure key={index} className="w-[11.5em]">
-            <img
-              src={image.url}
-              alt=""
-              className="w-full rounded-[0.35em] object-cover"
-              style={{ border: `1px solid ${accent}66`, aspectRatio: '3 / 4' }}
-            />
-            {image.caption ? (
-              <figcaption
-                className="mt-[0.6em] text-[0.92em] italic leading-[1.45]"
-                style={{ color: ink, opacity: 0.85 }}
-              >
-                {image.caption}
-              </figcaption>
-            ) : null}
-          </figure>
-        ))}
-      </div>
+      {groupDressCode(draft.dressCode).map((group, groupIndex) => (
+        <figure key={groupIndex} className={groupIndex === 0 ? 'mt-[1.8em]' : 'mt-[2.2em]'}>
+          <div className="flex flex-wrap items-start justify-center gap-[1em]">
+            {group.images.map((image, index) => (
+              <img
+                key={`${image.url}-${index}`}
+                src={image.url}
+                alt=""
+                className="w-[10.5em] rounded-[0.35em] object-cover"
+                style={{ border: `1px solid ${accent}66`, aspectRatio: '3 / 4' }}
+              />
+            ))}
+          </div>
+          {group.caption ? (
+            <figcaption
+              className="mt-[0.7em] text-center text-[0.92em] italic leading-[1.45]"
+              style={{ color: ink, opacity: 0.85 }}
+            >
+              {group.caption}
+            </figcaption>
+          ) : null}
+        </figure>
+      ))}
     </section>
   )
+}
+
+export interface DressCodeGroup {
+  caption: string
+  images: InvitationDraft['dressCode']
+}
+
+/**
+ * Outfit categories. The organizer can file several photos under one
+ * caption (« Tenue des dames », « Tenue des messieurs »…); each photo is
+ * still its own stored row carrying that caption, so consecutive rows with
+ * the same caption form one category, shown once with all its photos.
+ */
+export function groupDressCode(entries: InvitationDraft['dressCode']): DressCodeGroup[] {
+  const groups: DressCodeGroup[] = []
+  for (const entry of entries) {
+    const caption = (entry.caption ?? '').trim()
+    const last = groups[groups.length - 1]
+    if (last && last.caption === caption) last.images.push(entry)
+    else groups.push({ caption, images: [entry] })
+  }
+  return groups
 }
 
 /**

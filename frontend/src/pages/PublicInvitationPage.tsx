@@ -32,7 +32,7 @@ import { TemplateOrnament } from '../templates/ornaments.tsx'
 import { DARK_PANEL_KEYS, panelSkinFor } from '../templates/panelSkin.tsx'
 import type { PanelSkin } from '../templates/panelSkin.tsx'
 import { getTemplate } from '../templates/registry.tsx'
-import { formatEventDate, formatEventTime, formatProgramRange } from '../templates/shared.tsx'
+import { formatEventDate, formatEventTime, formatProgramRange, groupDressCode } from '../templates/shared.tsx'
 import { LuxuryTable } from '../templates/tableScene.tsx'
 import type { InvitationDraft } from '../templates/types.ts'
 
@@ -307,7 +307,11 @@ export function PublicInvitationPage() {
   const stageInk = onDarkPaper ? 'rgba(255,248,236,0.62)' : 'rgba(43,38,32,0.55)'
 
   // Content-gated sections: an unfilled section is hidden, never rendered empty.
-  const dressCode = data.dress_code?.images ?? []
+  const allOutfits = data.dress_code?.images ?? []
+  // The Mood Board lays the outfits out on the sheet itself (that is the
+  // board); every other template shows them in the companion card.
+  const outfitsOnSheet = templateKey === 'mood-board'
+  const dressCode = outfitsOnSheet ? [] : allOutfits
   const program = data.program?.items ?? []
 
   const draft: InvitationDraft = {
@@ -328,8 +332,8 @@ export function PublicInvitationPage() {
     guestName: data.invitation.display_name,
     // Dress code, programme and table are presented in their own companion
     // card, so the sheet stays focused on the invitation message (empty
-    // hides them).
-    dressCode: [],
+    // hides them) — except the Mood Board, whose sheet is the outfit board.
+    dressCode: outfitsOnSheet ? allOutfits.map((image) => ({ url: image.url, caption: image.caption })) : [],
     program: [],
     tableNumber: '',
     tableText: '',
@@ -626,24 +630,27 @@ export function PublicInvitationPage() {
                   <div>
                     <SectionLabel skin={skin}>Dress code</SectionLabel>
                     <TemplateOrnament templateKey={templateKey} color={skin.accent} className="mx-auto mt-2.5 block h-auto w-28" />
-                    <div className="mt-4 flex flex-wrap items-start justify-center gap-3">
-                      {dressCode.map((image, index) => (
-                        <figure key={`${image.url}-${index}`} className="w-[7.75rem]">
-                          <img
-                            src={image.url}
-                            alt={image.caption || 'Tenue proposée'}
-                            loading="lazy"
-                            className="h-32 w-full rounded-[2px] object-cover"
-                            style={{ border: `1px solid ${skin.line}`, backgroundColor: skin.softBg }}
-                          />
-                          {image.caption ? (
-                            <figcaption className="mt-1.5 text-center text-xs" style={{ color: skin.inkSoft }}>
-                              {image.caption}
-                            </figcaption>
-                          ) : null}
-                        </figure>
-                      ))}
-                    </div>
+                    {groupDressCode(dressCode).map((group, groupIndex) => (
+                      <figure key={groupIndex} className={groupIndex === 0 ? 'mt-4' : 'mt-5'}>
+                        <div className="flex flex-wrap items-start justify-center gap-2.5">
+                          {group.images.map((image, index) => (
+                            <img
+                              key={`${image.url}-${index}`}
+                              src={image.url}
+                              alt={group.caption || 'Tenue proposée'}
+                              loading="lazy"
+                              className="h-32 w-[6.5rem] rounded-[2px] object-cover"
+                              style={{ border: `1px solid ${skin.line}`, backgroundColor: skin.softBg }}
+                            />
+                          ))}
+                        </div>
+                        {group.caption ? (
+                          <figcaption className="mt-1.5 text-center text-xs" style={{ color: skin.inkSoft }}>
+                            {group.caption}
+                          </figcaption>
+                        ) : null}
+                      </figure>
+                    ))}
                   </div>
                 ) : null}
 
