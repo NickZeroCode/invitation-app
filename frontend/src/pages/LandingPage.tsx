@@ -11,7 +11,7 @@
  * Deliberately API-free for a fast first paint. Motion is limited to a short
  * hero entrance and hover states, and is disabled for reduced-motion users.
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import QRCode from 'qrcode'
@@ -173,12 +173,15 @@ function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link to="/connexion" className={buttonClasses('ghost', 'sm', 'hidden text-ink-soft sm:inline-flex')}>
-            {COPY.nav.login}
-          </Link>
-          <Link to="/inscription" className={buttonClasses('primary', 'sm', 'hidden sm:inline-flex')}>
-            {COPY.nav.signup}
-          </Link>
+          {/* Wrapped: buttonClasses sets its own display, which would win over `hidden`. */}
+          <span className="hidden items-center gap-2 sm:flex">
+            <Link to="/connexion" className={buttonClasses('ghost', 'sm', 'text-ink-soft')}>
+              {COPY.nav.login}
+            </Link>
+            <Link to="/inscription" className={buttonClasses('primary', 'sm')}>
+              {COPY.nav.signup}
+            </Link>
+          </span>
           <button
             type="button"
             className="-mr-2 flex h-10 w-10 items-center justify-center rounded-md text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 lg:hidden"
@@ -259,8 +262,8 @@ function Hero({ qrDataUrl }: { qrDataUrl: string }) {
             <TemplatePreview templateKey="floraison" />
           </div>
 
-          <FloatingCard className="absolute -left-2 bottom-[16%] w-[15.5rem] sm:-left-6">
-            <p className="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-brand">{COPY.hero.rsvpTitle}</p>
+          <FloatingCard className="absolute -left-1 bottom-[14%] w-[12.75rem] sm:-left-6 sm:w-[15.5rem]">
+            <p className="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-brand sm:text-[0.625rem] sm:tracking-[0.2em]">{COPY.hero.rsvpTitle}</p>
             <p className="mt-2 text-[0.8125rem] font-medium text-ink">{COPY.hero.rsvpGuest}</p>
             <p className="mt-2 inline-flex items-center gap-1.5 rounded-sm bg-success-soft px-2 py-1 text-[0.75rem] font-medium text-success">
               <IconCheck className="h-3.5 w-3.5" />
@@ -268,12 +271,12 @@ function Hero({ qrDataUrl }: { qrDataUrl: string }) {
             </p>
           </FloatingCard>
 
-          <FloatingCard className="absolute -right-2 top-[10%] flex w-[9.5rem] flex-col items-center text-center sm:-right-6">
-            <p className="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-brand">{COPY.hero.accessTitle}</p>
+          <FloatingCard className="absolute -right-1 top-[8%] flex w-[7.25rem] flex-col items-center px-3 text-center sm:-right-6 sm:w-[9.5rem] sm:px-4">
+            <p className="whitespace-nowrap text-[0.5625rem] font-semibold uppercase tracking-[0.12em] text-brand sm:text-[0.625rem] sm:tracking-[0.2em]">{COPY.hero.accessTitle}</p>
             {qrDataUrl ? (
-              <img src={qrDataUrl} alt="" className="mt-2.5 h-[5.5rem] w-[5.5rem]" />
+              <img src={qrDataUrl} alt="" className="mt-2.5 h-16 w-16 sm:h-[5.5rem] sm:w-[5.5rem]" />
             ) : (
-              <span className="mt-2.5 block h-[5.5rem] w-[5.5rem] bg-surface-muted" aria-hidden="true" />
+              <span className="mt-2.5 block h-16 w-16 bg-surface-muted sm:h-[5.5rem] sm:w-[5.5rem]" aria-hidden="true" />
             )}
             <p className="mt-2 inline-flex items-center gap-1.5 text-[0.75rem] font-medium text-ink">
               <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
@@ -402,9 +405,9 @@ function GuestJourney({ qrDataUrl }: { qrDataUrl: string }) {
     <section aria-labelledby="invite-titre" className="border-b border-line bg-surface">
       <div className={`${WRAP} ${SECTION_Y}`}>
         <SectionHeader id="invite-titre" eyebrow={COPY.guest.eyebrow} title={COPY.guest.title} lead={COPY.guest.subtitle} />
-        <ol className="mt-14 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="-mx-5 mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-5 px-5 pb-4 [scrollbar-width:thin] sm:mx-0 sm:mt-14 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
           {COPY.guest.steps.map((step, index) => (
-            <li key={step.title}>
+            <li key={step.title} className="w-[80%] shrink-0 snap-start sm:w-auto">
               <div className="flex aspect-[4/3.4] items-center justify-center overflow-hidden rounded-lg border border-line bg-paper">
                 {visuals[index]}
               </div>
@@ -530,22 +533,66 @@ function Showcase() {
     for (const template of TEMPLATES) if (!seen.has(template.category)) seen.set(template.category, template.categoryLabel)
     return Array.from(seen.entries())
   }, [])
+  // The whole collection, curated pieces first, then the rest in catalog order.
+  const ordered = useMemo(() => {
+    const featured = FEATURED_KEYS.map((key) => getTemplate(key)).filter(
+      (template): template is NonNullable<typeof template> => Boolean(template),
+    )
+    return [...featured, ...TEMPLATES.filter((template) => !FEATURED_KEYS.includes(template.key))]
+  }, [])
   const [category, setCategory] = useState<string | null>(null)
-  const shown = category
-    ? TEMPLATES.filter((template) => template.category === category).slice(0, 6)
-    : FEATURED_KEYS.map((key) => getTemplate(key)).filter((template): template is NonNullable<typeof template> => Boolean(template))
+  const shown = category ? ordered.filter((template) => template.category === category) : ordered
+
+  const trackRef = useRef<HTMLUListElement>(null)
+  const [edges, setEdges] = useState({ start: true, end: false })
+  const updateEdges = useCallback(() => {
+    const track = trackRef.current
+    if (!track) return
+    const max = track.scrollWidth - track.clientWidth
+    setEdges({ start: track.scrollLeft <= 4, end: track.scrollLeft >= max - 4 })
+  }, [])
+  useEffect(() => {
+    const track = trackRef.current
+    if (!track) return undefined
+    track.scrollLeft = 0
+    updateEdges()
+    if (typeof ResizeObserver === 'undefined') return undefined
+    const observer = new ResizeObserver(updateEdges)
+    observer.observe(track)
+    return () => observer.disconnect()
+  }, [category, updateEdges])
+
+  /** Page by what is visible, snapping lands each card cleanly. */
+  const page = (direction: 1 | -1) => {
+    const track = trackRef.current
+    if (!track) return
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    track.scrollBy({ left: direction * track.clientWidth * 0.9, behavior: reduce ? 'auto' : 'smooth' })
+  }
 
   const chip = (selected: boolean) =>
     `shrink-0 rounded-sm border px-3.5 py-2 text-[0.8125rem] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${
       selected ? 'border-ink bg-ink text-white' : 'border-line bg-surface text-ink-soft hover:border-line-strong hover:text-ink'
     }`
+  const arrow =
+    'flex h-11 w-11 items-center justify-center rounded-full border border-line-strong bg-surface text-ink transition-colors hover:border-ink disabled:cursor-default disabled:opacity-35 disabled:hover:border-line-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40'
 
   return (
-    <section id="modeles" aria-labelledby="modeles-titre" className="scroll-mt-16 border-b border-line">
+    <section id="modeles" aria-labelledby="modeles-titre" className="scroll-mt-16 overflow-hidden border-b border-line">
       <div className={`${WRAP} ${SECTION_Y}`}>
-        <SectionHeader id="modeles-titre" eyebrow={COPY.showcase.eyebrow} title={COPY.showcase.title} lead={COPY.showcase.subtitle} />
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          <SectionHeader id="modeles-titre" eyebrow={COPY.showcase.eyebrow} title={COPY.showcase.title} lead={COPY.showcase.subtitle} />
+          <div className="hidden shrink-0 items-center gap-3 sm:flex">
+            <button type="button" className={arrow} onClick={() => page(-1)} disabled={edges.start} aria-label={COPY.showcase.previous}>
+              <IconArrowRight className="h-4 w-4 rotate-180" />
+            </button>
+            <button type="button" className={arrow} onClick={() => page(1)} disabled={edges.end} aria-label={COPY.showcase.next}>
+              <IconArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
 
-        <div role="group" aria-label={COPY.showcase.filterLabel} className="-mx-5 mt-10 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+        <div role="group" aria-label={COPY.showcase.filterLabel} className="-mx-5 mt-10 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0">
           <button type="button" aria-pressed={category === null} className={chip(category === null)} onClick={() => setCategory(null)}>
             {COPY.showcase.all}
           </button>
@@ -556,26 +603,38 @@ function Showcase() {
           ))}
         </div>
 
-        <ul className="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Horizontal collection: swipe on phones, arrows or keyboard on
+            desktop. The track bleeds to the screen edge so the next card
+            always peeks in, signalling there is more to see. */}
+        <ul
+          ref={trackRef}
+          onScroll={updateEdges}
+          tabIndex={0}
+          aria-label={COPY.showcase.trackLabel}
+          className="-mx-5 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-5 px-5 pb-6 [scrollbar-width:thin] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30 sm:-mx-8 sm:gap-7 sm:scroll-px-8 sm:px-8 lg:-mx-10 lg:scroll-px-10 lg:px-10"
+        >
           {shown.map((template) => (
-            <li key={template.key} className="group [content-visibility:auto] [contain-intrinsic-size:auto_32rem]">
+            <li
+              key={template.key}
+              className="group w-[78%] shrink-0 snap-start [contain-intrinsic-size:auto_34rem] [content-visibility:auto] sm:w-[42%] lg:w-[29%] xl:w-[27%]"
+            >
               <div className="overflow-hidden rounded-sm border border-line shadow-[0_1px_2px_rgba(26,24,21,0.05)] transition-shadow duration-300 group-hover:shadow-[0_24px_48px_-24px_rgba(26,24,21,0.35)]">
                 <TemplatePreview templateKey={template.key} />
               </div>
               <div className="mt-5 flex items-baseline justify-between gap-3">
                 <h3 className="font-display text-[1.25rem] text-ink">{template.name}</h3>
-                <span className="text-[0.75rem] uppercase tracking-[0.12em] text-ink-faint">{template.categoryLabel}</span>
+                <span className="shrink-0 text-[0.6875rem] uppercase tracking-[0.12em] text-ink-faint">{template.categoryLabel}</span>
               </div>
               <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-soft">{template.description}</p>
             </li>
           ))}
         </ul>
 
-        <div className="mt-16 flex flex-col items-start gap-4 border-t border-line pt-10 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-8 flex flex-col items-start gap-5 border-t border-line pt-10 sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-[30rem] text-[0.9375rem] text-ink-soft">
             {COPY.showcase.more.replace('{count}', String(TEMPLATES.length))}
           </p>
-          <Link to="/inscription" className={buttonClasses('primary', 'lg', 'gap-2')}>
+          <Link to="/inscription" className={buttonClasses('primary', 'lg', 'w-full justify-center gap-2 sm:w-auto')}>
             {COPY.showcase.cta}
             <IconArrowRight className="h-4 w-4" />
           </Link>
@@ -730,8 +789,8 @@ function SiteFooter() {
   const link = 'text-[0.875rem] text-ink-soft transition-colors hover:text-ink'
   return (
     <footer className="bg-paper">
-      <div className={`grid gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))] lg:gap-10 ${WRAP}`}>
-        <div className="sm:col-span-2 lg:col-span-1">
+      <div className={`grid grid-cols-2 gap-x-8 gap-y-12 py-16 sm:grid-cols-3 lg:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))] lg:gap-10 ${WRAP}`}>
+        <div className="col-span-2 sm:col-span-3 lg:col-span-1">
           <BrandLockup />
           <p className="mt-5 max-w-[22rem] text-[0.875rem] leading-relaxed text-ink-soft">{COPY.footer.description}</p>
           <p className="mt-4 font-display text-[1rem] italic text-ink">{COPY.footer.tagline}</p>
@@ -769,7 +828,7 @@ function SiteFooter() {
             </li>
           </ul>
         </nav>
-        <div>
+        <div className="col-span-2 sm:col-span-1">
           <p className={columnTitle}>{COPY.footer.contact}</p>
           <ul className="mt-5 space-y-3">
             <li>

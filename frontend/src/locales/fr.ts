@@ -530,7 +530,7 @@ export const fr = {
       closeMenu: 'Fermer le menu',
     },
     hero: {
-      eyebrow: 'Invitations digitales · Kinshasa et au-delà',
+      eyebrow: 'Invitations digitales · Kinshasa et au‑delà',
       title: 'Des invitations dignes de vos plus beaux moments.',
       text: 'Créez une invitation digne d’un faire-part imprimé, envoyez à chaque invité son exemplaire personnel par WhatsApp ou par e-mail, et vérifiez son QR code à l’entrée.',
       signupCta: 'Créer un compte',
@@ -666,8 +666,11 @@ export const fr = {
       subtitle: 'Des modèles originaux, composés comme des pièces de papeterie. Ce que vous voyez ici est le rendu réel de l’application.',
       filterLabel: 'Filtrer les modèles par occasion',
       all: 'Tous',
+      trackLabel: 'Modèles d’invitation, défilement horizontal',
+      previous: 'Modèles précédents',
+      next: 'Modèles suivants',
       cta: 'Créer un compte pour personnaliser un modèle',
-      more: 'Toute la collection, soit {count} modèles, est disponible dans votre espace.',
+      more: 'Les {count} modèles sont disponibles dans votre espace, prêts à personnaliser.',
     },
     categories: {
       title: 'Pour chaque célébration',
@@ -757,17 +760,17 @@ export const fr = {
     },
     navLabel: 'Informations légales',
     updated: 'Dernière mise à jour : 10 octobre 2026.',
-    contact: 'support@nickevents.com',
+    contact: 'info@malaikaevent.com',
     cgu: {
       title: 'Conditions générales d’utilisation',
       intro:
-        'Les présentes conditions générales d’utilisation (ci-après « CGU ») définissent les règles d’utilisation du service MalaikaEvents, accessible sur nickevents.com. En créant un compte ou en utilisant le service, vous acceptez sans réserve les présentes CGU.',
+        'Les présentes conditions générales d’utilisation (ci-après « CGU ») définissent les règles d’utilisation du service MalaikaEvents, accessible sur malaikaevent.com. En créant un compte ou en utilisant le service, vous acceptez sans réserve les présentes CGU.',
       sections: [
         {
           title: 'Éditeur du service',
           paragraphs: [
             'Le service MalaikaEvents (ci-après « le service ») est édité par MalaikaEvents, marque du service (ci-après « l’éditeur » ou « nous »).',
-            'Pour toute question sur le service ou sur les présentes CGU : support@nickevents.com.',
+            'Pour toute question sur le service ou sur les présentes CGU : info@malaikaevent.com.',
           ],
           list: [],
           table: [],
@@ -785,7 +788,7 @@ export const fr = {
           title: 'Accès au service et compte organisateur',
           paragraphs: [
             'La création d’un compte est réservée aux personnes disposant de la capacité juridique nécessaire. Vous vous engagez à fournir des informations exactes et à les tenir à jour.',
-            'Vos identifiants de connexion sont strictement personnels : vous êtes responsable de toute activité réalisée depuis votre compte. Signalez-nous sans délai toute utilisation non autorisée à support@nickevents.com.',
+            'Vos identifiants de connexion sont strictement personnels : vous êtes responsable de toute activité réalisée depuis votre compte. Signalez-nous sans délai toute utilisation non autorisée à info@malaikaevent.com.',
             'L’utilisation du service ne donne actuellement lieu à aucune facturation ; toute évolution fera l’objet d’une information préalable et d’une mise à jour des présentes CGU.',
           ],
           list: [],
@@ -836,7 +839,7 @@ export const fr = {
         {
           title: 'Suspension et résiliation',
           paragraphs: [
-            'Vous pouvez cesser d’utiliser le service à tout moment. La suppression de votre compte s’effectue sur demande à support@nickevents.com.',
+            'Vous pouvez cesser d’utiliser le service à tout moment. La suppression de votre compte s’effectue sur demande à info@malaikaevent.com.',
             'En cas de manquement grave aux présentes CGU, nous nous réservons le droit de suspendre ou de résilier votre accès au service, dans la mesure du possible après vous en avoir informé.',
           ],
           list: [],
@@ -854,7 +857,7 @@ export const fr = {
           title: 'Droit applicable et litiges',
           paragraphs: [
             'Les présentes CGU sont régies par le droit congolais (République Démocratique du Congo), sans préjudice des dispositions impératives de protection du consommateur applicables dans votre pays de résidence.',
-            'En cas de différend, nous vous invitons à contacter d’abord notre service à support@nickevents.com afin de rechercher une solution amiable. À défaut d’accord, les tribunaux compétents de Kinshasa seront saisis, sous réserve des dispositions impératives contraires.',
+            'En cas de différend, nous vous invitons à contacter d’abord notre service à info@malaikaevent.com afin de rechercher une solution amiable. À défaut d’accord, les tribunaux compétents de Kinshasa seront saisis, sous réserve des dispositions impératives contraires.',
           ],
           list: [],
           table: [],
@@ -869,7 +872,7 @@ export const fr = {
         {
           title: 'Responsable du traitement',
           paragraphs: [
-            'Pour les données de votre compte organisateur, le responsable du traitement est MalaikaEvents, marque du service, éditeur de nickevents.com. Contact : support@nickevents.com.',
+            'Pour les données de votre compte organisateur, le responsable du traitement est MalaikaEvents, marque du service, éditeur de malaikaevent.com. Contact : info@malaikaevent.com.',
             'Pour les données de vos invités (civilité, nom, affectation de table, réponses) recueillies dans le cadre de vos événements, le responsable du traitement est l’organisateur de l’événement ; MalaikaEvents agit comme sous-traitant.',
           ],
           list: [],
@@ -981,7 +984,7 @@ export const fr = {
           title: 'Vos droits',
           paragraphs: [
             'Conformément au RGPD, vous disposez des droits d’accès, de rectification, d’effacement, de limitation, de portabilité et d’opposition sur vos données, ainsi que du droit de définir des directives relatives au sort de vos données après votre décès.',
-            'Pour exercer ces droits, écrivez-nous à support@nickevents.com depuis l’adresse e-mail de votre compte. Nous répondons dans un délai d’un mois, conformément à l’article 12 du RGPD.',
+            'Pour exercer ces droits, écrivez-nous à info@malaikaevent.com depuis l’adresse e-mail de votre compte. Nous répondons dans un délai d’un mois, conformément à l’article 12 du RGPD.',
             'Si vous êtes l’invité d’un événement, adressez votre demande à l’organisateur de l’événement, responsable du traitement de vos données ; nous l’assistons pour y répondre.',
             'Vous pouvez également introduire une réclamation auprès de l’autorité de protection des données de votre pays de résidence — par exemple la CNIL en France (cnil.fr) — ou de toute autre autorité compétente.',
           ],
@@ -992,7 +995,7 @@ export const fr = {
           title: 'Sécurité',
           paragraphs: [
             'Nous mettons en œuvre des mesures techniques et organisationnelles adaptées : chiffrement des échanges (TLS), hachage et salage des mots de passe, contrôle d’accès par compte, jetons d’invitation uniques, isolation des espaces organisateurs et durcissement des navigateurs (en-têtes de sécurité, cookies limités au strict nécessaire).',
-            'Aucun système n’étant infaillible, signalez-nous toute vulnérabilité ou tout incident présumé à support@nickevents.com.',
+            'Aucun système n’étant infaillible, signalez-nous toute vulnérabilité ou tout incident présumé à info@malaikaevent.com.',
           ],
           list: [],
           table: [],
@@ -1008,7 +1011,7 @@ export const fr = {
         {
           title: 'Contact',
           paragraphs: [
-            'Pour toute question sur cette politique ou sur le traitement de vos données : support@nickevents.com.',
+            'Pour toute question sur cette politique ou sur le traitement de vos données : info@malaikaevent.com.',
           ],
           list: [],
           table: [],
@@ -1074,7 +1077,7 @@ export const fr = {
         },
         {
           title: 'Contact',
-          paragraphs: ['Une question sur les cookies ? Écrivez-nous à support@nickevents.com.'],
+          paragraphs: ['Une question sur les cookies ? Écrivez-nous à info@malaikaevent.com.'],
           list: [],
           table: [],
         },

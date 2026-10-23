@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -79,5 +80,19 @@ describe('LandingPage', () => {
         name: 'Des invitations vérifiables, partagées en un instant',
       }),
     ).toBeInTheDocument()
+  })
+
+  it('lists the collection horizontally and filters it by occasion', async () => {
+    const user = userEvent.setup()
+    renderLanding()
+
+    const track = screen.getByRole('list', { name: 'Modèles d’invitation, défilement horizontal' })
+    expect(within(track).getAllByRole('listitem').length).toBeGreaterThan(9)
+
+    await user.click(screen.getByRole('button', { name: 'Hommage' }))
+    expect(screen.getByRole('button', { name: 'Hommage' })).toHaveAttribute('aria-pressed', 'true')
+    const items = within(track).getAllByRole('listitem')
+    expect(items).toHaveLength(1)
+    expect(within(items[0]).getByText('Mémoire')).toBeInTheDocument()
   })
 })

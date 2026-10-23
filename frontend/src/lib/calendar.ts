@@ -83,7 +83,7 @@ export function buildIcs(event: CalendarEvent, now: Date = new Date()): string |
     'PRODID:-//NickEvents//Invitation//FR',
     'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
-    `UID:${encodeURIComponent(event.url)}@nickevents`,
+    `UID:${encodeURIComponent(event.url)}@malaikaevent`,
     `DTSTAMP:${utcStamp(now)}`,
     ...start,
     `SUMMARY:${escapeText(event.title)}`,
