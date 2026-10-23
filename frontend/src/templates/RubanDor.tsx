@@ -3,7 +3,7 @@
  *
  * Warm cream paper crossed by four dry-brushed gold ribbons that enter at
  * the top right of centre and sweep down to the bottom-left corner, painted
- * blue anemone-and-peony clusters at top-right and bottom-left, an arched
+ * watercolour blue peony-and-anemone clusters at top-right and bottom-left, an arched
  * bold serif opener, a huge script occasion word, thin sans capitals, the
  * honoured names in script and a bold serif date line.
  */
@@ -11,8 +11,6 @@ import { useId } from 'react'
 
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
-import { Bouquet } from './paintedFlora.tsx'
-import type { FloraItem } from './paintedFlora.tsx'
 import {
   CoverHero,
   DressCodeSection,
@@ -26,35 +24,48 @@ import {
 } from './shared.tsx'
 import { ArchText, GOLD, SCRIPT_FONT } from './referenceMotifs.tsx'
 import type { TemplateProps } from './types.ts'
+import { WatercolorBouquet } from './watercolorFlora.tsx'
+import type { WatercolorItem } from './watercolorFlora.tsx'
 
 const PAPER = '#F3EEE4'
 const INK = '#26457E'
 const SERIF = "'Playfair Display', Georgia, serif"
 const SANS = "'Montserrat', 'Inter', sans-serif"
 
-const CLUSTER_TOP_RIGHT: FloraItem[] = [
-  { k: 'spray', x: 120, y: 30, s: 0.9, r: 250, p: 'blueLeaf', len: 110, n: 8 },
-  { k: 'spray', x: 150, y: 120, s: 0.9, r: 200, p: 'blueLeaf', len: 100, n: 7 },
-  { k: 'spray', x: 40, y: 20, s: 0.7, r: 260, p: 'blueLeaf', len: 90, n: 6 },
-  { k: 'anemone', x: 70, y: 40, s: 0.62, r: 10, p: 'dustyBlue' },
-  { k: 'peony', x: 132, y: 46, s: 0.95, r: -10, p: 'royalBlue' },
-  { k: 'anemone', x: 168, y: 96, s: 0.72, r: 20, p: 'powderBlue' },
-  { k: 'anemone', x: 186, y: 30, s: 0.55, r: -16, p: 'dustyBlue' },
-  { k: 'bud', x: 30, y: 60, s: 0.7, r: -120, p: 'royalBlue' },
-  { k: 'bud', x: 46, y: 76, s: 0.55, r: -140, p: 'royalBlue' },
-  { k: 'bud', x: 176, y: 150, s: 0.6, r: 170, p: 'royalBlue' },
+/* Top-right: a full royal peony tucked in the corner, anemones either side,
+   leaf sprays reaching left along the top edge and down the right edge,
+   navy berries in the gaps — the reference's cluster, back to front. */
+const CLUSTER_TOP_RIGHT: WatercolorItem[] = [
+  { k: 'spray', x: 150, y: 40, s: 1, r: -100, tone: 'leafBlue', len: 120, n: 8, seed: 41 },
+  { k: 'spray', x: 176, y: 70, s: 1, r: 165, tone: 'leafGrey', len: 110, n: 7, seed: 42 },
+  { k: 'spray', x: 110, y: 26, s: 0.8, r: -80, tone: 'leafGrey', len: 90, n: 6, seed: 43 },
+  { k: 'leaf', x: 132, y: 70, s: 1, r: -140, tone: 'leafBlue', len: 44, seed: 44 },
+  { k: 'leaf', x: 196, y: 96, s: 1, r: 160, tone: 'leafBlue', len: 40, seed: 45 },
+  { k: 'berries', x: 48, y: 48, s: 0.9, r: -60, seed: 46 },
+  { k: 'berries', x: 186, y: 150, s: 0.85, r: 170, seed: 47 },
+  { k: 'bloom', x: 92, y: 36, s: 0.62, r: 18, tone: 'dusty', seed: 48 },
+  { k: 'bloom', x: 186, y: 112, s: 0.66, r: -10, tone: 'cornflower', seed: 49 },
+  { k: 'peony', x: 150, y: 40, s: 0.92, r: 6, tone: 'royal', seed: 50 },
+  { k: 'bloom', x: 196, y: 26, s: 0.55, r: 30, tone: 'dusty', seed: 51 },
+  { k: 'bud', x: 62, y: 30, s: 0.7, r: -70, tone: 'royal', seed: 52 },
+  { k: 'bud', x: 170, y: 150, s: 0.65, r: 190, tone: 'royal', seed: 53 },
 ]
 
-const CLUSTER_BOTTOM_LEFT: FloraItem[] = [
-  { k: 'spray', x: 40, y: 150, s: 0.9, r: -20, p: 'blueLeaf', len: 110, n: 8 },
-  { k: 'spray', x: 90, y: 180, s: 0.85, r: 50, p: 'blueLeaf', len: 100, n: 7 },
-  { k: 'spray', x: 10, y: 100, s: 0.75, r: -40, p: 'blueLeaf', len: 90, n: 6 },
-  { k: 'anemone', x: 30, y: 128, s: 0.7, r: -10, p: 'powderBlue' },
-  { k: 'peony', x: 82, y: 156, s: 1, r: 8, p: 'royalBlue' },
-  { k: 'anemone', x: 138, y: 168, s: 0.66, r: 14, p: 'dustyBlue' },
-  { k: 'anemone', x: 20, y: 180, s: 0.6, r: 0, p: 'dustyBlue' },
-  { k: 'bud', x: 20, y: 80, s: 0.6, r: 10, p: 'royalBlue' },
-  { k: 'bud', x: 160, y: 130, s: 0.55, r: 60, p: 'royalBlue' },
+/* Bottom-left: the mirror cluster, heavier, with the large peony low. */
+const CLUSTER_BOTTOM_LEFT: WatercolorItem[] = [
+  { k: 'spray', x: 30, y: 150, s: 1, r: 10, tone: 'leafBlue', len: 120, n: 8, seed: 61 },
+  { k: 'spray', x: 60, y: 176, s: 1, r: 70, tone: 'leafGrey', len: 110, n: 7, seed: 62 },
+  { k: 'spray', x: 14, y: 120, s: 0.85, r: -20, tone: 'leafGrey', len: 90, n: 6, seed: 63 },
+  { k: 'leaf', x: 100, y: 150, s: 1, r: 60, tone: 'leafBlue', len: 44, seed: 64 },
+  { k: 'leaf', x: 10, y: 96, s: 1, r: -14, tone: 'leafBlue', len: 40, seed: 65 },
+  { k: 'berries', x: 140, y: 150, s: 0.9, r: 70, seed: 66 },
+  { k: 'berries', x: 20, y: 70, s: 0.85, r: -10, seed: 67 },
+  { k: 'bloom', x: 18, y: 126, s: 0.7, r: -12, tone: 'cornflower', seed: 68 },
+  { k: 'bloom', x: 128, y: 178, s: 0.68, r: 16, tone: 'dusty', seed: 69 },
+  { k: 'peony', x: 70, y: 164, s: 1, r: -6, tone: 'royal', seed: 70 },
+  { k: 'bloom', x: 14, y: 186, s: 0.6, r: 24, tone: 'dusty', seed: 71 },
+  { k: 'bud', x: 34, y: 92, s: 0.7, r: -10, tone: 'royal', seed: 72 },
+  { k: 'bud', x: 156, y: 126, s: 0.6, r: 64, tone: 'royal', seed: 73 },
 ]
 
 /** Four dry-brushed gold ribbons (rough edges from a displacement filter). */
@@ -109,8 +120,8 @@ export function RubanDor({ draft }: TemplateProps) {
           <GoldBrushRibbons />
         </div>
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-          <Bouquet items={CLUSTER_TOP_RIGHT} viewBox="0 0 200 170" className="absolute -right-[1em] -top-[0.6em] h-[17em] w-[20em]" />
-          <Bouquet items={CLUSTER_BOTTOM_LEFT} viewBox="0 0 180 200" className="absolute -bottom-[1em] -left-[1em] h-[19em] w-[17em]" />
+          <WatercolorBouquet items={CLUSTER_TOP_RIGHT} viewBox="0 0 200 170" className="absolute -right-[1em] -top-[0.6em] h-[17em] w-[20em]" />
+          <WatercolorBouquet items={CLUSTER_BOTTOM_LEFT} viewBox="0 0 180 200" className="absolute -bottom-[1em] -left-[1em] h-[19em] w-[17em]" />
         </div>
 
         <div className="relative flex flex-1 flex-col items-center px-[6.5em] pb-[12em] pt-[6em] text-center">

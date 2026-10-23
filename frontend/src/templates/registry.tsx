@@ -448,6 +448,7 @@ const SAMPLES: Record<string, Partial<InvitationDraft>> = {
   'mood-board': {
     title: 'James & Tony',
     message: 'Mariage Civil & Religieux',
+    note: '« Aimer, ce n’est pas se regarder l’un l’autre, c’est regarder ensemble dans la même direction » — Antoine de Saint-Exupéry',
     venue_name: 'Salle des Fêtes Le Prestige',
     venue_address: 'Boulevard du 30 Juin, Kinshasa',
     venue_details: 'Cérémonie et réception',

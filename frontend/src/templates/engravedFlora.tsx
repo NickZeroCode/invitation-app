@@ -1,46 +1,101 @@
 /**
  * Engraved gold botanicals — the sketch-line roses of « Roses d'Or »
- * (`very_beautiful template/Screenshot 2026-10-08 022102.png`): wrapped
- * rose heads with curled petal lips and hatching, serrated leaves with
- * veins, lavender sprigs and an open lily, all in a single gold-foil stroke.
+ * (`very_beautiful template/Screenshot 2026-10-08 022102.png`): cupped
+ * three-quarter rose heads with rolled lips and burin hatching over a faint
+ * sepia wash, serrated leaves with veins, lavender sprigs and an open lily,
+ * all in a single gold-foil stroke.
  */
 import { useId } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 
-/** Rose head, ~80 units across, centred on (0,0). */
-function RoseHead() {
+/**
+ * Engraver's hatching: `count` parallel strokes whose start points step
+ * from (x1, y1) to (x2, y2), each `len` long at `angle` degrees, the
+ * middle strokes longest so the shade swells and fades like a burin cut.
+ */
+function hatch(x1: number, y1: number, x2: number, y2: number, angle: number, len: number, count: number) {
+  const a = (angle * Math.PI) / 180
+  const out: string[] = []
+  for (let i = 0; i < count; i += 1) {
+    const t = count === 1 ? 0.5 : i / (count - 1)
+    const x = x1 + (x2 - x1) * t
+    const y = y1 + (y2 - y1) * t
+    const l = len * (0.45 + 0.55 * Math.sin(Math.PI * t))
+    out.push(`M ${x.toFixed(1)} ${y.toFixed(1)} l ${(Math.cos(a) * l).toFixed(1)} ${(Math.sin(a) * l).toFixed(1)}`)
+  }
+  return out.join(' ')
+}
+
+/* Silhouette of the cup, for the sepia wash under the line work. */
+const ROSE_SILHOUETTE =
+  'M -26 -16 C -14 -27, 16 -27, 30 -15 C 40 -5, 38 13, 30 20 C 19 30, -19 30, -31 19 C -40 9, -38 -8, -26 -16 Z'
+
+/**
+ * Rose head in three-quarter view, ~80 × 56 units centred on (0,0): an oval
+ * opening holding a folded spiral heart, two petals wrapping it, broad outer
+ * petals forming the cup with their rims rolled outward, and hatching that
+ * follows each petal into its shadow.
+ */
+function RoseHead({ wash }: { wash: string }) {
   return (
     <g>
-      {/* heart: a tight bud spiral */}
-      <path d="M -5 -3 C -6 -11, 6 -13, 8 -5 C 10 3, 2 7, -4 5 C -9 3, -10 -5, -4 -9" />
-      <path d="M -13 -1 C -15 -15, 1 -21, 13 -15 C 21 -9, 19 5, 9 9" />
-      <path d="M -18 7 C -24 -7, -16 -23, 0 -25 C 14 -26, 26 -15, 24 -1" />
-      {/* outer petals with turned lips */}
-      <path d="M -20 9 C -34 5, -38 -13, -29 -23 C -23 -30, -12 -31, -6 -26" />
-      <path d="M -29 -23 C -32 -19, -28 -16, -25 -18" />
-      <path d="M 22 -1 C 34 -5, 41 9, 35 19 C 31 27, 20 29, 12 25" />
-      <path d="M 35 19 C 39 20, 40 16, 37 14" />
-      <path d="M -22 11 C -27 25, -12 35, 2 33 C 14 31, 22 25, 27 16" />
-      <path d="M -8 -27 C -2 -36, 13 -36, 19 -28 C 23 -22, 21 -16, 17 -14" />
-      <path d="M 19 -28 C 23 -31, 25 -27, 22 -25" />
-      {/* hatching in the shadows of the petals */}
-      <g strokeWidth="0.5" opacity="0.75">
-        <path d="M -30 -10 L -26 -8 M -31 -5 L -26 -4 M -29 0 L -24 1" />
-        <path d="M 28 6 L 32 4 M 27 11 L 32 10 M 25 16 L 29 16" />
-        <path d="M -10 28 L -8 24 M -4 30 L -3 26 M 2 30 L 2 26" />
-        <path d="M 2 -31 L 3 -27 M 8 -31 L 8 -27" />
+      <path d={ROSE_SILHOUETTE} fill={wash} stroke="none" />
+      {/* the heart: a squashed spiral of folded petals inside the opening */}
+      <path d="M -3 -13 C -3 -16, 4 -16, 5 -13 C 6 -10, -1 -9, -5 -11 C -9 -13, -7 -18, 0 -19 C 8 -20, 13 -16, 12 -11" />
+      <path d="M -10 -12 C -12 -17, -6 -21, 2 -22 C 10 -22, 16 -18, 16 -13" />
+      {/* the opening: back petal rim with its rolled lip */}
+      <path d="M -18 -12 C -16 -22, 14 -25, 19 -13" />
+      <path d="M -18 -12 C -21 -13, -22 -17, -18 -18 C -16 -18, -15 -16, -16 -15" />
+      <path d="M 19 -13 C 22 -15, 23 -18, 20 -19" />
+      {/* inner petals wrapping the heart */}
+      <path d="M -18 -12 C -24 -3, -20 8, -8 12" />
+      <path d="M 19 -13 C 25 -4, 21 8, 8 12" />
+      <path d="M -14 -6 C -8 -1, 8 -1, 15 -7" />
+      <path d="M -14 -6 C -13 -9, -9 -10, -7 -7" />
+      <path d="M -8 12 C -3 15, 3 15, 8 12" />
+      {/* outer petals forming the cup, rims turned back */}
+      <path d="M -18 -12 C -31 -14, -39 -1, -34 11 C -29 22, -14 27, 0 26" />
+      <path d="M -24 -14 C -29 -19, -23 -24, -18 -20 C -16 -18, -18 -16, -20 -17" />
+      <path d="M 19 -13 C 32 -16, 41 -2, 35 10 C 30 21, 15 27, 0 26" />
+      <path d="M 27 -15 C 32 -19, 36 -14, 33 -11" />
+      <path d="M -31 15 C -24 31, 23 32, 31 15" />
+      <path d="M -31 15 C -34 18, -32 22, -28 21" />
+      <path d="M 31 15 C 34 17, 33 21, 29 21" />
+      {/* engraved shade, following each petal */}
+      <g strokeWidth="0.45" opacity="0.9">
+        <path d={hatch(6, -12, 15, -11, 95, 4, 6)} />
+        <path d={hatch(-31, -7, -25, 14, 20, 6, 9)} />
+        <path d={hatch(33, -6, 27, 15, 160, 6, 9)} />
+        <path d={hatch(-7, 15, 7, 15, 90, 6, 7)} />
+        <path d={hatch(-20, -2, -14, 9, 15, 4, 6)} />
+        <path d={hatch(21, -3, 15, 9, 165, 4, 6)} />
+        <path d={hatch(-22, 22, 20, 24, 75, 3.5, 12)} />
+      </g>
+      <g strokeWidth="0.3" opacity="0.6">
+        <path d={hatch(-12, -4, 12, -4, 80, 3, 9)} />
+        <path d={hatch(-16, -19, -8, -21, 60, 2.5, 4)} />
       </g>
     </g>
   )
 }
 
-/** Serrated leaf with midrib and veins, base at (0,0) pointing up. */
-function Leaf() {
+/** Serrated leaf with midrib, paired veins and shading on one half;
+ * base at (0,0) pointing up. */
+function Leaf({ wash }: { wash: string }) {
+  const outline =
+    'M 0 0 C -9 -6, -14 -18, -12 -28 L -10 -27 L -10 -32 L -7 -31 L -6 -36 L -3 -35 L -1 -41 C 3 -36, 6 -31, 7 -26 L 5 -25 L 8 -20 L 5 -19 L 7 -13 L 4 -12 C 4 -7, 2 -3, 0 0 Z'
   return (
     <g>
-      <path d="M 0 0 C -10 -8, -14 -22, -10 -34 L -8 -31 L -7 -36 L -4 -33 L -2 -40 L 0 -36 C 6 -28, 10 -14, 0 0 Z" />
-      <path d="M 0 -2 C -2 -14, -3 -26, -2 -38" strokeWidth="0.6" />
-      <path d="M -1 -10 L -7 -14 M -1 -18 L -8 -23 M -2 -26 L -7 -30 M 0 -12 L 4 -16 M -1 -20 L 4 -25" strokeWidth="0.45" />
+      <path d={outline} fill={wash} stroke="none" opacity="0.45" />
+      <path d={outline} />
+      <path d="M 0 -1 C -1 -13, -2 -27, -1 -39" strokeWidth="0.6" />
+      <path
+        d="M -0.5 -8 Q -5 -11 -8 -15 M -1 -15 Q -6 -19 -9 -23 M -1 -22 Q -5 -27 -7 -30 M -1 -29 Q -3 -33 -4 -35 M 0 -10 Q 3 -13 5 -17 M 0 -17 Q 3 -20 5 -23 M -0.5 -24 Q 2 -27 4 -29"
+        strokeWidth="0.4"
+      />
+      <g strokeWidth="0.3" opacity="0.7">
+        <path d="M 1 -6 L 3 -8 M 1.5 -12 L 4 -14 M 1.5 -19 L 4 -21 M 1 -26 L 3 -28 M 0.5 -32 L 2 -34" />
+      </g>
     </g>
   )
 }
@@ -86,12 +141,15 @@ export function EngravedBouquet({
   className,
   style,
   strokeWidth = 1.1,
+  ink,
 }: {
   items: EngravedItem[]
   viewBox: string
   className?: string
   style?: CSSProperties
   strokeWidth?: number
+  /** Plain line-art colour instead of the gold foil (and no sepia wash). */
+  ink?: string
 }) {
   const id = useId().replace(/:/g, '')
   return (
@@ -104,12 +162,26 @@ export function EngravedBouquet({
           <stop offset="0.8" stopColor="#DDBD7A" />
           <stop offset="1" stopColor="#8E6A2A" />
         </linearGradient>
+        {/* Faint sepia wash under the line work, darker in the hollows. */}
+        <radialGradient id={`${id}-wash`} cx="0.5" cy="0.5" r="0.6">
+          <stop offset="0" stopColor="#B88E4E" stopOpacity="0.32" />
+          <stop offset="0.6" stopColor="#D4B27A" stopOpacity="0.28" />
+          <stop offset="1" stopColor="#E6CFA2" stopOpacity="0.12" />
+        </radialGradient>
       </defs>
-      <g fill="none" stroke={`url(#${id}-foil)`} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <g fill="none" stroke={ink ?? `url(#${id}-foil)`} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
         {items.map((item, index) => {
           if (item.k === 'stem') return <path key={index} d={item.d} />
           const body =
-            item.k === 'lavender' ? <Lavender length={item.len} /> : item.k === 'rose' ? <RoseHead /> : item.k === 'leaf' ? <Leaf /> : <Lily />
+            item.k === 'lavender' ? (
+              <Lavender length={item.len} />
+            ) : item.k === 'rose' ? (
+              <RoseHead wash={ink ? 'none' : `url(#${id}-wash)`} />
+            ) : item.k === 'leaf' ? (
+              <Leaf wash={ink ? 'none' : `url(#${id}-wash)`} />
+            ) : (
+              <Lily />
+            )
           return (
             <g key={index} transform={`translate(${item.x} ${item.y}) rotate(${item.r ?? 0}) scale(${item.s})`} strokeWidth={strokeWidth / item.s}>
               {body}

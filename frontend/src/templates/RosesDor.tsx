@@ -41,35 +41,53 @@ const NAME_GOLD = 'linear-gradient(155deg, #8C6A2C 0%, #C99E52 34%, #9C7634 58%,
 const SERIF = "'Playfair Display', Georgia, serif"
 const SANS = "'Montserrat', 'Inter', sans-serif"
 
+/* Corner clusters, back to front: stems, leaves, then the rose heads so
+   their sepia wash sits over the foliage, as in the reference. */
 const TOP_LEFT: EngravedItem[] = [
-  { k: 'stem', d: 'M 10 150 C 30 120, 60 90, 90 40' },
-  { k: 'leaf', x: 60, y: 96, s: 1.1, r: 60 },
-  { k: 'leaf', x: 30, y: 130, s: 1, r: -20 },
-  { k: 'leaf', x: 140, y: 40, s: 0.9, r: 110 },
-  { k: 'rose', x: 50, y: 44, s: 1.05, r: -10 },
-  { k: 'rose', x: 122, y: 30, s: 0.9, r: 20 },
-  { k: 'rose', x: 40, y: 112, s: 0.55, r: 30 },
-  { k: 'lavender', x: 6, y: 210, s: 1, r: 4, len: 70 },
-  { k: 'lavender', x: 16, y: 200, s: 0.8, r: 14, len: 60 },
+  { k: 'stem', d: 'M 6 200 C 24 150, 50 110, 86 70' },
+  { k: 'stem', d: 'M 20 120 C 50 100, 90 80, 130 34' },
+  { k: 'leaf', x: 74, y: 66, s: 1.15, r: 140 },
+  { k: 'leaf', x: 150, y: 52, s: 1.05, r: 104 },
+  { k: 'leaf', x: 14, y: 72, s: 1.05, r: -42 },
+  { k: 'leaf', x: 62, y: 124, s: 1.05, r: 205 },
+  { k: 'leaf', x: 112, y: 60, s: 0.95, r: 58 },
+  { k: 'leaf', x: 38, y: 150, s: 1, r: -14 },
+  { k: 'leaf', x: 172, y: 24, s: 0.9, r: 84 },
+  { k: 'lavender', x: 6, y: 216, s: 1, r: 4, len: 72 },
+  { k: 'lavender', x: 18, y: 210, s: 0.85, r: 16, len: 62 },
+  { k: 'rose', x: 30, y: 106, s: 0.82, r: 18 },
+  { k: 'rose', x: 122, y: 28, s: 1.08, r: 10 },
+  { k: 'rose', x: 48, y: 40, s: 1.28, r: -8 },
 ]
 
 const BOTTOM_LEFT: EngravedItem[] = [
   { k: 'stem', d: 'M 0 100 C 40 110, 90 130, 160 200' },
+  { k: 'stem', d: 'M 10 210 C 30 170, 40 140, 50 110' },
   { k: 'leaf', x: 60, y: 120, s: 1.2, r: 120 },
   { k: 'leaf', x: 30, y: 160, s: 1.1, r: 70 },
-  { k: 'lily', x: 64, y: 176, s: 1.2, r: -30 },
+  { k: 'leaf', x: 98, y: 150, s: 1.05, r: 150 },
+  { k: 'leaf', x: 20, y: 120, s: 1, r: 20 },
+  { k: 'leaf', x: 130, y: 182, s: 0.95, r: 130 },
   { k: 'lavender', x: 100, y: 200, s: 1, r: 30, len: 80 },
   { k: 'lavender', x: 120, y: 200, s: 0.9, r: 44, len: 70 },
   { k: 'lavender', x: 6, y: 90, s: 0.8, r: -6, len: 60 },
+  { k: 'lily', x: 64, y: 176, s: 1.25, r: -30 },
+  { k: 'rose', x: 26, y: 190, s: 0.7, r: 12 },
 ]
 
 const BOTTOM_RIGHT: EngravedItem[] = [
   { k: 'stem', d: 'M 160 60 C 140 100, 120 140, 70 190' },
+  { k: 'stem', d: 'M 190 120 C 160 150, 140 170, 120 200' },
   { k: 'leaf', x: 120, y: 120, s: 1.2, r: -120 },
   { k: 'leaf', x: 70, y: 170, s: 1, r: -60 },
-  { k: 'rose', x: 104, y: 160, s: 1.3, r: 10 },
-  { k: 'rose', x: 150, y: 96, s: 0.6, r: -20 },
+  { k: 'leaf', x: 160, y: 130, s: 1.05, r: -150 },
+  { k: 'leaf', x: 90, y: 136, s: 1, r: -95 },
+  { k: 'leaf', x: 176, y: 70, s: 0.9, r: -20 },
   { k: 'lavender', x: 170, y: 40, s: 0.8, r: -14, len: 60 },
+  { k: 'lavender', x: 184, y: 50, s: 0.7, r: -4, len: 54 },
+  { k: 'rose', x: 150, y: 96, s: 0.7, r: -20 },
+  { k: 'rose', x: 66, y: 186, s: 0.75, r: 16 },
+  { k: 'rose', x: 116, y: 162, s: 1.35, r: 8 },
 ]
 
 export function RosesDor({ draft }: TemplateProps) {
@@ -100,9 +118,9 @@ export function RosesDor({ draft }: TemplateProps) {
         {/* Engraved gold rose clusters (top-left, bottom-left, bottom-right) and
             a fine gold corner frame top-right, as in the reference. */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-          <EngravedBouquet items={TOP_LEFT} viewBox="0 0 180 220" className="absolute -left-[0.4em] -top-[0.4em] h-[27em] w-[22em]" />
-          <EngravedBouquet items={BOTTOM_LEFT} viewBox="0 0 180 210" className="absolute -bottom-[0.4em] -left-[0.4em] h-[24em] w-[20.5em]" />
-          <EngravedBouquet items={BOTTOM_RIGHT} viewBox="0 0 190 200" className="absolute -bottom-[0.4em] -right-[0.4em] h-[23em] w-[22em]" />
+          <EngravedBouquet strokeWidth={0.85} items={TOP_LEFT} viewBox="0 0 180 220" className="absolute -left-[0.4em] -top-[0.4em] h-[27em] w-[22em]" />
+          <EngravedBouquet strokeWidth={0.85} items={BOTTOM_LEFT} viewBox="0 0 180 210" className="absolute -bottom-[0.4em] -left-[0.4em] h-[24em] w-[20.5em]" />
+          <EngravedBouquet strokeWidth={0.85} items={BOTTOM_RIGHT} viewBox="0 0 190 200" className="absolute -bottom-[0.4em] -right-[0.4em] h-[23em] w-[22em]" />
           <div className="absolute right-[1.4em] top-[1.4em] h-[45%] w-[55%]" style={{ borderTop: `1px solid ${GOLD}`, borderRight: `1px solid ${GOLD}` }} />
         </div>
         <FiligreeCorner corner="tr" color={GOLD} opacity={0.9} />
