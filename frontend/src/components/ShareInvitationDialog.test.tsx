@@ -157,6 +157,63 @@ describe('ShareInvitationDialog', () => {
     expect(atob(String((call.body as { pdf: string }).pdf))).toBe('%PDF-1.7 test')
   })
 
+  it('shares the PDF and the message to WhatsApp through the share sheet', async () => {
+    mockFetch([{ url: '/api/share/invitations/tok-1/', body: CONTEXT }])
+    const share = vi.fn(async () => undefined)
+    vi.stubGlobal('navigator', { ...navigator, canShare: () => true, share })
+    const buildPdf = vi.fn(async () => new Blob(['%PDF-1.7 test'], { type: 'application/pdf' }))
+    const user = userEvent.setup()
+    renderDialog(buildPdf)
+
+    expect(await screen.findByLabelText(/Joindre l’invitation en PDF/)).toBeChecked()
+    const send = await screen.findByRole('button', { name: /Envoyer sur WhatsApp avec le PDF/ })
+    await waitFor(() => expect(send).toBeEnabled())
+    expect(screen.getByText(/choisissez WhatsApp puis votre invité/)).toBeInTheDocument()
+    await user.click(send)
+
+    expect(share).toHaveBeenCalledTimes(1)
+    const [payload] = share.mock.calls[0] as unknown as [{ files: File[]; text: string }]
+    expect(payload.text).toBe(CONTEXT.default_message)
+    expect(payload.files[0].name).toBe('Invitation - M. Éric Mukendi.pdf')
+    expect(payload.files[0].type).toBe('application/pdf')
+    expect(await screen.findByText(/ne peut pas confirmer leur réception/)).toBeInTheDocument()
+    expect(buildPdf).toHaveBeenCalledTimes(1)
+  })
+
+  it('downloads the PDF and opens WhatsApp where files cannot be shared', async () => {
+    mockFetch([{ url: '/api/share/invitations/tok-1/', body: CONTEXT }])
+    const open = vi.fn()
+    vi.stubGlobal('open', open)
+    const createObjectURL = vi.fn(() => 'blob:pdf')
+    vi.stubGlobal('URL', Object.assign(globalThis.URL, { createObjectURL, revokeObjectURL: vi.fn() }))
+    const user = userEvent.setup()
+    renderDialog(async () => new Blob(['%PDF-1.7 test'], { type: 'application/pdf' }))
+
+    await user.type(await screen.findByLabelText('Numéro WhatsApp'), '081 234 5678')
+    const send = screen.getByRole('button', { name: /Envoyer sur WhatsApp avec le PDF/ })
+    await waitFor(() => expect(send).toBeEnabled())
+    expect(screen.getByText(/le PDF sera téléchargé/)).toBeInTheDocument()
+    await user.click(send)
+
+    expect(createObjectURL).toHaveBeenCalledTimes(1)
+    expect(open).toHaveBeenCalledWith(
+      `https://wa.me/243812345678?text=${encodeURIComponent(CONTEXT.default_message)}`,
+      '_blank',
+      'noopener,noreferrer',
+    )
+    expect(await screen.findByText(/joignez le fichier \(trombone › Document\)/)).toBeInTheDocument()
+  })
+
+  it('keeps the plain WhatsApp link when the PDF is unchecked', async () => {
+    mockFetch([{ url: '/api/share/invitations/tok-1/', body: CONTEXT }])
+    const user = userEvent.setup()
+    renderDialog(async () => new Blob(['%PDF-1.7 test'], { type: 'application/pdf' }))
+
+    await user.click(await screen.findByLabelText(/Joindre l’invitation en PDF/))
+    expect(screen.queryByRole('button', { name: /avec le PDF/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Choisir le contact dans WhatsApp/ })).toBeInTheDocument()
+  })
+
   it('reports a PDF build failure without sending anything', async () => {
     const api = mockFetch([{ url: '/api/share/invitations/tok-1/', body: CONTEXT }])
     const user = userEvent.setup()

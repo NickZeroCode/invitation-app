@@ -5,12 +5,17 @@
  * Honesty rules baked into the copy and states:
  * - WhatsApp opens with the message prefilled; the organizer presses
  *   « Envoyer » in WhatsApp. We never claim it was sent.
+ * - With the PDF: a WhatsApp link can only carry text, so the file goes
+ *   through the device share sheet (Web Share, files + message), where the
+ *   organizer picks WhatsApp and the guest. Browsers that cannot share files
+ *   download the PDF and open WhatsApp with the message, and say plainly
+ *   that the file must be attached in the conversation.
  * - E-mail success is shown only after the server confirms the provider
  *   accepted the message — "remis au service d'envoi", not "reçu".
  * - Without a configured provider the dialog says so and offers the
  *   organizer's own mail app instead of a fake send button.
  */
-import { useId, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
 import { Alert } from '../design-system/Alert.tsx'
@@ -55,7 +60,7 @@ export function ShareInvitationDialog({
   open: boolean
   onClose: () => void
   /** Builds this guest's invitation PDF (same pipeline as the download) so
-   * the e-mail can carry it as an attachment. Absent = link only. */
+   * the e-mail and WhatsApp can carry it. Absent = link only. */
   buildPdf?: () => Promise<Blob>
 }) {
   const contextQuery = useQuery({
@@ -111,6 +116,28 @@ function blobToBase64(blob: Blob): Promise<string> {
   })
 }
 
+/** File name of the shared PDF, safe on every OS and in WhatsApp. */
+function pdfFileName(displayName: string) {
+  const name = displayName.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim()
+  return `Invitation${name ? ` - ${name}` : ''}.pdf`
+}
+
+/** Whether this browser can hand a file to the share sheet (Web Share L2). */
+function canShareFiles(file: File) {
+  return typeof navigator !== 'undefined' && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
+}
+
 function ShareForm({
   token,
   context,
@@ -136,6 +163,60 @@ function ShareForm({
   const [sendPhase, setSendPhase] = useState<'idle' | 'pdf' | 'sending'>('idle')
   const [sentWithPdf, setSentWithPdf] = useState(false)
 
+  // One PDF per dialog, built once and shared by WhatsApp and e-mail. It is
+  // prepared as soon as WhatsApp-with-PDF is on screen: the share sheet only
+  // opens straight from a click, so the file must be ready before it.
+  const pdfPromise = useRef<Promise<Blob> | null>(null)
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null)
+  const [pdfStatus, setPdfStatus] = useState<'idle' | 'building' | 'ready' | 'error'>('idle')
+  const ensurePdf = useCallback(() => {
+    if (!buildPdf) return Promise.reject(new PdfBuildError())
+    if (!pdfPromise.current) {
+      setPdfStatus('building')
+      pdfPromise.current = buildPdf().then(
+        (blob) => {
+          setPdfBlob(blob)
+          setPdfStatus('ready')
+          return blob
+        },
+        (error: unknown) => {
+          pdfPromise.current = null
+          setPdfStatus('error')
+          throw error
+        },
+      )
+    }
+    return pdfPromise.current
+  }, [buildPdf])
+  const whatsappWithPdf = channel === 'whatsapp' && attachPdf && Boolean(buildPdf)
+  useEffect(() => {
+    if (whatsappWithPdf && pdfStatus === 'idle') ensurePdf().catch(() => undefined)
+  }, [whatsappWithPdf, pdfStatus, ensurePdf])
+  const pdfName = pdfFileName(context.display_name)
+  const shareSheet = useMemo(
+    () => canShareFiles(new File([new Uint8Array([37, 80, 68, 70])], pdfName, { type: 'application/pdf' })),
+    [pdfName],
+  )
+  const [whatsappResult, setWhatsappResult] = useState<'shared' | 'downloaded' | null>(null)
+
+  async function sendWhatsappWithPdf() {
+    if (!pdfBlob) return
+    const file = new File([pdfBlob], pdfName, { type: 'application/pdf' })
+    if (canShareFiles(file)) {
+      try {
+        await navigator.share({ files: [file], text: message })
+        setWhatsappResult('shared')
+        return
+      } catch (error) {
+        // Closing the share sheet is the organizer's choice, not a failure.
+        if (error instanceof DOMException && error.name === 'AbortError') return
+      }
+    }
+    downloadBlob(pdfBlob, pdfName)
+    window.open(whatsappLink(message, phoneResult.ok ? phoneResult.digits : undefined), '_blank', 'noopener,noreferrer')
+    setWhatsappResult('downloaded')
+  }
+
   const phoneResult = normalizePhone(phone, country)
   const phoneError =
     phoneTouched && !phoneResult.ok && phoneResult.reason !== 'empty'
@@ -151,7 +232,7 @@ function ShareForm({
       if (withPdf && buildPdf) {
         setSendPhase('pdf')
         try {
-          pdf = await blobToBase64(await buildPdf())
+          pdf = await blobToBase64(await ensurePdf())
         } catch {
           throw new PdfBuildError()
         }
@@ -264,35 +345,96 @@ function ShareForm({
               </Field>
             </div>
             <MessageField id={`${ids}-message`} value={message} onChange={setMessage} linkMissing={linkMissing} url={context.public_url} />
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              {phoneResult.ok ? (
+            {buildPdf ? (
+              <PdfToggle
+                checked={attachPdf}
+                onChange={(checked) => {
+                  setAttachPdf(checked)
+                  setWhatsappResult(null)
+                }}
+              />
+            ) : null}
+            {whatsappWithPdf ? (
+              <>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    loading={pdfStatus === 'building'}
+                    disabled={pdfStatus !== 'ready'}
+                    onClick={() => void sendWhatsappWithPdf()}
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <IconChat className="h-4 w-4" />
+                      {pdfStatus === 'building' ? 'Préparation du PDF…' : 'Envoyer sur WhatsApp avec le PDF'}
+                    </span>
+                  </Button>
+                </div>
+                {pdfStatus === 'error' ? (
+                  <Alert tone="danger">
+                    Le PDF de l’invitation n’a pas pu être préparé.{' '}
+                    <button type="button" className="font-medium underline" onClick={() => void ensurePdf().catch(() => undefined)}>
+                      Réessayer
+                    </button>
+                    , ou décochez le PDF pour envoyer le message seul.
+                  </Alert>
+                ) : whatsappResult === 'shared' ? (
+                  <Alert tone="info">
+                    Le message et le PDF ont été transmis à l’application choisie. Vérifiez dans WhatsApp
+                    qu’ils sont bien partis — MalaikaEvents ne peut pas confirmer leur réception.
+                  </Alert>
+                ) : whatsappResult === 'downloaded' ? (
+                  <Alert tone="info">
+                    Le PDF « {pdfName} » a été téléchargé et WhatsApp s’ouvre avec votre message. Dans la
+                    conversation, joignez le fichier (trombone › Document) puis appuyez sur « Envoyer ».{' '}
+                    <a
+                      href={whatsappLink(message, phoneResult.ok ? phoneResult.digits : undefined)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium underline"
+                    >
+                      Rouvrir WhatsApp
+                    </a>
+                  </Alert>
+                ) : (
+                  <p className="text-[0.8125rem] leading-relaxed text-ink-soft">
+                    {shareSheet
+                      ? 'Le partage de votre appareil s’ouvre : choisissez WhatsApp puis votre invité. Le PDF et le message partent ensemble.'
+                      : 'Ce navigateur ne peut pas transmettre de fichier à WhatsApp : le PDF sera téléchargé et WhatsApp s’ouvrira avec votre message, prêt à recevoir le fichier.'}
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                {phoneResult.ok ? (
+                  <a
+                    href={whatsappLink(message, phoneResult.digits)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setHandedOff(true)}
+                    className={buttonClasses('primary', 'md', 'gap-2')}
+                  >
+                    <IconChat className="h-4 w-4" />
+                    Ouvrir dans WhatsApp
+                  </a>
+                ) : (
+                  <Button variant="primary" size="md" disabled onClick={() => setPhoneTouched(true)}>
+                    <IconChat className="h-4 w-4" />
+                    Ouvrir dans WhatsApp
+                  </Button>
+                )}
                 <a
-                  href={whatsappLink(message, phoneResult.digits)}
+                  href={whatsappLink(message)}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setHandedOff(true)}
-                  className={buttonClasses('primary', 'md', 'gap-2')}
+                  className={buttonClasses('ghost', 'md')}
                 >
-                  <IconChat className="h-4 w-4" />
-                  Ouvrir dans WhatsApp
+                  Choisir le contact dans WhatsApp
                 </a>
-              ) : (
-                <Button variant="primary" size="md" disabled onClick={() => setPhoneTouched(true)}>
-                  <IconChat className="h-4 w-4" />
-                  Ouvrir dans WhatsApp
-                </Button>
-              )}
-              <a
-                href={whatsappLink(message)}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setHandedOff(true)}
-                className={buttonClasses('ghost', 'md')}
-              >
-                Choisir le contact dans WhatsApp
-              </a>
-            </div>
-            {handedOff ? (
+              </div>
+            )}
+            {handedOff && !whatsappWithPdf ? (
               <Alert tone="info">
                 WhatsApp s’ouvre avec votre message. Appuyez sur « Envoyer » dans WhatsApp pour le
                 transmettre — MalaikaEvents ne peut pas confirmer sa réception. Rien ne s’ouvre ? Vérifiez
@@ -337,21 +479,7 @@ function ShareForm({
             {context.email_enabled ? (
               <>
                 {buildPdf ? (
-                  <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-line bg-surface-muted/60 px-3 py-2.5 text-sm text-ink">
-                    <input
-                      type="checkbox"
-                      className="mt-0.5 h-4 w-4 accent-brand"
-                      checked={attachPdf}
-                      disabled={emailMutation.isPending}
-                      onChange={(event) => setAttachPdf(event.target.checked)}
-                    />
-                    <span>
-                      Joindre l’invitation en PDF
-                      <span className="block text-[0.75rem] text-ink-soft">
-                        Le même fichier que le téléchargement : carte, détails et QR code de l’invité.
-                      </span>
-                    </span>
-                  </label>
+                  <PdfToggle checked={attachPdf} disabled={emailMutation.isPending} onChange={setAttachPdf} />
                 ) : null}
                 {sentTo ? (
                   <Alert tone="success">
@@ -432,6 +560,34 @@ function ShareForm({
         ) : null}
       </div>
     </div>
+  )
+}
+
+function PdfToggle({
+  checked,
+  disabled = false,
+  onChange,
+}: {
+  checked: boolean
+  disabled?: boolean
+  onChange: (checked: boolean) => void
+}) {
+  return (
+    <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-line bg-surface-muted/60 px-3 py-2.5 text-sm text-ink">
+      <input
+        type="checkbox"
+        className="mt-0.5 h-4 w-4 accent-brand"
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      <span>
+        Joindre l’invitation en PDF
+        <span className="block text-[0.75rem] text-ink-soft">
+          Le même fichier que le téléchargement : carte, détails et QR code de l’invité.
+        </span>
+      </span>
+    </label>
   )
 }
 

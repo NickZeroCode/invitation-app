@@ -613,7 +613,7 @@ export const fr = {
       items: [
         {
           title: 'Envoi direct par WhatsApp et e-mail',
-          text: 'Le message est prêt avec le lien personnel de l’invité. Par e-mail, l’invitation part aussi en PDF.',
+          text: 'Le message est prêt avec le lien personnel de l’invité, et l’invitation part aussi en PDF, sur WhatsApp comme par e-mail.',
         },
         {
           title: 'Un lien nominatif par invité',
@@ -655,7 +655,7 @@ export const fr = {
         },
         {
           title: 'Envoyez à chaque invité',
-          text: 'WhatsApp, e-mail avec PDF ou lien : un exemplaire nominatif pour chacun.',
+          text: 'WhatsApp ou e-mail avec le PDF, ou simple lien : un exemplaire nominatif pour chacun.',
         },
         {
           title: 'Suivez et accueillez',
@@ -711,7 +711,7 @@ export const fr = {
         },
         {
           q: 'Comment envoyer les invitations ?',
-          a: 'Depuis votre liste d’invités : par WhatsApp (le message et le lien sont préparés, vous appuyez sur « Envoyer »), par e-mail avec l’invitation en PDF jointe, ou en copiant le lien personnel.',
+          a: 'Depuis votre liste d’invités : par WhatsApp (le message, le lien et l’invitation en PDF sont préparés, vous choisissez le contact et appuyez sur « Envoyer »), par e-mail avec l’invitation en PDF jointe, ou en copiant le lien personnel.',
         },
         {
           q: 'Comment fonctionne la vérification à l’entrée ?',
