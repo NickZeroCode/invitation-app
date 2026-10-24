@@ -238,7 +238,7 @@ export const fr = {
     coverTooLarge: "L'image ne doit pas dépasser 4 Mo.",
     dressCodeTitle: 'Code vestimentaire',
     dressCodeHint:
-      'Regroupez vos photos par catégorie (ex. : tenue des dames, tenue des messieurs) : une légende et jusqu’à 5 photos, affichées sur une même ligne. Laissé vide, cette section ne sera pas affichée.',
+      'Regroupez vos photos par catégorie (ex. : tenue des dames, tenue des messieurs) : une légende et jusqu’à 4 photos, affichées sur une même ligne. Laissé vide, cette section ne sera pas affichée.',
     dressCodeUpload: 'Ajouter des photos',
     dressCodeCaption: 'Légende de la catégorie',
     dressCodeCaptionPlaceholder: 'Ex. : Tenue des dames',
@@ -246,7 +246,10 @@ export const fr = {
     dressCodeRemoveCategory: 'Retirer cette catégorie et ses photos',
     dressCodeAddToCategory: 'Ajouter des photos à cette catégorie',
     dressCodeNewCategory: 'Nouvelle catégorie de tenue',
-    dressCodeCategoryFull: '{max} photos maximum par catégorie : elles s’affichent sur une même ligne.',
+    dressCodeCategoryFull: 'Catégorie complète ({max} photos, sur une même ligne). Ajoutez une autre catégorie pour d’autres tenues.',
+    dressCodeTooMany:
+      'Une catégorie compte au plus {max} photos, affichées sur une même ligne : il reste {room} place(s) ici, cette sélection n’a donc pas été ajoutée. Créez une autre catégorie de tenue pour ces photos.',
+    dressCodeCreateAnother: 'Créer une autre catégorie de tenue',
     boardTitle: 'Planche d’ambiance',
     boardHint: 'Le thème et la palette de couleurs affichés sur le modèle Mood Board.',
     boardThemeLabel: 'Thème',

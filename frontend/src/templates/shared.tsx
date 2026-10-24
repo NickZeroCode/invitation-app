@@ -742,7 +742,7 @@ export function DressCodeSection({
           key={groupIndex}
           className={groupIndex === 0 ? 'mt-[1.8em]' : group.first ? 'mt-[2.2em]' : 'mt-[0.8em]'}
         >
-          {/* One category, one row: photos shrink to share it (up to five). */}
+          {/* One category, one row: photos shrink to share it (up to four). */}
           <div className="flex items-start justify-center gap-[0.8em]">
             {group.images.map((image, index) => (
               <img
@@ -779,13 +779,13 @@ export interface DressCodeGroup {
 }
 
 /**
- * Outfit categories, as photo rows. The organizer files up to five photos
+ * Outfit categories, as photo rows. The organizer files up to four photos
  * under one caption (« Tenue des dames », « Tenue des messieurs »…); each
  * photo is still its own stored row carrying that caption, so consecutive
  * rows with the same caption form one category, shown on one row.
  *
- * Every template shares this rule. A category saved before the five-photo
- * limit, or a run of photos without any caption, is cut into rows of five
+ * Every template shares this rule. A category saved before the four-photo
+ * limit, or a run of photos without any caption, is cut into rows of four
  * so no row ever holds more — one row per category in practice.
  */
 export function groupDressCode(entries: InvitationDraft['dressCode']): DressCodeGroup[] {

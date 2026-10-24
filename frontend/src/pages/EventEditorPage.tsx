@@ -141,6 +141,9 @@ export function EventEditorPage() {
   const [dressRows, setDressRows] = useState<DressCodeRow[]>([])
   const [removedDressIds, setRemovedDressIds] = useState<number[]>([])
   const [dressError, setDressError] = useState<string | null>(null)
+  // Shown with a refused selection: offers a fresh category instead.
+  const [dressSuggestNew, setDressSuggestNew] = useState(false)
+  const newDressCategoryInput = useRef<HTMLInputElement>(null)
   const [programRows, setProgramRows] = useState<ProgramRowDraft[]>([])
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
@@ -400,12 +403,9 @@ export function EventEditorPage() {
   /** Adds photos to an outfit category (a new one when `group` is omitted). */
   function handleDressFiles(files: FileList | null, group?: string) {
     setDressError(null)
+    setDressSuggestNew(false)
     if (!files) return
-    const target = group ?? newDressGroup()
-    const caption = group ? (dressRows.find((row) => row.group === group)?.caption ?? '') : ''
-    // A category is one row of photos: at most DRESS_CODE_CATEGORY_MAX.
-    const room = DRESS_CODE_CATEGORY_MAX - dressRows.filter((row) => row.group === target).length
-    const accepted: DressCodeRow[] = []
+    const valid: File[] = []
     for (const file of Array.from(files)) {
       if (!COVER_TYPES.includes(file.type)) {
         setDressError(fr.editor.coverRejected)
@@ -415,15 +415,26 @@ export function EventEditorPage() {
         setDressError(fr.editor.coverTooLarge)
         continue
       }
-      if (accepted.length >= room) {
-        setDressError(fr.editor.dressCodeCategoryFull.replace('{max}', String(DRESS_CODE_CATEGORY_MAX)))
-        break
-      }
-      accepted.push({ url: URL.createObjectURL(file), caption, file, group: target })
+      valid.push(file)
     }
-    if (accepted.length > 0) {
-      setDressRows((current) => [...current, ...accepted])
+    if (valid.length === 0) return
+    // A category is one row of photos: at most DRESS_CODE_CATEGORY_MAX. A
+    // selection that would overflow it is refused whole (never silently cut)
+    // and the organizer is offered a new category for those photos.
+    const existing = group ? dressRows.filter((row) => row.group === group).length : 0
+    if (existing + valid.length > DRESS_CODE_CATEGORY_MAX) {
+      setDressError(
+        fr.editor.dressCodeTooMany
+          .replace('{max}', String(DRESS_CODE_CATEGORY_MAX))
+          .replace('{room}', String(DRESS_CODE_CATEGORY_MAX - existing)),
+      )
+      setDressSuggestNew(true)
+      return
     }
+    const target = group ?? newDressGroup()
+    const caption = group ? (dressRows.find((row) => row.group === group)?.caption ?? '') : ''
+    const accepted = valid.map((file): DressCodeRow => ({ url: URL.createObjectURL(file), caption, file, group: target }))
+    setDressRows((current) => [...current, ...accepted])
   }
 
   function setDressCaption(group: string, caption: string) {
@@ -789,7 +800,7 @@ export function EventEditorPage() {
                       {fr.editor.dressCodeCategoryFull.replace('{max}', String(DRESS_CODE_CATEGORY_MAX))}
                     </p>
                   ) : (
-                    <label className="relative inline-flex h-8 w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-md border border-dashed border-line-strong bg-surface px-3 text-[0.8125rem] font-medium text-ink-soft transition-colors duration-150 hover:bg-surface-muted hover:text-ink">
+                    <label className="relative inline-flex min-h-8 w-full cursor-pointer items-center justify-center rounded-md border border-dashed border-line-strong bg-surface px-3 py-1.5 text-center text-[0.8125rem] font-medium leading-snug text-ink-soft transition-colors duration-150 hover:bg-surface-muted hover:text-ink">
                       {fr.editor.dressCodeAddToCategory}
                       <input
                         type="file"
@@ -805,9 +816,10 @@ export function EventEditorPage() {
                   )}
                 </div>
               ))}
-              <label className="relative inline-flex h-8 w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-3 text-[0.8125rem] font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
+              <label className="relative inline-flex min-h-8 w-full cursor-pointer items-center justify-center rounded-md border border-line-strong bg-surface px-3 py-1.5 text-center text-[0.8125rem] font-medium leading-snug text-ink transition-colors duration-150 hover:bg-surface-muted">
                 {dressRows.length === 0 ? fr.editor.dressCodeUpload : fr.editor.dressCodeNewCategory}
                 <input
+                  ref={newDressCategoryInput}
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   multiple
@@ -819,9 +831,18 @@ export function EventEditorPage() {
                 />
               </label>
               {dressError ? (
-                <p role="alert" className="text-xs text-danger">
-                  {dressError}
-                </p>
+                <div role="alert" className="space-y-2 rounded-md border border-danger/25 bg-danger/5 px-3 py-2.5 text-xs leading-relaxed text-danger">
+                  <p>{dressError}</p>
+                  {dressSuggestNew ? (
+                    <button
+                      type="button"
+                      className="font-medium underline underline-offset-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                      onClick={() => newDressCategoryInput.current?.click()}
+                    >
+                      {fr.editor.dressCodeCreateAnother}
+                    </button>
+                  ) : null}
+                </div>
               ) : null}
             </section>
 

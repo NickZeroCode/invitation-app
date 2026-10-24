@@ -3,4 +3,4 @@
  * page and the PDF: a category is one row of photos, so it holds at most
  * this many.
  */
-export const DRESS_CODE_CATEGORY_MAX = 5
+export const DRESS_CODE_CATEGORY_MAX = 4

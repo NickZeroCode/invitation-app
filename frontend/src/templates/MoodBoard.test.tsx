@@ -53,11 +53,20 @@ describe('MoodBoard', () => {
   })
 
   it('lays each outfit category on a single row', () => {
-    const photos = Array.from({ length: 5 }, (_, i) => ({ url: `w${i}.jpg`, caption: 'Tenue des dames' }))
+    const photos = Array.from({ length: 4 }, (_, i) => ({ url: `w${i}.jpg`, caption: 'Tenue des dames' }))
     const { container } = render(<MoodBoard draft={emptyDraft({ ...base, dressCode: photos })} />)
     const images = Array.from(container.querySelectorAll('img[src^="w"]'))
-    expect(images).toHaveLength(5)
+    expect(images).toHaveLength(4)
     expect(new Set(images.map((image) => image.parentElement))).toHaveProperty('size', 1)
     expect(screen.getByText('Tenue des dames')).toBeInTheDocument()
+  })
+
+  it('keeps four photos without a caption together, under one « Outfit » label', () => {
+    const photos = Array.from({ length: 4 }, (_, i) => ({ url: `u${i}.jpg`, caption: '' }))
+    const { container } = render(<MoodBoard draft={emptyDraft({ ...base, dressCode: photos })} />)
+    const images = Array.from(container.querySelectorAll('img[src^="u"]'))
+    expect(new Set(images.map((image) => image.parentElement))).toHaveProperty('size', 1)
+    expect(screen.getAllByText('Outfit')).toHaveLength(1)
+    expect(screen.queryByText(/Outfit Women|Outfit men/)).not.toBeInTheDocument()
   })
 })

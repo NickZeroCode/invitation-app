@@ -18,7 +18,7 @@
  * the month and the event week with the day circled in red pen,
  * « MoodBoard », the theme line (0.52W) and the palette (0.086W × 0.345W
  * pills) — both editable, kept in display_config.board —, the outfit
- * categories, each one photo row (up to five) running edge to edge under
+ * categories, each one photo row (up to four) running edge to edge under
  * script labels with a hand-drawn arrow, the rings, the thanks and the
  * couple again behind a torn-paper edge.
  */
@@ -271,7 +271,7 @@ function BoardLabel({ children, size }: { children: ReactNode; size: string }) {
   )
 }
 
-/** One outfit category = one row (up to five photos) running to the sheet
+/** One outfit category = one row (up to four photos) running to the sheet
  * edges, 0.009W apart. Photos keep the reference's width (0.33W) until more
  * than three share the row; every second photo is shorter and set lower,
  * as the middle one of the reference's three. */
@@ -364,15 +364,9 @@ export function MoodBoard({ draft }: TemplateProps) {
 
   // Outfit categories: the organizer's captions become the script labels.
   // Photos filed without any caption keep the board's two default rows.
-  // Without any caption, the first half reads « Outfit Women's », the rest
-  // « Outfit men's »; either way the shared rule applies (≤ 5 per row).
-  const captioned = draft.dressCode.some((image) => (image.caption ?? '').trim())
-  const mid = Math.ceil(draft.dressCode.length / 2)
-  const outfits = groupDressCode(
-    captioned
-      ? draft.dressCode
-      : draft.dressCode.map((image, index) => ({ ...image, caption: index < mid ? 'Outfit Women’s' : 'Outfit men’s' })),
-  )
+  // One category = one row, exactly as filed by the organizer; a category
+  // without a caption keeps the board's script label « Outfit ».
+  const outfits = groupDressCode(draft.dressCode).map((group) => ({ ...group, caption: group.caption || 'Outfit' }))
 
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: INK }}>

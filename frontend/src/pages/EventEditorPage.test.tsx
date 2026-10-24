@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { toJpeg } from 'html-to-image'
@@ -177,23 +177,56 @@ describe('EventEditorPage', () => {
     expect(mock.callsTo('/api/events/', 'POST')).toHaveLength(0)
   })
 
-  it('keeps an outfit category to five photos, whatever the template', async () => {
+  const tenues = (count: number, from = 0) =>
+    Array.from({ length: count }, (_, i) => new File(['x'], `tenue-${from + i}.jpg`, { type: 'image/jpeg' }))
+
+  it('fills one outfit category with four photos added one by one, on one row', async () => {
     const user = userEvent.setup({ applyAccept: false })
-    vi.stubGlobal('URL', Object.assign(globalThis.URL, { createObjectURL: vi.fn(() => 'blob:photo'), revokeObjectURL: vi.fn() }))
+    let n = 0
+    vi.stubGlobal('URL', Object.assign(globalThis.URL, { createObjectURL: vi.fn(() => `blob:photo-${n++}`), revokeObjectURL: vi.fn() }))
     renderEditor([
       { url: '/api/auth/me/', body: ORGANIZER },
       CSRF,
     ])
 
-    const files = Array.from({ length: 7 }, (_, i) => new File(['x'], `tenue-${i}.jpg`, { type: 'image/jpeg' }))
-    await user.upload(await screen.findByLabelText('Ajouter des photos'), files)
+    await user.upload(await screen.findByLabelText('Ajouter des photos'), tenues(1))
+    for (let i = 1; i < 4; i += 1) {
+      await user.upload(screen.getByLabelText('Ajouter des photos à cette catégorie'), tenues(1, i))
+    }
 
-    const category = await screen.findByRole('list', { name: 'Code vestimentaire' })
-    expect(category.querySelectorAll('li')).toHaveLength(5)
-    expect(screen.getAllByText(/5 photos maximum par catégorie/).length).toBeGreaterThan(0)
+    const categories = screen.getAllByRole('list', { name: 'Code vestimentaire' })
+    expect(categories).toHaveLength(1)
+    expect(categories[0].querySelectorAll('li')).toHaveLength(4)
     // The full category offers no further upload; a new category still can.
+    expect(screen.getByText(/Catégorie complète \(4 photos/)).toBeInTheDocument()
     expect(screen.queryByLabelText('Ajouter des photos à cette catégorie')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Nouvelle catégorie de tenue')).toBeInTheDocument()
+  })
+
+  it('refuses a selection that would put more than four photos in a category', async () => {
+    const user = userEvent.setup({ applyAccept: false })
+    let n = 0
+    vi.stubGlobal('URL', Object.assign(globalThis.URL, { createObjectURL: vi.fn(() => `blob:photo-${n++}`), revokeObjectURL: vi.fn() }))
+    renderEditor([
+      { url: '/api/auth/me/', body: ORGANIZER },
+      CSRF,
+    ])
+
+    await user.upload(await screen.findByLabelText('Ajouter des photos'), tenues(3))
+    await user.upload(screen.getByLabelText('Ajouter des photos à cette catégorie'), tenues(2, 3))
+
+    // Nothing was cut or added: the category keeps its three photos.
+    const category = screen.getByRole('list', { name: 'Code vestimentaire' })
+    expect(category.querySelectorAll('li')).toHaveLength(3)
+    const alert = screen.getByRole('alert')
+    expect(alert).toHaveTextContent('au plus 4 photos')
+    expect(alert).toHaveTextContent('il reste 1 place(s) ici')
+    expect(within(alert).getByRole('button', { name: 'Créer une autre catégorie de tenue' })).toBeInTheDocument()
+
+    // Five at once for a new category is refused the same way.
+    await user.upload(screen.getByLabelText('Nouvelle catégorie de tenue'), tenues(5, 10))
+    expect(screen.getAllByRole('list', { name: 'Code vestimentaire' })).toHaveLength(1)
+    expect(screen.getByRole('alert')).toHaveTextContent('au plus 4 photos')
   })
 
   it('rejects cover images above the size limit', async () => {
