@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource/allison": "^5.3.0",
     "@fontsource/antonio": "^5.3.0",
     "@fontsource/bodoni-moda": "^5.3.0",
     "@fontsource/cabin": "^5.3.0",

@@ -15,6 +15,9 @@ import { Field } from '../design-system/Field.tsx'
 import { Input, Select } from '../design-system/Input.tsx'
 import { IconChevronLeft, IconClose, IconTrash } from '../design-system/icons.tsx'
 import { SectionTitle } from '../design-system/layout.tsx'
+import { DRESS_CODE_CATEGORY_MAX } from '../templates/dressCodeLimits.ts'
+import { MOOD_BOARD_DEFAULTS, MOOD_BOARD_PALETTE_MAX, MOOD_BOARD_THEME_MAX } from '../templates/moodBoardDefaults.ts'
+import type { MoodBoardAttributes } from '../templates/types.ts'
 import { ErrorState, LoadingState } from '../design-system/states.tsx'
 import { ApiError, eventsApi } from '../lib/api.ts'
 import { DESKTOP_QUERY, useMediaQuery } from '../lib/useMediaQuery.ts'
@@ -144,6 +147,7 @@ export function EventEditorPage() {
   const [coverRemoved, setCoverRemoved] = useState(false)
   const [coverError, setCoverError] = useState<string | null>(null)
   const [coverText, setCoverText] = useState('')
+  const [board, setBoard] = useState<MoodBoardAttributes>(MOOD_BOARD_DEFAULTS)
   const [formError, setFormError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
   const [mobileTab, setMobileTab] = useState<MobileTab>('contenu')
@@ -177,6 +181,7 @@ export function EventEditorPage() {
     setNote(data.note)
     setCoverText(data.cover_title)
     setEmphasis(data.display_config.emphasis ?? [])
+    setBoard(data.display_config.board ?? MOOD_BOARD_DEFAULTS)
     setCoverRemoved(false)
     setQuestions(
       data.preference_questions.map((question) => ({
@@ -234,6 +239,7 @@ export function EventEditorPage() {
         cover_url: coverPreview ?? (coverRemoved ? null : (eventQuery.data?.cover_url ?? null)),
         coverTitle: coverText,
         emphasis,
+        board: templateKey === 'mood-board' ? board : undefined,
         // In category order, as it will be saved.
         dressCode: dressGroups(dressRows).flatMap((group) => group.rows.map(({ row }) => row)).map((row) => ({
           id: row.id,
@@ -271,6 +277,8 @@ export function EventEditorPage() {
       eventQuery.data?.cover_url,
       coverText,
       emphasis,
+      board,
+      templateKey,
       dressRows,
       programRows,
       isEdit,
@@ -294,7 +302,10 @@ export function EventEditorPage() {
         venue_details: venueDetails.trim(),
         note: note.trim(),
         cover_title: coverText.trim(),
-        display_config: { emphasis },
+        display_config:
+          templateKey === 'mood-board'
+            ? { emphasis, board: { theme: board.theme.trim(), palette: board.palette } }
+            : { emphasis },
         preference_questions: questions.map(
           (question, index): PreferenceQuestionPayload => ({
             id: question.id,
@@ -392,6 +403,8 @@ export function EventEditorPage() {
     if (!files) return
     const target = group ?? newDressGroup()
     const caption = group ? (dressRows.find((row) => row.group === group)?.caption ?? '') : ''
+    // A category is one row of photos: at most DRESS_CODE_CATEGORY_MAX.
+    const room = DRESS_CODE_CATEGORY_MAX - dressRows.filter((row) => row.group === target).length
     const accepted: DressCodeRow[] = []
     for (const file of Array.from(files)) {
       if (!COVER_TYPES.includes(file.type)) {
@@ -401,6 +414,10 @@ export function EventEditorPage() {
       if (file.size > MAX_COVER_BYTES) {
         setDressError(fr.editor.coverTooLarge)
         continue
+      }
+      if (accepted.length >= room) {
+        setDressError(fr.editor.dressCodeCategoryFull.replace('{max}', String(DRESS_CODE_CATEGORY_MAX)))
+        break
       }
       accepted.push({ url: URL.createObjectURL(file), caption, file, group: target })
     }
@@ -748,7 +765,7 @@ export function EventEditorPage() {
                       <IconTrash className="h-4 w-4" />
                     </IconButton>
                   </div>
-                  <ul className="grid grid-cols-3 gap-2" aria-label={group.caption || fr.editor.dressCodeTitle}>
+                  <ul className="grid grid-cols-5 gap-1.5" aria-label={group.caption || fr.editor.dressCodeTitle}>
                     {group.rows.map(({ row, index }) => (
                       <li key={row.id ?? row.url} className="relative">
                         <img
@@ -760,26 +777,32 @@ export function EventEditorPage() {
                           type="button"
                           aria-label={fr.editor.dressCodeRemove}
                           onClick={() => removeDressRow(index)}
-                          className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink/70 text-white transition-colors hover:bg-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                          className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink/70 text-white transition-colors hover:bg-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                         >
                           <IconClose className="h-3.5 w-3.5" />
                         </button>
                       </li>
                     ))}
                   </ul>
-                  <label className="relative inline-flex h-8 w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-md border border-dashed border-line-strong bg-surface px-3 text-[0.8125rem] font-medium text-ink-soft transition-colors duration-150 hover:bg-surface-muted hover:text-ink">
-                    {fr.editor.dressCodeAddToCategory}
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      multiple
-                      className="sr-only"
-                      onChange={(event) => {
-                        handleDressFiles(event.target.files, group.key)
-                        event.target.value = ''
-                      }}
-                    />
-                  </label>
+                  {group.rows.length >= DRESS_CODE_CATEGORY_MAX ? (
+                    <p className="text-center text-xs text-ink-faint">
+                      {fr.editor.dressCodeCategoryFull.replace('{max}', String(DRESS_CODE_CATEGORY_MAX))}
+                    </p>
+                  ) : (
+                    <label className="relative inline-flex h-8 w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-md border border-dashed border-line-strong bg-surface px-3 text-[0.8125rem] font-medium text-ink-soft transition-colors duration-150 hover:bg-surface-muted hover:text-ink">
+                      {fr.editor.dressCodeAddToCategory}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple
+                        className="sr-only"
+                        onChange={(event) => {
+                          handleDressFiles(event.target.files, group.key)
+                          event.target.value = ''
+                        }}
+                      />
+                    </label>
+                  )}
                 </div>
               ))}
               <label className="relative inline-flex h-8 w-full cursor-pointer items-center justify-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-3 text-[0.8125rem] font-medium text-ink transition-colors duration-150 hover:bg-surface-muted">
@@ -1284,6 +1307,69 @@ export function EventEditorPage() {
                 ))}
               </div>
             </section>
+
+            {templateKey === 'mood-board' ? (
+              <section className="space-y-3">
+                <SectionTitle>{fr.editor.boardTitle}</SectionTitle>
+                <p className="text-xs leading-relaxed text-ink-faint">{fr.editor.boardHint}</p>
+                <Field id="board-theme" label={fr.editor.boardThemeLabel}>
+                  <Input
+                    id="board-theme"
+                    controlSize="sm"
+                    maxLength={MOOD_BOARD_THEME_MAX}
+                    value={board.theme}
+                    placeholder="Terracotta"
+                    onChange={(event) => setBoard((current) => ({ ...current, theme: event.target.value }))}
+                  />
+                </Field>
+                <fieldset className="space-y-2">
+                  <legend className="text-[0.8125rem] font-medium text-ink">{fr.editor.boardPaletteLabel}</legend>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {board.palette.map((color, index) => (
+                      <div key={index} className="relative">
+                        <input
+                          type="color"
+                          aria-label={fr.editor.boardColor.replace('{n}', String(index + 1))}
+                          value={color.toLowerCase()}
+                          onChange={(event) =>
+                            setBoard((current) => ({
+                              ...current,
+                              palette: current.palette.map((item, i) => (i === index ? event.target.value.toUpperCase() : item)),
+                            }))
+                          }
+                          className="h-12 w-9 cursor-pointer rounded-full border border-line bg-transparent p-0.5"
+                        />
+                        <button
+                          type="button"
+                          aria-label={fr.editor.boardColorRemove.replace('{n}', String(index + 1))}
+                          onClick={() =>
+                            setBoard((current) => ({ ...current, palette: current.palette.filter((_, i) => i !== index) }))
+                          }
+                          className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink/75 text-white hover:bg-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                        >
+                          <IconClose className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                    {board.palette.length < MOOD_BOARD_PALETTE_MAX ? (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          setBoard((current) => ({
+                            ...current,
+                            palette: [...current.palette, MOOD_BOARD_DEFAULTS.palette[current.palette.length] ?? '#C17F48'],
+                          }))
+                        }
+                      >
+                        {fr.editor.boardColorAdd}
+                      </Button>
+                    ) : null}
+                  </div>
+                  <p className="text-xs text-ink-faint">{fr.editor.boardPaletteHint}</p>
+                </fieldset>
+              </section>
+            ) : null}
 
             {template.supportsCover ? (
               <section className="space-y-3">

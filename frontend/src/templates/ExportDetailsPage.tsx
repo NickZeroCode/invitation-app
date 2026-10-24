@@ -78,24 +78,24 @@ export function ExportDetailsPage({
               titleClass={skin.titleClass}
             />
             {groupDressCode(dressCode).map((group, groupIndex) => (
-              <figure key={groupIndex} className={groupIndex === 0 ? 'mt-8' : 'mt-9'}>
-                <div className="flex flex-wrap items-start justify-center gap-5">
+              <figure key={groupIndex} className={groupIndex === 0 ? 'mt-8' : group.first ? 'mt-9' : 'mt-4'}>
+                <div className="flex items-start justify-center gap-4">
                   {group.images.map((image, index) => (
                     <div
                       key={`${image.url}-${index}`}
-                      className="w-[12.5rem] overflow-hidden rounded-[10px] border"
+                      className="min-w-0 max-w-[12.5rem] flex-1 overflow-hidden rounded-[10px] border"
                       style={{ borderColor: skin.line }}
                     >
                       <img
                         src={image.url}
                         alt=""
                         crossOrigin="anonymous"
-                        className="block h-[16rem] w-full object-cover"
+                        className="block aspect-[25/32] w-full object-cover"
                       />
                     </div>
                   ))}
                 </div>
-                {group.caption ? (
+                {group.caption && group.last ? (
                   <figcaption
                     className="mt-3 text-center text-[0.85rem] italic leading-[1.5]"
                     style={{ color: skin.inkSoft }}

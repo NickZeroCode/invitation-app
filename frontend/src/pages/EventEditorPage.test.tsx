@@ -177,6 +177,25 @@ describe('EventEditorPage', () => {
     expect(mock.callsTo('/api/events/', 'POST')).toHaveLength(0)
   })
 
+  it('keeps an outfit category to five photos, whatever the template', async () => {
+    const user = userEvent.setup({ applyAccept: false })
+    vi.stubGlobal('URL', Object.assign(globalThis.URL, { createObjectURL: vi.fn(() => 'blob:photo'), revokeObjectURL: vi.fn() }))
+    renderEditor([
+      { url: '/api/auth/me/', body: ORGANIZER },
+      CSRF,
+    ])
+
+    const files = Array.from({ length: 7 }, (_, i) => new File(['x'], `tenue-${i}.jpg`, { type: 'image/jpeg' }))
+    await user.upload(await screen.findByLabelText('Ajouter des photos'), files)
+
+    const category = await screen.findByRole('list', { name: 'Code vestimentaire' })
+    expect(category.querySelectorAll('li')).toHaveLength(5)
+    expect(screen.getAllByText(/5 photos maximum par catégorie/).length).toBeGreaterThan(0)
+    // The full category offers no further upload; a new category still can.
+    expect(screen.queryByLabelText('Ajouter des photos à cette catégorie')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Nouvelle catégorie de tenue')).toBeInTheDocument()
+  })
+
   it('rejects cover images above the size limit', async () => {
     const user = userEvent.setup()
     renderEditor([

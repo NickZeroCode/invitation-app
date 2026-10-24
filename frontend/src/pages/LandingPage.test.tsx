@@ -19,7 +19,9 @@ function renderLanding() {
   )
 }
 
-describe('LandingPage', () => {
+// Each test renders the full page, all 23 template previews included; under
+// a parallel full-suite run that alone can approach the global 15 s limit.
+describe('LandingPage', { timeout: 30_000 }, () => {
   it('shows the hero with a clear path to login', () => {
     renderLanding()
 

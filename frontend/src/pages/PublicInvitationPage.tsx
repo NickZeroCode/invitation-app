@@ -328,6 +328,7 @@ export function PublicInvitationPage() {
     note: data.event.note ?? '',
     cover_url: data.event.cover_url,
     coverTitle: data.event.cover_title,
+    board: data.event.display_config.board,
     emphasis: data.event.display_config.emphasis ?? data.event.template.config.emphasis_fields,
     guestName: data.invitation.display_name,
     // Dress code, programme and table are presented in their own companion
@@ -631,20 +632,20 @@ export function PublicInvitationPage() {
                     <SectionLabel skin={skin}>Dress code</SectionLabel>
                     <TemplateOrnament templateKey={templateKey} color={skin.accent} className="mx-auto mt-2.5 block h-auto w-28" />
                     {groupDressCode(dressCode).map((group, groupIndex) => (
-                      <figure key={groupIndex} className={groupIndex === 0 ? 'mt-4' : 'mt-5'}>
-                        <div className="flex flex-wrap items-start justify-center gap-2.5">
+                      <figure key={groupIndex} className={groupIndex === 0 ? 'mt-4' : group.first ? 'mt-5' : 'mt-2'}>
+                        <div className="flex items-start justify-center gap-2">
                           {group.images.map((image, index) => (
                             <img
                               key={`${image.url}-${index}`}
                               src={image.url}
                               alt={group.caption || 'Tenue proposée'}
                               loading="lazy"
-                              className="h-32 w-[6.5rem] rounded-[2px] object-cover"
+                              className="aspect-[3/4] min-w-0 max-w-[6.5rem] flex-1 rounded-[2px] object-cover"
                               style={{ border: `1px solid ${skin.line}`, backgroundColor: skin.softBg }}
                             />
                           ))}
                         </div>
-                        {group.caption ? (
+                        {group.caption && group.last ? (
                           <figcaption className="mt-1.5 text-center text-xs" style={{ color: skin.inkSoft }}>
                             {group.caption}
                           </figcaption>

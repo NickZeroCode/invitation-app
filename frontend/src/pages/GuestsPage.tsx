@@ -249,6 +249,7 @@ async function exportOneInvitation(
       note: source.note ?? '',
       cover_url: source.cover_url,
       coverTitle: source.cover_title,
+      board: source.display_config.board,
       emphasis: source.display_config.emphasis ?? [],
       guestName: invitation.display_name,
       dressCode: [],

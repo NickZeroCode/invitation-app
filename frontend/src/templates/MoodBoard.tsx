@@ -4,7 +4,8 @@
  *
  * Every size below was taken from the reference as a fraction of the sheet
  * width W and converted to the paper's em (1em = 0.026W), using the faces
- * the board is set in: a monoline signature script (Ms Madi), Didot capitals
+ * the board is set in: a tall upright signature script (Allison, with the
+ * plainer Ms Madi ampersand of the reference), Didot capitals
  * for the monogram (Bodoni Moda), spaced old-style capitals for the names
  * (Cormorant Garamond), Gill Sans small capitals for the quote and the thanks
  * (Cabin), Times for the calendar (Tinos) and condensed gothic capitals for
@@ -12,10 +13,12 @@
  *
  * Top to bottom: a 1.6W couple photo under a white veil carrying « Save the
  * date » (0.80W), the chain-ring monogram (ring 0.38W) at 78 % of the photo,
- * the names (0.345W) on the veil; then on white the occasion (0.83W), the
- * quote (0.56W), the month and the event week with the day circled in red
- * pen, « MoodBoard », the theme line (0.52W), the palette (five 0.086W ×
- * 0.345W pills), the outfit categories as edge-to-edge photo rows under
+ * the names (0.345W) on the veil — both from the cover text —; then on white
+ * the event title in the script (0.83W), the message as plain text, the
+ * the month and the event week with the day circled in red pen,
+ * « MoodBoard », the theme line (0.52W) and the palette (0.086W × 0.345W
+ * pills) — both editable, kept in display_config.board —, the outfit
+ * categories, each one photo row (up to five) running edge to edge under
  * script labels with a hand-drawn arrow, the rings, the thanks and the
  * couple again behind a torn-paper edge.
  */
@@ -24,6 +27,7 @@ import type { ReactNode } from 'react'
 import { monogramFrom } from './luxeMotifs.tsx'
 import { messageFontCss } from './messageFonts.ts'
 import { TemplateOrnament } from './ornaments.tsx'
+import { MOOD_BOARD_DEFAULTS } from './moodBoardDefaults.ts'
 import { InvitationPaper, ProgramSection, TableSection, groupDressCode, isEmphasized } from './shared.tsx'
 import type { TemplateProps } from './types.ts'
 
@@ -33,15 +37,14 @@ const CHAIN = '#8E6A3C'
 const PEN_RED = '#D52A2F'
 const ARROW_BLUE = '#5B79A6'
 
-const SIGNATURE = "'Ms Madi', 'Great Vibes', cursive"
+const SIGNATURE = "'Allison', 'Ms Madi', 'Great Vibes', cursive"
+/** The reference's ampersand is plain and small; Allison's is a raised swash. */
+const AMPERSAND = "'Ms Madi', 'Great Vibes', cursive"
 const DIDOT = "'Bodoni Moda', 'Didot', 'Playfair Display', serif"
 const CAPS = "'Cormorant Garamond', 'Cormorant', Georgia, serif"
 const GILL = "'Gill Sans', 'Gill Sans MT', 'Cabin', 'Lato', sans-serif"
 const TIMES = "'Tinos', 'Times New Roman', Times, serif"
 const GOTHIC = "'Antonio', 'League Gothic', 'Oswald', 'Arial Narrow', sans-serif"
-
-/** The terracotta palette of the board, sand to burnt orange. */
-const PALETTE = ['#B99470', '#FBE8D0', '#7E4539', '#5A352F', '#C17F48'] as const
 
 const FRENCH_MONTHS = [
   'JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN',
@@ -239,12 +242,27 @@ function CurlArrow() {
   )
 }
 
+/** Signature-script text whose ampersands use the reference's plain form. */
+function ScriptText({ text }: { text: string }) {
+  const parts = text.split('&')
+  return (
+    <>
+      {parts.map((part, index) => (
+        <span key={index}>
+          {index > 0 ? <span style={{ fontFamily: AMPERSAND, fontSize: '0.8em' }}>&amp;</span> : null}
+          {part}
+        </span>
+      ))}
+    </>
+  )
+}
+
 /** Script heading with the arrow tucked under its last letter. */
 function BoardLabel({ children, size }: { children: ReactNode; size: string }) {
   return (
     <div className="relative inline-block">
       <p className="whitespace-nowrap leading-[1.1]" style={{ fontFamily: SIGNATURE, fontSize: size, color: INK }}>
-        {children}
+        {typeof children === 'string' ? <ScriptText text={children} /> : children}
       </p>
       <span className="absolute -right-[1.2em] top-[55%]">
         <CurlArrow />
@@ -253,32 +271,32 @@ function BoardLabel({ children, size }: { children: ReactNode; size: string }) {
   )
 }
 
-/** Photos in rows of three running to the sheet edges (0.33W each, 0.009W
- * apart); in a full row the middle photo is shorter and set lower. */
-function OutfitRows({ images }: { images: TemplateProps['draft']['dressCode'] }) {
-  const rows: Array<typeof images> = []
-  for (let i = 0; i < images.length; i += 3) rows.push(images.slice(i, i + 3))
+/** One outfit category = one row (up to five photos) running to the sheet
+ * edges, 0.009W apart. Photos keep the reference's width (0.33W) until more
+ * than three share the row; every second photo is shorter and set lower,
+ * as the middle one of the reference's three. */
+function OutfitRow({ images, first }: { images: TemplateProps['draft']['dressCode']; first: boolean }) {
+  const slots = Math.max(images.length, 3)
   return (
-    <div className="-mx-[2.6em] mt-[2.1em] flex w-[calc(100%+5.2em)] flex-col gap-[0.35em] px-[0.3em]">
-      {rows.map((row, rowIndex) => (
-        <div key={rowIndex} className="flex items-start justify-center gap-[0.35em]">
-          {row.map((image, index) => {
-            const middle = row.length === 3 && index === 1
-            return (
-              <img
-                key={`${image.url}-${index}`}
-                src={image.url}
-                alt={image.caption || ''}
-                className="w-[calc((100%-0.7em)/3)] object-cover"
-                style={{
-                  aspectRatio: middle ? '294 / 408' : '302 / 480',
-                  marginTop: middle ? '1.35em' : undefined,
-                }}
-              />
-            )
-          })}
-        </div>
-      ))}
+    <div
+      className={`-mx-[2.6em] ${first ? 'mt-[2.1em]' : ''} flex w-[calc(100%+5.2em)] items-start justify-center gap-[0.35em] px-[0.3em]`}
+    >
+      {images.map((image, index) => {
+        const inset = index % 2 === 1
+        return (
+          <img
+            key={`${image.url}-${index}`}
+            src={image.url}
+            alt={image.caption || ''}
+            className="min-w-0 object-cover"
+            style={{
+              width: `calc((100% - ${(slots - 1) * 0.35}em) / ${slots})`,
+              aspectRatio: inset ? '294 / 408' : '302 / 480',
+              marginTop: inset ? '1.35em' : undefined,
+            }}
+          />
+        )
+      })}
     </div>
   )
 }
@@ -336,22 +354,25 @@ function splitQuote(note: string): [string, string | null] {
 export function MoodBoard({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const venueEm = isEmphasized(draft, 'venue')
-  const initials = monogramFrom(draft.title)
+  // The ring and the names under it come from the cover text (« Texte sur
+  // l'image de couverture »); the event title takes the script line.
+  const coverNames = draft.coverTitle.trim()
+  const initials = coverNames ? monogramFrom(coverNames) : null
+  const board = draft.board ?? MOOD_BOARD_DEFAULTS
+  const theme = board.theme.trim()
   const [quote, author] = draft.note ? splitQuote(draft.note) : ['', null]
 
   // Outfit categories: the organizer's captions become the script labels.
   // Photos filed without any caption keep the board's two default rows.
-  const groups = groupDressCode(draft.dressCode)
-  const captioned = groups.some((group) => group.caption)
-  const outfits = captioned
-    ? groups.map((group) => ({ label: group.caption, images: group.images }))
-    : (() => {
-        const mid = Math.ceil(draft.dressCode.length / 2)
-        return [
-          { label: 'Outfit Women’s', images: draft.dressCode.slice(0, mid) },
-          { label: 'Outfit men’s', images: draft.dressCode.slice(mid) },
-        ].filter((group) => group.images.length)
-      })()
+  // Without any caption, the first half reads « Outfit Women's », the rest
+  // « Outfit men's »; either way the shared rule applies (≤ 5 per row).
+  const captioned = draft.dressCode.some((image) => (image.caption ?? '').trim())
+  const mid = Math.ceil(draft.dressCode.length / 2)
+  const outfits = groupDressCode(
+    captioned
+      ? draft.dressCode
+      : draft.dressCode.map((image, index) => ({ ...image, caption: index < mid ? 'Outfit Women’s' : 'Outfit men’s' })),
+  )
 
   return (
     <InvitationPaper style={{ backgroundColor: PAPER, color: INK }}>
@@ -368,13 +389,13 @@ export function MoodBoard({ draft }: TemplateProps) {
           <p
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 top-[1.2%] whitespace-nowrap text-center leading-none"
-            style={{ fontFamily: SIGNATURE, fontSize: '7.54em', color: '#FFFFFF' }}
+            style={{ fontFamily: SIGNATURE, fontSize: '9.6em', color: '#FFFFFF' }}
           >
             Save the date
           </p>
         </div>
       ) : (
-        <p aria-hidden="true" className="mt-[0.5em] whitespace-nowrap text-center leading-none" style={{ fontFamily: SIGNATURE, fontSize: '7.54em', color: INK }}>
+        <p aria-hidden="true" className="mt-[0.5em] whitespace-nowrap text-center leading-none" style={{ fontFamily: SIGNATURE, fontSize: '9.6em', color: INK }}>
           Save the date
         </p>
       )}
@@ -386,17 +407,29 @@ export function MoodBoard({ draft }: TemplateProps) {
             <Monogram initials={initials} />
           </div>
         ) : null}
+        {coverNames ? (
+          <p
+            className="mt-[0.4em] break-words text-balance uppercase leading-[1.2]"
+            style={{ fontFamily: CAPS, fontWeight: 600, fontSize: '1.2em', letterSpacing: '0.35em', color: INK }}
+          >
+            {coverNames}
+          </p>
+        ) : null}
+
         <h1
-          className="mt-[0.4em] break-words text-balance uppercase leading-[1.2]"
-          style={{ fontFamily: CAPS, fontWeight: 600, fontSize: titleEm ? '1.4em' : '1.2em', letterSpacing: '0.35em', color: INK }}
+          className={`${coverNames ? 'mt-[0.2em]' : 'mt-[0.6em]'} break-words text-balance leading-[1.1]`}
+          style={{ fontFamily: SIGNATURE, fontWeight: 400, fontSize: titleEm ? '5.4em' : '4.84em', color: INK }}
         >
-          {draft.title}
+          <span className="sr-only">{draft.title}</span>
+          <span aria-hidden="true">
+            <ScriptText text={draft.title} />
+          </span>
         </h1>
 
         {draft.message ? (
           <p
-            className="mt-[0.35em] break-words leading-[1.15]"
-            style={{ fontFamily: messageFontCss(draft.messageFont) ?? SIGNATURE, fontSize: '3.69em', color: INK }}
+            className="mt-[0.9em] max-w-[30em] whitespace-pre-line text-pretty break-words leading-[1.6]"
+            style={{ fontFamily: messageFontCss(draft.messageFont) ?? GILL, fontSize: '1.15em', color: INK }}
           >
             {draft.message}
           </p>
@@ -418,25 +451,37 @@ export function MoodBoard({ draft }: TemplateProps) {
         <WeekStrip iso={draft.event_date} />
 
         {/* The board. */}
-        <p className="mt-[0.87em] whitespace-nowrap leading-[1.2]" style={{ fontFamily: SIGNATURE, fontSize: '3.76em', color: INK }}>
+        <p className="mt-[0.7em] whitespace-nowrap leading-[1.2]" style={{ fontFamily: SIGNATURE, fontSize: '4.4em', color: INK }}>
           MoodBoard
         </p>
-        <p className="mt-[0.93em] whitespace-nowrap uppercase leading-none" style={{ fontFamily: GOTHIC, fontSize: '2.86em', color: INK }}>
-          <span style={{ fontWeight: 700 }}>Thème :</span> <span style={{ fontWeight: 400 }}>Terracotta</span>
-        </p>
-        <div className="mt-[1.3em]">
-          <BoardLabel size="2.57em">Palette de couleurs</BoardLabel>
-        </div>
-        <div className="mt-[3.95em] flex gap-[2.08em]" aria-hidden="true">
-          {PALETTE.map((color) => (
-            <span key={color} className="block h-[13.27em] w-[3.31em] rounded-full" style={{ backgroundColor: color }} />
-          ))}
-        </div>
+        {theme ? (
+          <p className="mt-[0.93em] break-words uppercase leading-none" style={{ fontFamily: GOTHIC, fontSize: '2.86em', color: INK }}>
+            <span style={{ fontWeight: 700 }}>Thème :</span> <span style={{ fontWeight: 400 }}>{theme}</span>
+          </p>
+        ) : null}
+        {board.palette.length ? (
+          <>
+            <div className="mt-[1.3em]">
+              <BoardLabel size="3.36em">Palette de couleurs</BoardLabel>
+            </div>
+            <div className="mt-[3.95em] flex gap-[2.08em]" role="list" aria-label="Palette de couleurs">
+              {board.palette.map((color, index) => (
+                <span
+                  key={`${color}-${index}`}
+                  role="listitem"
+                  aria-label={color}
+                  className="block h-[13.27em] w-[3.31em] rounded-full"
+                  style={{ backgroundColor: color, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.06)' }}
+                />
+              ))}
+            </div>
+          </>
+        ) : null}
 
         {outfits.map((group, index) => (
-          <div key={`${group.label}-${index}`} className={`flex w-full flex-col items-center ${index === 0 ? 'mt-[2.5em]' : 'mt-[0.8em]'}`}>
-            {group.label ? <BoardLabel size="3.45em">{group.label}</BoardLabel> : null}
-            <OutfitRows images={group.images} />
+          <div key={`${group.caption}-${index}`} className={`flex w-full flex-col items-center ${index === 0 ? 'mt-[2.5em]' : group.first ? 'mt-[0.8em]' : 'mt-[0.35em]'}`}>
+            {group.caption && group.first ? <BoardLabel size="4.7em">{group.caption}</BoardLabel> : null}
+            <OutfitRow images={group.images} first={group.first} />
           </div>
         ))}
 

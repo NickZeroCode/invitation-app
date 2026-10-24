@@ -286,3 +286,30 @@ def test_delete_event_without_invitations(auth_client, organizer):
 
     assert response.status_code == 204
     assert not EventModel.objects.filter(pk=event.pk).exists()
+
+
+def test_display_config_stores_mood_board_theme_and_palette(auth_client):
+    board = {"theme": "  Terracotta ", "palette": ["#b99470", "#FBE8D0", "#7E4539"]}
+    response = auth_client.post(
+        ENDPOINT, make_payload(display_config={"emphasis": [], "board": board}), format="json"
+    )
+
+    assert response.status_code == 201
+    assert response.json()["display_config"]["board"] == {
+        "theme": "Terracotta",
+        "palette": ["#B99470", "#FBE8D0", "#7E4539"],
+    }
+
+
+def test_display_config_rejects_a_malformed_board(auth_client):
+    for board in (
+        {"theme": "x" * 41},
+        {"palette": ["red"]},
+        {"palette": ["#000000"] * 6},
+        {"theme": "Or", "font": "Comic"},
+    ):
+        response = auth_client.post(
+            ENDPOINT, make_payload(display_config={"board": board}), format="json"
+        )
+        assert response.status_code == 400, board
+        assert "display_config.board" in response.json()["error"]["fields"]

@@ -36,6 +36,14 @@ export interface TableEntry {
   text: string
 }
 
+/** Mood-board attributes, stored in the event's display_config.board. */
+export interface MoodBoardAttributes {
+  /** Theme name shown as « THÈME : … »; empty hides the line. */
+  theme: string
+  /** Up to five #RRGGBB colours; empty hides the palette. */
+  palette: string[]
+}
+
 export interface InvitationDraft {
   title: string
   message: string
@@ -65,6 +73,8 @@ export interface InvitationDraft {
   tableNumber: string
   /** Optional free text shown with the table number. */
   tableText: string
+  /** Mood Board only (theme + palette); absent = the template's defaults. */
+  board?: MoodBoardAttributes
 }
 
 export interface TemplateProps {

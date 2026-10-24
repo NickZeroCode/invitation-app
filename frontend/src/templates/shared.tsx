@@ -14,6 +14,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 
 import { CoverSheen } from './florals.tsx'
+import { DRESS_CODE_CATEGORY_MAX } from './dressCodeLimits.ts'
 import { LuxuryTable } from './tableScene.tsx'
 import type { InvitationDraft } from './types.ts'
 
@@ -737,19 +738,23 @@ export function DressCodeSection({
         </div>
       ) : null}
       {groupDressCode(draft.dressCode).map((group, groupIndex) => (
-        <figure key={groupIndex} className={groupIndex === 0 ? 'mt-[1.8em]' : 'mt-[2.2em]'}>
-          <div className="flex flex-wrap items-start justify-center gap-[1em]">
+        <figure
+          key={groupIndex}
+          className={groupIndex === 0 ? 'mt-[1.8em]' : group.first ? 'mt-[2.2em]' : 'mt-[0.8em]'}
+        >
+          {/* One category, one row: photos shrink to share it (up to five). */}
+          <div className="flex items-start justify-center gap-[0.8em]">
             {group.images.map((image, index) => (
               <img
                 key={`${image.url}-${index}`}
                 src={image.url}
                 alt=""
-                className="w-[10.5em] rounded-[0.35em] object-cover"
+                className="min-w-0 max-w-[10.5em] flex-1 rounded-[0.35em] object-cover"
                 style={{ border: `1px solid ${accent}66`, aspectRatio: '3 / 4' }}
               />
             ))}
           </div>
-          {group.caption ? (
+          {group.caption && group.last ? (
             <figcaption
               className="mt-[0.7em] text-center text-[0.92em] italic leading-[1.45]"
               style={{ color: ink, opacity: 0.85 }}
@@ -765,24 +770,44 @@ export function DressCodeSection({
 
 export interface DressCodeGroup {
   caption: string
+  /** One row: at most DRESS_CODE_CATEGORY_MAX photos. */
   images: InvitationDraft['dressCode']
+  /** First row of its category (where a label above it goes). */
+  first: boolean
+  /** Last row of its category (where a caption under it goes). */
+  last: boolean
 }
 
 /**
- * Outfit categories. The organizer can file several photos under one
- * caption (« Tenue des dames », « Tenue des messieurs »…); each photo is
- * still its own stored row carrying that caption, so consecutive rows with
- * the same caption form one category, shown once with all its photos.
+ * Outfit categories, as photo rows. The organizer files up to five photos
+ * under one caption (« Tenue des dames », « Tenue des messieurs »…); each
+ * photo is still its own stored row carrying that caption, so consecutive
+ * rows with the same caption form one category, shown on one row.
+ *
+ * Every template shares this rule. A category saved before the five-photo
+ * limit, or a run of photos without any caption, is cut into rows of five
+ * so no row ever holds more — one row per category in practice.
  */
 export function groupDressCode(entries: InvitationDraft['dressCode']): DressCodeGroup[] {
-  const groups: DressCodeGroup[] = []
+  const categories: Array<{ caption: string; images: InvitationDraft['dressCode'] }> = []
   for (const entry of entries) {
     const caption = (entry.caption ?? '').trim()
-    const last = groups[groups.length - 1]
+    const last = categories[categories.length - 1]
     if (last && last.caption === caption) last.images.push(entry)
-    else groups.push({ caption, images: [entry] })
+    else categories.push({ caption, images: [entry] })
   }
-  return groups
+  return categories.flatMap(({ caption, images }) => {
+    const rows: DressCodeGroup[] = []
+    for (let i = 0; i < images.length; i += DRESS_CODE_CATEGORY_MAX) {
+      rows.push({
+        caption,
+        images: images.slice(i, i + DRESS_CODE_CATEGORY_MAX),
+        first: i === 0,
+        last: i + DRESS_CODE_CATEGORY_MAX >= images.length,
+      })
+    }
+    return rows
+  })
 }
 
 /**

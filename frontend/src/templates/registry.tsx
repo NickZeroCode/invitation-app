@@ -446,8 +446,10 @@ const SAMPLES: Record<string, Partial<InvitationDraft>> = {
     venue_details: 'Mariage coutumier et réception',
   },
   'mood-board': {
-    title: 'James & Tony',
-    message: 'Mariage Civil & Religieux',
+    // Cover text → monogram + names; title → the script line.
+    coverTitle: 'James & Tony',
+    title: 'Mariage Civil & Religieux',
+    message: 'Nous avons la joie de vous convier à notre mariage et serions honorés de votre présence.',
     note: '“ Aimer, ce n’est pas se regarder l’un l’autre, c’est regarder dans la même direction ” — Antoine de Saint-Exupéry',
     venue_name: 'Salle des Fêtes Le Prestige',
     venue_address: 'Boulevard du 30 Juin, Kinshasa',

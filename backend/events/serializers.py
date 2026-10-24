@@ -12,6 +12,8 @@ and omitted ones deleted — unless guest responses already reference them
 """
 from __future__ import annotations
 
+import re
+
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.db import transaction
@@ -31,7 +33,13 @@ from preferences.serializers import (
 from templates_app.models import InvitationTemplate
 from templates_app.serializers import InvitationTemplateSerializer, clean_template_config
 
-VALID_DISPLAY_CONFIG_KEYS = {"emphasis"}
+VALID_DISPLAY_CONFIG_KEYS = {"emphasis", "board"}
+# Mood-board attributes (theme name + colour palette), kept inside the
+# existing display_config JSON so no table changes; other templates ignore it.
+BOARD_KEYS = {"theme", "palette"}
+BOARD_THEME_MAX = 40
+BOARD_PALETTE_MAX = 5
+HEX_COLOR = re.compile(r"^#[0-9A-Fa-f]{6}$")
 
 # Programme rows per event: a ceremony programme is a page, not a database.
 MAX_PROGRAM_ITEMS = 20
@@ -185,7 +193,29 @@ class EventModelSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"emphasis": "La mise en avant doit être une liste de champs."})
         if len(set(emphasis)) != len(emphasis):
             raise serializers.ValidationError({"emphasis": "La liste contient des doublons."})
+        if "board" in value:
+            value = {**value, "board": self._clean_board(value["board"])}
         return value
+
+    @staticmethod
+    def _clean_board(board: object) -> dict:
+        if not isinstance(board, dict) or set(board) - BOARD_KEYS:
+            raise serializers.ValidationError({"board": "Planche invalide : thème et palette uniquement."})
+        theme = board.get("theme", "")
+        if not isinstance(theme, str) or len(theme.strip()) > BOARD_THEME_MAX:
+            raise serializers.ValidationError(
+                {"board": f"Le thème doit faire au plus {BOARD_THEME_MAX} caractères."}
+            )
+        palette = board.get("palette", [])
+        if (
+            not isinstance(palette, list)
+            or len(palette) > BOARD_PALETTE_MAX
+            or any(not isinstance(color, str) or not HEX_COLOR.match(color) for color in palette)
+        ):
+            raise serializers.ValidationError(
+                {"board": f"La palette compte au plus {BOARD_PALETTE_MAX} couleurs au format #RRGGBB."}
+            )
+        return {"theme": theme.strip(), "palette": [color.upper() for color in palette]}
 
     def validate(self, attrs: dict) -> dict:
         # Template capabilities bound display_config (never trust the client).

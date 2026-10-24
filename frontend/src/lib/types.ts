@@ -171,7 +171,7 @@ export interface EventModel {
   note: string
   cover_url: string | null
   cover_title: string
-  display_config: { emphasis?: string[] }
+  display_config: { emphasis?: string[]; board?: { theme: string; palette: string[] } }
   preference_questions: PreferenceQuestion[]
   program_items: ProgramItem[]
   dress_code: DressCodeImage[]
@@ -209,7 +209,7 @@ export interface EventPayload {
   venue_details: string
   note: string
   cover_title?: string
-  display_config: { emphasis: string[] }
+  display_config: { emphasis: string[]; board?: { theme: string; palette: string[] } }
   preference_questions: PreferenceQuestionPayload[]
   program_items?: ProgramItemPayload[]
   is_active?: boolean
@@ -377,7 +377,7 @@ export interface PublicInvitationPayload {
     note: string
     cover_url: string | null
     cover_title: string
-    display_config: { emphasis?: string[] }
+    display_config: { emphasis?: string[]; board?: { theme: string; palette: string[] } }
     template: {
       key: string
       name: string
