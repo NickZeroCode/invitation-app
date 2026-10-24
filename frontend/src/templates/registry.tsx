@@ -250,6 +250,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     description: 'Planche terracotta : monogramme en couronne dorée, calendrier à date cerclée et palette de couleurs.',
     supportsCover: true,
     emphasisFields: ['title', 'date', 'venue'],
+    outfitsOnSheet: true,
     Component: MoodBoard,
   },
   {

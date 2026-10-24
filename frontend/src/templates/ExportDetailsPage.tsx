@@ -112,8 +112,8 @@ export function ExportDetailsPage({
                 </div>
                 {group.caption && group.last ? (
                   <figcaption
-                    className="mt-3 text-center text-[0.85rem] italic leading-[1.5]"
-                    style={{ color: skin.inkSoft }}
+                    className="mt-3 text-center text-[1.05rem] font-medium leading-[1.4]"
+                    style={{ color: skin.ink }}
                   >
                     {group.caption}
                   </figcaption>

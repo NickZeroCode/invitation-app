@@ -233,6 +233,48 @@ describe('exportInvitationPdf', () => {
     restore()
   })
 
+  it('keeps the Mood Board outfits on the board, as in the editor preview', async () => {
+    const { restore } = captureDownloads()
+    const outfits = [
+      { url: 'data:image/png;base64,AAAA', caption: 'Tenue des dames' },
+      { url: 'data:image/png;base64,BBBB', caption: 'Tenue des dames' },
+    ]
+
+    await exportInvitationPdf({
+      templateKey: 'mood-board',
+      draft: emptyDraft({ title: 'Mariage', event_date: '2026-12-12' }),
+      dressCode: outfits,
+      program: [],
+      title: 'Mariage',
+      qrText: 'https://www.malaikaevent.com/i/tok-1',
+    })
+
+    const doc = pdfState.instances.at(-1) as FakePdfRecord
+    // Board (with its outfit row) + QR: no separate details page for them.
+    expect(doc.pages).toHaveLength(2)
+    expect(captureState.capturedText[0]).toContain('Tenue des dames')
+    expect(captureState.capturedText[1]).not.toContain('Dress code')
+    restore()
+  })
+
+  it('still moves outfits to the details page for other templates', async () => {
+    const { restore } = captureDownloads()
+
+    await exportInvitationPdf({
+      templateKey: 'heritage-luxe',
+      draft: emptyDraft({ title: 'Gala', event_date: '2026-12-12' }),
+      dressCode: [{ url: 'data:image/png;base64,AAAA', caption: 'Tenue de soirée' }],
+      program: [],
+      title: 'Gala',
+      qrText: 'https://www.malaikaevent.com/i/tok-1',
+    })
+
+    const doc = pdfState.instances.at(-1) as FakePdfRecord
+    expect(doc.pages).toHaveLength(3)
+    expect(captureState.capturedText[1]).toContain('Tenue de soirée')
+    restore()
+  })
+
   it('adds the details page for a table-only guest', async () => {
     const card = document.createElement('div')
     Object.defineProperty(card, 'offsetWidth', { value: 794 })

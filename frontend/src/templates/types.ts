@@ -89,5 +89,11 @@ export interface TemplateDefinition {
   description: string
   supportsCover: boolean
   emphasisFields: string[]
+  /**
+   * The template lays the outfit photos out on the sheet itself (the Mood
+   * Board): the guest page and the PDF keep them there, exactly as in the
+   * editor preview, instead of moving them to the separate details card.
+   */
+  outfitsOnSheet?: boolean
   Component: (props: TemplateProps) => ReactElement
 }

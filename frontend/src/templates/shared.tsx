@@ -756,8 +756,8 @@ export function DressCodeSection({
           </div>
           {group.caption && group.last ? (
             <figcaption
-              className="mt-[0.7em] text-center text-[0.92em] italic leading-[1.45]"
-              style={{ color: ink, opacity: 0.85 }}
+              className="mt-[0.75em] text-center text-[1.08em] font-medium leading-[1.4]"
+              style={{ color: ink, letterSpacing: '0.01em' }}
             >
               {group.caption}
             </figcaption>

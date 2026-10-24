@@ -737,9 +737,14 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
   // export budget (load ≈15%, captures ≈45%, compress ≈30%, assemble ≈10%).
   const weights = { load: 15, capture: 45, compress: 30, assemble: 10 } as const
   let completed = 0
+  // A template that lays the outfits out on its sheet (the Mood Board) keeps
+  // them there in the PDF too — the same board as the editor preview — and
+  // the details page then carries only the programme and the table.
+  const outfitsOnSheet = Boolean(getTemplate(content.templateKey)?.outfitsOnSheet)
+  const detailsDressCode = outfitsOnSheet ? [] : content.dressCode
   const totalCaptures =
     1 +
-    (content.dressCode.length || content.program.length || content.table?.number ? 1 : 0) +
+    (detailsDressCode.length || content.program.length || content.table?.number ? 1 : 0) +
     (content.qrText ? 1 : 0)
   let capturesDone = 0
   const report = (phase: ExportProgress['phase'], advance: number) => {
@@ -768,10 +773,18 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
     }
     const loader = createImageLoader({ refresh: content.refresh })
 
+    // Outfit photos load first: an off-screen board needs them in its draft.
+    const dressCode = await timed('load-dress-code', () =>
+      content.dressCode.length
+        ? loader.loadDressCode(content.dressCode)
+        : Promise.resolve({ entries: [] as DressCodeEntry[], missing: 0 }),
+    )
+
     let cardNode = content.cardNode
     if (!cardNode) {
       const template = getTemplate(content.templateKey)
-      const draft = content.draft
+      const draft =
+        content.draft && outfitsOnSheet ? { ...content.draft, dressCode: dressCode.entries } : content.draft
       if (!template || !draft) {
         throw new Error('A rendered card node or a template draft is required.')
       }
@@ -792,14 +805,7 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
 
     // Load every picture the PDF needs before capturing anything, so no
     // capture ever depends on network access or expiring storage URLs.
-    const [cardImages, dressCode] = await timed('load-images', () =>
-      Promise.all([
-        hydrateImages(cardNode, loader, content.coverFileUrl),
-        content.dressCode.length
-          ? loader.loadDressCode(content.dressCode)
-          : Promise.resolve({ entries: [] as DressCodeEntry[], missing: 0 }),
-      ]),
-    )
+    const cardImages = await timed('load-images', () => hydrateImages(cardNode, loader, content.coverFileUrl))
     report('load', weights.load)
 
     // All-or-nothing: never print an invitation without a picture the
@@ -842,11 +848,12 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
 
     // Details page — dress code, programme and table on the template's paper tone.
     // Photos that could not be loaded are already dropped from `dressCode`.
-    if (dressCode.entries.length || content.program.length || content.table?.number) {
+    const detailsEntries = outfitsOnSheet ? [] : dressCode.entries
+    if (detailsEntries.length || content.program.length || content.table?.number) {
       const details = renderOffscreen(
         createElement(ExportDetailsPage, {
           templateKey: content.templateKey,
-          dressCode: dressCode.entries,
+          dressCode: detailsEntries,
           program: content.program,
           table: content.table?.number ? content.table : undefined,
         }),

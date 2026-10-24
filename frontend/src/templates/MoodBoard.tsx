@@ -35,6 +35,14 @@ const PAPER = '#FFFFFF'
 const INK = '#111111'
 const CHAIN = '#8E6A3C'
 const PEN_RED = '#D52A2F'
+
+/**
+ * The text-size setting (`--invitation-scale`) enlarges reading text; the
+ * board's display pieces — « Save the date » and the palette — keep their
+ * proportions on the sheet whatever the setting, so they never crowd it.
+ */
+const UNSCALED = 'calc(1em / var(--invitation-scale, 1))'
+const SAVE_THE_DATE_SIZE = 'calc(8.6em / var(--invitation-scale, 1))'
 const ARROW_BLUE = '#5B79A6'
 
 const SIGNATURE = "'Allison', 'Ms Madi', 'Great Vibes', cursive"
@@ -228,9 +236,15 @@ function WeekStrip({ iso }: { iso: string }) {
 /* ---------------------------------------------------------- the board */
 
 /** The little looping blue arrow hanging from the end of a script label. */
-function CurlArrow() {
+function CurlArrow({ up = false }: { up?: boolean }) {
   return (
-    <svg viewBox="0 0 34 64" className="h-[2.9em] w-[1.55em]" aria-hidden="true" fill="none">
+    <svg
+      viewBox="0 0 34 64"
+      className="h-[2.9em] w-[1.55em]"
+      aria-hidden="true"
+      fill="none"
+      style={up ? { transform: 'scaleY(-1)' } : undefined}
+    >
       <path
         d="M 2 4 C 14 4, 26 10, 28 20 C 30 30, 18 34, 14 28 C 10 22, 20 16, 26 24 C 30 30, 26 42, 22 54"
         stroke={ARROW_BLUE}
@@ -258,14 +272,15 @@ function ScriptText({ text }: { text: string }) {
 }
 
 /** Script heading with the arrow tucked under its last letter. */
-function BoardLabel({ children, size }: { children: ReactNode; size: string }) {
+function BoardLabel({ children, size, arrow = 'down' }: { children: ReactNode; size: string; arrow?: 'down' | 'up' }) {
   return (
     <div className="relative inline-block">
       <p className="whitespace-nowrap leading-[1.1]" style={{ fontFamily: SIGNATURE, fontSize: size, color: INK }}>
         {typeof children === 'string' ? <ScriptText text={children} /> : children}
       </p>
-      <span className="absolute -right-[1.2em] top-[55%]">
-        <CurlArrow />
+      {/* Down under a heading; up when the label sits under its photos. */}
+      <span className={`absolute -right-[1.2em] ${arrow === 'up' ? 'bottom-[45%]' : 'top-[55%]'}`}>
+        <CurlArrow up={arrow === 'up'} />
       </span>
     </div>
   )
@@ -279,7 +294,7 @@ function OutfitRow({ images, first }: { images: TemplateProps['draft']['dressCod
   const slots = Math.max(images.length, 3)
   return (
     <div
-      className={`-mx-[2.6em] ${first ? 'mt-[2.1em]' : ''} flex w-[calc(100%+5.2em)] items-start justify-center gap-[0.35em] px-[0.3em]`}
+      className={`-mx-[2.6em] ${first ? 'mt-[0.4em]' : 'mt-[0.35em]'} flex w-[calc(100%+5.2em)] items-start justify-center gap-[0.35em] px-[0.3em]`}
     >
       {images.map((image, index) => {
         const inset = index % 2 === 1
@@ -383,13 +398,13 @@ export function MoodBoard({ draft }: TemplateProps) {
           <p
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 top-[1.2%] whitespace-nowrap text-center leading-none"
-            style={{ fontFamily: SIGNATURE, fontSize: '9.6em', color: '#FFFFFF' }}
+            style={{ fontFamily: SIGNATURE, fontSize: SAVE_THE_DATE_SIZE, color: '#FFFFFF' }}
           >
             Save the date
           </p>
         </div>
       ) : (
-        <p aria-hidden="true" className="mt-[0.5em] whitespace-nowrap text-center leading-none" style={{ fontFamily: SIGNATURE, fontSize: '9.6em', color: INK }}>
+        <p aria-hidden="true" className="mt-[0.5em] whitespace-nowrap text-center leading-none" style={{ fontFamily: SIGNATURE, fontSize: SAVE_THE_DATE_SIZE, color: INK }}>
           Save the date
         </p>
       )}
@@ -448,28 +463,34 @@ export function MoodBoard({ draft }: TemplateProps) {
           </p>
         ) : null}
         {board.palette.length ? (
-          <>
+          <div className="flex flex-col items-center" style={{ fontSize: UNSCALED }}>
             <div className="mt-[1.3em]">
-              <BoardLabel size="3.36em">Palette de couleurs</BoardLabel>
+              <BoardLabel size="3.1em">Palette de couleurs</BoardLabel>
             </div>
-            <div className="mt-[3.95em] flex gap-[2.08em]" role="list" aria-label="Palette de couleurs">
+            <div className="mt-[3.4em] flex gap-[1.8em]" role="list" aria-label="Palette de couleurs">
               {board.palette.map((color, index) => (
                 <span
                   key={`${color}-${index}`}
                   role="listitem"
                   aria-label={color}
-                  className="block h-[13.27em] w-[3.31em] rounded-full"
+                  className="block h-[11.2em] w-[2.8em] rounded-full"
                   style={{ backgroundColor: color, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.06)' }}
                 />
               ))}
             </div>
-          </>
+          </div>
         ) : null}
 
         {outfits.map((group, index) => (
-          <div key={`${group.caption}-${index}`} className={`flex w-full flex-col items-center ${index === 0 ? 'mt-[2.5em]' : group.first ? 'mt-[0.8em]' : 'mt-[0.35em]'}`}>
-            {group.caption && group.first ? <BoardLabel size="4.7em">{group.caption}</BoardLabel> : null}
+          <div key={`${group.caption}-${index}`} className={`flex w-full flex-col items-center ${index === 0 ? 'mt-[3.2em]' : group.first ? 'mt-[1.6em]' : ''}`}>
             <OutfitRow images={group.images} first={group.first} />
+            {group.caption && group.last ? (
+              <div className="mt-[0.35em]">
+                <BoardLabel size="4.7em" arrow="up">
+                  {group.caption}
+                </BoardLabel>
+              </div>
+            ) : null}
           </div>
         ))}
 

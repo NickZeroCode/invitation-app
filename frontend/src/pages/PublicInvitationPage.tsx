@@ -310,7 +310,7 @@ export function PublicInvitationPage() {
   const allOutfits = data.dress_code?.images ?? []
   // The Mood Board lays the outfits out on the sheet itself (that is the
   // board); every other template shows them in the companion card.
-  const outfitsOnSheet = templateKey === 'mood-board'
+  const outfitsOnSheet = Boolean(templateDef?.outfitsOnSheet)
   const dressCode = outfitsOnSheet ? [] : allOutfits
   const program = data.program?.items ?? []
 
@@ -646,7 +646,7 @@ export function PublicInvitationPage() {
                           ))}
                         </div>
                         {group.caption && group.last ? (
-                          <figcaption className="mt-1.5 text-center text-xs" style={{ color: skin.inkSoft }}>
+                          <figcaption className="mt-2 text-center text-[0.8125rem] font-medium" style={{ color: skin.ink }}>
                             {group.caption}
                           </figcaption>
                         ) : null}
