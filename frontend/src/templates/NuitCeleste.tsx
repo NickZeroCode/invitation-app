@@ -117,6 +117,47 @@ function StarRule() {
   )
 }
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function NuitCelesteDecor() {
+  return (
+    <>
+      {/* Star-map constellations behind the scattered stars. */}
+      <LuxePattern templateKey="nuit-celeste" />
+      <MoonGlow className="left-1/2 top-[1em] h-[22em] w-[22em] -translate-x-1/2" />
+      <GiltEdge inset="0.7em" width="0.12em" />
+      <StarField />
+      <GoldRoseCorner
+        className="pointer-events-none absolute left-[0.6em] top-[0.6em] w-[11em] opacity-80"
+      />
+      <GoldRoseCorner
+        className="pointer-events-none absolute bottom-[0.6em] right-[0.6em] w-[11em] opacity-80"
+        style={{ transform: 'rotate(180deg)' }}
+      />
+
+      {/* Hairline gold frame with star corners. */}
+      <div className="pointer-events-none absolute inset-[1.8em]" aria-hidden="true">
+        <div className="absolute inset-0 border" style={{ borderColor: 'rgba(226,194,124,0.38)' }} />
+        {[
+          { top: '-0.5em', left: '-0.5em' },
+          { top: '-0.5em', right: '-0.5em' },
+          { bottom: '-0.5em', left: '-0.5em' },
+          { bottom: '-0.5em', right: '-0.5em' },
+        ].map((pos, i) => (
+          <svg
+            key={i}
+            viewBox="0 0 24 24"
+            className="absolute h-[1em] w-[1em]"
+            style={{ ...pos, backgroundColor: '#101A3A' }}
+            fill={GOLD}
+          >
+            <path d={STAR_PATH} />
+          </svg>
+        ))}
+      </div>
+    </>
+  )
+}
+
 export function NuitCeleste({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -140,39 +181,7 @@ export function NuitCeleste({ draft }: TemplateProps) {
 
       {/* Decorations frame the text zone (below the cover photo). */}
       <div className="relative flex flex-1 flex-col">
-        {/* Star-map constellations behind the scattered stars. */}
-        <LuxePattern templateKey="nuit-celeste" />
-        <MoonGlow className="left-1/2 top-[1em] h-[22em] w-[22em] -translate-x-1/2" />
-        <GiltEdge inset="0.7em" width="0.12em" />
-        <StarField />
-        <GoldRoseCorner
-          className="pointer-events-none absolute left-[0.6em] top-[0.6em] w-[11em] opacity-80"
-        />
-        <GoldRoseCorner
-          className="pointer-events-none absolute bottom-[0.6em] right-[0.6em] w-[11em] opacity-80"
-          style={{ transform: 'rotate(180deg)' }}
-        />
-
-        {/* Hairline gold frame with star corners. */}
-        <div className="pointer-events-none absolute inset-[1.8em]" aria-hidden="true">
-          <div className="absolute inset-0 border" style={{ borderColor: 'rgba(226,194,124,0.38)' }} />
-          {[
-            { top: '-0.5em', left: '-0.5em' },
-            { top: '-0.5em', right: '-0.5em' },
-            { bottom: '-0.5em', left: '-0.5em' },
-            { bottom: '-0.5em', right: '-0.5em' },
-          ].map((pos, i) => (
-            <svg
-              key={i}
-              viewBox="0 0 24 24"
-              className="absolute h-[1em] w-[1em]"
-              style={{ ...pos, backgroundColor: '#101A3A' }}
-              fill={GOLD}
-            >
-              <path d={STAR_PATH} />
-            </svg>
-          ))}
-        </div>
+        <NuitCelesteDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[6em] py-[5.5em] text-center">
         <Moon />

@@ -10,7 +10,9 @@
  * the content.
  */
 import { TemplateOrnament } from './ornaments.tsx'
-import { PanelDecor, panelSkinFor } from './panelSkin.tsx'
+import { PageDecor, pageInset } from './pageDecor.tsx'
+import { panelSkinFor } from './panelSkin.tsx'
+import type { PanelSkin } from './panelSkin.tsx'
 import { formatProgramRange, groupDressCode } from './shared.tsx'
 import { LuxuryTable } from './tableScene.tsx'
 import type { DressCodeEntry, ProgramEntry, TableEntry } from './types.ts'
@@ -18,20 +20,28 @@ import type { DressCodeEntry, ProgramEntry, TableEntry } from './types.ts'
 /** Full A4 height at 96dpi — the page keeps at least one paper height. */
 const A4_HEIGHT_PX = 1122
 
-function SectionTitle({ title, templateKey, color, titleClass }: {
+function SectionTitle({ title, templateKey, color, skin }: {
   title: string
   templateKey: string
   color: string
-  titleClass: string
+  skin: PanelSkin
 }) {
   return (
     <div className="flex flex-col items-center text-center">
-      <h2
-        className={`text-[1.6rem] font-semibold uppercase leading-none ${titleClass}`}
-        style={{ letterSpacing: '0.3em', color, paddingLeft: '0.3em' }}
-      >
-        {title}
-      </h2>
+      {/* Titles follow the template: spaced capitals in its display face,
+          or — for a script template — one large script line. */}
+      {skin.titleScript ? (
+        <h2 className="leading-[1.05]" style={{ fontFamily: skin.titleFont, fontSize: '4.6rem', fontWeight: 400, color }}>
+          {title}
+        </h2>
+      ) : (
+        <h2
+          className={`text-[1.6rem] font-semibold uppercase leading-none ${skin.titleClass}`}
+          style={{ letterSpacing: '0.3em', color, paddingLeft: '0.3em', fontFamily: skin.titleFont }}
+        >
+          {title}
+        </h2>
+      )}
       <TemplateOrnament
         templateKey={templateKey}
         color={color}
@@ -53,6 +63,7 @@ export function ExportDetailsPage({
   table?: TableEntry
 }) {
   const skin = panelSkinFor(templateKey)
+  const inset = pageInset(templateKey)
 
   return (
     <div
@@ -64,10 +75,14 @@ export function ExportDetailsPage({
         minHeight: A4_HEIGHT_PX,
       }}
     >
-      <PanelDecor templateKey={templateKey} />
+      <PageDecor templateKey={templateKey} />
       <div
-        className="relative z-10 flex flex-col justify-center px-[3.4rem] py-[3.6rem]"
-        style={{ minHeight: A4_HEIGHT_PX }}
+        className="relative z-10 flex flex-col justify-center"
+        style={{
+          minHeight: A4_HEIGHT_PX,
+          // Clear the template's own corner decoration, as its card does.
+          padding: `${inset.top}px ${inset.x}px ${inset.bottom}px`,
+        }}
       >
         {dressCode.length ? (
           <section>
@@ -75,7 +90,7 @@ export function ExportDetailsPage({
               title="Dress code"
               templateKey={templateKey}
               color={skin.accent}
-              titleClass={skin.titleClass}
+              skin={skin}
             />
             {groupDressCode(dressCode).map((group, groupIndex) => (
               <figure key={groupIndex} className={groupIndex === 0 ? 'mt-8' : group.first ? 'mt-9' : 'mt-4'}>
@@ -114,7 +129,7 @@ export function ExportDetailsPage({
               title="Programme"
               templateKey={templateKey}
               color={skin.accent}
-              titleClass={skin.titleClass}
+              skin={skin}
             />
             <div className="mx-auto mt-9 grid w-full max-w-[36rem] grid-cols-2 gap-x-12 gap-y-8">
               {program.map((item, index) => {
@@ -165,7 +180,7 @@ export function ExportDetailsPage({
               title="Votre table"
               templateKey={templateKey}
               color={skin.accent}
-              titleClass={skin.titleClass}
+              skin={skin}
             />
             <div className="mx-auto mt-9 flex w-full max-w-[26rem] flex-col items-center">
               <LuxuryTable number={table.number} accent={skin.accent} ink={skin.ink} className="w-full" />

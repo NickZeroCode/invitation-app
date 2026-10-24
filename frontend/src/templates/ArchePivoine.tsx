@@ -131,6 +131,19 @@ function DateCluster({ draft, emphasize }: { draft: TemplateProps['draft']; emph
   )
 }
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function ArchePivoineDecor() {
+  return (
+    <>
+      <GoldArch />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <Bouquet items={PEONIES_TOP} viewBox="0 0 160 160" className="absolute left-0 top-[3.2em] h-[17em] w-[17em]" />
+        <Bouquet items={PEONIES_BOTTOM} viewBox="0 0 200 200" className="absolute -right-[1.5em] bottom-0 h-[19em] w-[19em]" />
+      </div>
+    </>
+  )
+}
+
 export function ArchePivoine({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -149,11 +162,7 @@ export function ArchePivoine({ draft }: TemplateProps) {
       />
 
       <div className="relative flex flex-1 flex-col">
-        <GoldArch />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-          <Bouquet items={PEONIES_TOP} viewBox="0 0 160 160" className="absolute left-0 top-[3.2em] h-[17em] w-[17em]" />
-          <Bouquet items={PEONIES_BOTTOM} viewBox="0 0 200 200" className="absolute -right-[1.5em] bottom-0 h-[19em] w-[19em]" />
-        </div>
+        <ArchePivoineDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[7em] pb-[6em] pt-[6.4em] text-center">
           <ArchText text="AVEC LEURS FAMILLES" color={GREY} className="h-[5.2em] w-[17em] max-w-full" />

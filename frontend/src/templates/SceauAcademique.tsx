@@ -32,6 +32,19 @@ function Seal() {
   )
 }
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function SceauAcademiqueDecor() {
+  return (
+    <>
+      <div
+        className="absolute inset-[1.2em] rounded-[0.3em] border"
+        style={{ borderColor: '#C9A22766' }}
+        aria-hidden="true"
+      />
+    </>
+  )
+}
+
 export function SceauAcademique({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -52,11 +65,8 @@ export function SceauAcademique({ draft }: TemplateProps) {
 
       {/* Decorations frame the text zone (below the cover photo). */}
       <div className="relative flex flex-1 flex-col">
-        <div
-          className="absolute inset-[1.2em] rounded-[0.3em] border"
-          style={{ borderColor: '#C9A22766' }}
-          aria-hidden="true"
-        />
+        <SceauAcademiqueDecor />
+
         <div className="relative flex flex-1 flex-col items-center px-[6.5em] py-[4.5em] text-center">
         <Seal />
         <p

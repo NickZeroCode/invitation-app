@@ -3,6 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+// The QR library's real generation is slow in jsdom under a parallel run;
+// the test is about the panel, so the image data is stubbed.
+vi.mock('qrcode', () => ({
+  default: { toDataURL: vi.fn(async () => 'data:image/png;base64,QRDATA') },
+}))
+
 import { clearCookies } from '../test/mockFetch.ts'
 import { LandingPage } from './LandingPage.tsx'
 
@@ -72,11 +78,8 @@ describe('LandingPage', { timeout: 30_000 }, () => {
   it('renders the QR verification panel', async () => {
     renderLanding()
 
-    // The demo QR is drawn asynchronously (QRCode.toDataURL); give jsdom's
-    // generation a generous budget so full-suite CPU load cannot flake it.
-    expect(
-      await screen.findByAltText('QR code de vérification', {}, { timeout: 5000 }),
-    ).toBeInTheDocument()
+    // The demo QR is drawn asynchronously (QRCode.toDataURL, stubbed above).
+    expect(await screen.findByAltText('QR code de vérification')).toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
         name: 'Des invitations vérifiables, partagées en un instant',

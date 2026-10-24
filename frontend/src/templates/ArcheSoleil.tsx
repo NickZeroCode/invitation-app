@@ -73,6 +73,36 @@ function DotBand() {
   )
 }
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function ArcheSoleilDecor() {
+  return (
+    <>
+      {/* Zellige star lattice + a rising sun fanning from the top edge. */}
+      <LuxePattern templateKey="arche-soleil" />
+      <VellumHalo color="#F3E5D1" />
+      <PaperGrain opacity={0.06} />
+      <SunRays
+        color={OCHRE}
+        className="pointer-events-none absolute left-1/2 top-0 w-[30em] -translate-x-1/2"
+        style={{ opacity: 0.075 }}
+      />
+
+      <div className="pointer-events-none absolute inset-[1.8em]">
+        <HexFrame className="h-full w-full" color={GOLD_WARM} opacity={0.55} />
+      </div>
+      <WatercolorSpray
+        palette={BLUSH}
+        className="pointer-events-none absolute right-[-1em] top-[-0.8em] w-[14em]"
+        style={{ transform: 'scaleX(-1)' }}
+      />
+      <WatercolorSpray
+        palette={BLUSH}
+        className="pointer-events-none absolute bottom-[-0.8em] left-[-1em] w-[14em]"
+      />
+    </>
+  )
+}
+
 export function ArcheSoleil({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -96,28 +126,7 @@ export function ArcheSoleil({ draft }: TemplateProps) {
 
       {/* Decorations frame the text zone (below the cover photo). */}
       <div className="relative flex flex-1 flex-col">
-        {/* Zellige star lattice + a rising sun fanning from the top edge. */}
-        <LuxePattern templateKey="arche-soleil" />
-        <VellumHalo color="#F3E5D1" />
-        <PaperGrain opacity={0.06} />
-        <SunRays
-          color={OCHRE}
-          className="pointer-events-none absolute left-1/2 top-0 w-[30em] -translate-x-1/2"
-          style={{ opacity: 0.075 }}
-        />
-
-        <div className="pointer-events-none absolute inset-[1.8em]">
-          <HexFrame className="h-full w-full" color={GOLD_WARM} opacity={0.55} />
-        </div>
-        <WatercolorSpray
-          palette={BLUSH}
-          className="pointer-events-none absolute right-[-1em] top-[-0.8em] w-[14em]"
-          style={{ transform: 'scaleX(-1)' }}
-        />
-        <WatercolorSpray
-          palette={BLUSH}
-          className="pointer-events-none absolute bottom-[-0.8em] left-[-1em] w-[14em]"
-        />
+        <ArcheSoleilDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[6em] pt-[4.6em] pb-[4.2em] text-center">
         <Sun />

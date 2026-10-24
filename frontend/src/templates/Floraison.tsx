@@ -26,6 +26,7 @@ import {
   isEmphasized,
 } from './shared.tsx'
 import { SCRIPT_FONT, TinyHeart, formatMonthOnly, splitNames } from './referenceMotifs.tsx'
+import { FoilFrame } from './luxeMotifs.tsx'
 import type { TemplateProps } from './types.ts'
 
 const PAPER = '#FCFDFF'
@@ -110,6 +111,28 @@ function OpenDateRow({ draft, emphasize }: { draft: TemplateProps['draft']; emph
   )
 }
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function FloraisonDecor() {
+  return (
+    <>
+      {/* Gold double frame: a foil band and an inner hairline. */}
+      <FoilFrame inset="1em" width="0.32em" gradient={GOLD_FRAME} />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-[1.75em]" style={{ border: `1px solid ${GOLD}` }} />
+      <FiligreeCorner corner="tl" color={GOLD} opacity={0.95} />
+      <FiligreeCorner corner="tr" color={GOLD} opacity={0.95} />
+      <FiligreeCorner corner="br" color={GOLD} opacity={0.95} />
+      <FiligreeCorner corner="bl" color={GOLD} opacity={0.95} />
+
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <Bouquet items={TOP_CLUSTER} viewBox="0 0 200 200" className="absolute -left-[1.2em] -top-[1.4em] h-[15.5em] w-[15.5em]" />
+        <Bouquet items={TOP_CLUSTER} viewBox="0 0 200 200" className="absolute -right-[1.2em] -top-[1.4em] h-[16.5em] w-[16.5em]" style={{ transform: 'scaleX(-1)' }} />
+        <Bouquet items={BOTTOM_CLUSTER} viewBox="0 0 200 200" className="absolute -bottom-[1.4em] -left-[1.4em] h-[25em] w-[25em]" />
+        <Bouquet items={BOTTOM_CLUSTER} viewBox="0 0 200 200" className="absolute -bottom-[1.4em] -right-[1.4em] h-[26em] w-[26em]" style={{ transform: 'scaleX(-1)' }} />
+      </div>
+    </>
+  )
+}
+
 export function Floraison({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -130,27 +153,7 @@ export function Floraison({ draft }: TemplateProps) {
         color: INK,
       }}
     >
-      {/* Gold double frame: a foil band and an inner hairline. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-[1em]"
-        style={{
-          border: '0.32em solid transparent',
-          borderImage: `${GOLD_FRAME} 1`,
-        }}
-      />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-[1.75em]" style={{ border: `1px solid ${GOLD}` }} />
-      <FiligreeCorner corner="tl" color={GOLD} opacity={0.95} />
-      <FiligreeCorner corner="tr" color={GOLD} opacity={0.95} />
-      <FiligreeCorner corner="br" color={GOLD} opacity={0.95} />
-      <FiligreeCorner corner="bl" color={GOLD} opacity={0.95} />
-
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <Bouquet items={TOP_CLUSTER} viewBox="0 0 200 200" className="absolute -left-[1.2em] -top-[1.4em] h-[15.5em] w-[15.5em]" />
-        <Bouquet items={TOP_CLUSTER} viewBox="0 0 200 200" className="absolute -right-[1.2em] -top-[1.4em] h-[16.5em] w-[16.5em]" style={{ transform: 'scaleX(-1)' }} />
-        <Bouquet items={BOTTOM_CLUSTER} viewBox="0 0 200 200" className="absolute -bottom-[1.4em] -left-[1.4em] h-[25em] w-[25em]" />
-        <Bouquet items={BOTTOM_CLUSTER} viewBox="0 0 200 200" className="absolute -bottom-[1.4em] -right-[1.4em] h-[26em] w-[26em]" style={{ transform: 'scaleX(-1)' }} />
-      </div>
+      <FloraisonDecor />
 
       <div className="relative flex flex-1 flex-col items-center px-[7.5em] pb-[13em] pt-[7.2em] text-center">
         <p className="uppercase" style={{ fontFamily: CAPS, fontWeight: 600, fontSize: '1.85em', letterSpacing: '0.07em', color: GOLD }}>

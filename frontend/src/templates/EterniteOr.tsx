@@ -45,6 +45,39 @@ function DecoRule({ tone = GOLD }: { tone?: string }) {
   )
 }
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function EterniteOrDecor() {
+  return (
+    <>
+      {/* Art-déco harlequin lattice, darkened at the heart of the card. */}
+      <LuxePattern templateKey="eternite-or" />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            'radial-gradient(ellipse 60% 45% at 50% 48%, rgba(23,18,13,0.96) 30%, rgba(23,18,13,0) 100%)',
+        }}
+      />
+      <GiltEdge inset="0.6em" />
+
+      <FiligreeCorner corner="tl" color={GOLD} opacity={FILIGREE_OPACITY} />
+      <FiligreeCorner corner="tr" color={GOLD} opacity={FILIGREE_OPACITY} />
+      <FiligreeCorner corner="br" color={GOLD} opacity={FILIGREE_OPACITY} />
+      <FiligreeCorner corner="bl" color={GOLD} opacity={FILIGREE_OPACITY} />
+
+      {/* Inset double frame. */}
+      <div className="pointer-events-none absolute inset-[1.6em]" aria-hidden="true">
+        <div className="absolute inset-0 border" style={{ borderColor: 'rgba(216,179,106,0.45)' }} />
+        <div
+          className="absolute inset-[0.55em] border"
+          style={{ borderColor: 'rgba(216,179,106,0.22)' }}
+        />
+      </div>
+    </>
+  )
+}
+
 export function EterniteOr({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -68,31 +101,7 @@ export function EterniteOr({ draft }: TemplateProps) {
 
       {/* Decorations frame the text zone (below the cover photo). */}
       <div className="relative flex flex-1 flex-col">
-        {/* Art-déco harlequin lattice, darkened at the heart of the card. */}
-        <LuxePattern templateKey="eternite-or" />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage:
-              'radial-gradient(ellipse 60% 45% at 50% 48%, rgba(23,18,13,0.96) 30%, rgba(23,18,13,0) 100%)',
-          }}
-        />
-        <GiltEdge inset="0.6em" />
-
-        <FiligreeCorner corner="tl" color={GOLD} opacity={FILIGREE_OPACITY} />
-        <FiligreeCorner corner="tr" color={GOLD} opacity={FILIGREE_OPACITY} />
-        <FiligreeCorner corner="br" color={GOLD} opacity={FILIGREE_OPACITY} />
-        <FiligreeCorner corner="bl" color={GOLD} opacity={FILIGREE_OPACITY} />
-
-        {/* Inset double frame. */}
-        <div className="pointer-events-none absolute inset-[1.6em]" aria-hidden="true">
-          <div className="absolute inset-0 border" style={{ borderColor: 'rgba(216,179,106,0.45)' }} />
-          <div
-            className="absolute inset-[0.55em] border"
-            style={{ borderColor: 'rgba(216,179,106,0.22)' }}
-          />
-        </div>
+        <EterniteOrDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[6em] py-[5.5em] text-center">
         <MonogramCrest

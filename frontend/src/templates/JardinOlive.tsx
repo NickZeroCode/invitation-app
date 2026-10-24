@@ -45,6 +45,31 @@ function Sprig() {
   )
 }
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function JardinOliveDecor() {
+  return (
+    <>
+      {/* Olive-branch toile print on cotton paper. */}
+      <LuxePattern templateKey="jardin-olive" />
+      <VellumHalo color="#F6F1E5" />
+      <PaperGrain opacity={0.05} />
+
+      <WatercolorSpray
+        palette={SAGE}
+        className="pointer-events-none absolute left-[-1.2em] top-[-1em] w-[14.5em]"
+      />
+      <WatercolorSpray
+        palette={SAGE}
+        className="pointer-events-none absolute bottom-[-1em] right-[-1.2em] w-[14.5em]"
+        style={{ transform: 'rotate(180deg)' }}
+      />
+      <div className="pointer-events-none absolute inset-[1.6em]">
+        <ArchFrame className="h-full w-full" color={GOLD} opacity={0.45} />
+      </div>
+    </>
+  )
+}
+
 export function JardinOlive({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -66,23 +91,7 @@ export function JardinOlive({ draft }: TemplateProps) {
 
       {/* Decorations frame the text zone (below the cover photo). */}
       <div className="relative flex flex-1 flex-col">
-        {/* Olive-branch toile print on cotton paper. */}
-        <LuxePattern templateKey="jardin-olive" />
-        <VellumHalo color="#F6F1E5" />
-        <PaperGrain opacity={0.05} />
-
-        <WatercolorSpray
-          palette={SAGE}
-          className="pointer-events-none absolute left-[-1.2em] top-[-1em] w-[14.5em]"
-        />
-        <WatercolorSpray
-          palette={SAGE}
-          className="pointer-events-none absolute bottom-[-1em] right-[-1.2em] w-[14.5em]"
-          style={{ transform: 'rotate(180deg)' }}
-        />
-        <div className="pointer-events-none absolute inset-[1.6em]">
-          <ArchFrame className="h-full w-full" color={GOLD} opacity={0.45} />
-        </div>
+        <JardinOliveDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[6.5em] py-[6em] text-center">
         <MonogramCrest title={draft.title} variant="wreath" color={OLIVE} className="mb-[1.6em]" />

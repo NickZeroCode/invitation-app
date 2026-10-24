@@ -28,6 +28,30 @@ const PAPER_BG = '#FBF5EA'
 const TITLE_GOLD =
   'linear-gradient(118deg, #9C7531 0%, #D9B96C 34%, #B0873C 52%, #E7CE8E 76%, #A67C3D 100%)'
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function HeritageLuxeDecor() {
+  return (
+    <>
+      {/* Tone-on-tone ogee damask, receding behind the reading field. */}
+      <LuxePattern templateKey="heritage-luxe" />
+      <VellumHalo color={PAPER_BG} />
+      <GiltEdge />
+
+      <GoldRoseCorner className="pointer-events-none absolute left-[0.4em] top-[0.4em] w-[11em] opacity-90" />
+      <GoldRoseCorner
+        className="pointer-events-none absolute bottom-[0.4em] right-[0.4em] w-[11em] opacity-90"
+        style={{ transform: 'rotate(180deg)' }}
+      />
+
+      {/* Inset double gold frame. */}
+      <div className="pointer-events-none absolute inset-[2.2em]" aria-hidden="true">
+        <div className="absolute inset-0 border" style={{ borderColor: 'rgba(166,124,61,0.5)' }} />
+        <div className="absolute inset-[0.55em] border" style={{ borderColor: 'rgba(166,124,61,0.24)' }} />
+      </div>
+    </>
+  )
+}
+
 export function HeritageLuxe({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -53,22 +77,7 @@ export function HeritageLuxe({ draft }: TemplateProps) {
 
       {/* Decorations frame the text zone (below the cover photo). */}
       <div className="relative flex flex-1 flex-col">
-        {/* Tone-on-tone ogee damask, receding behind the reading field. */}
-        <LuxePattern templateKey="heritage-luxe" />
-        <VellumHalo color={PAPER_BG} />
-        <GiltEdge />
-
-        <GoldRoseCorner className="pointer-events-none absolute left-[0.4em] top-[0.4em] w-[11em] opacity-90" />
-        <GoldRoseCorner
-          className="pointer-events-none absolute bottom-[0.4em] right-[0.4em] w-[11em] opacity-90"
-          style={{ transform: 'rotate(180deg)' }}
-        />
-
-        {/* Inset double gold frame. */}
-        <div className="pointer-events-none absolute inset-[2.2em]" aria-hidden="true">
-          <div className="absolute inset-0 border" style={{ borderColor: 'rgba(166,124,61,0.5)' }} />
-          <div className="absolute inset-[0.55em] border" style={{ borderColor: 'rgba(166,124,61,0.24)' }} />
-        </div>
+        <HeritageLuxeDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[7em] py-[5em] text-center">
         <MonogramCrest

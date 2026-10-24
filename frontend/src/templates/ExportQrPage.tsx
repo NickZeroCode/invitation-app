@@ -13,7 +13,8 @@
  * placed by jsPDF, so scanning is print-perfect.
  */
 import { TemplateOrnament } from './ornaments.tsx'
-import { PanelDecor, panelSkinFor } from './panelSkin.tsx'
+import { PageDecor, hasPageDecor } from './pageDecor.tsx'
+import { panelSkinFor } from './panelSkin.tsx'
 
 /** Full A4 height at 96dpi (794 × 297 ⁄ 210 ≈ 1122.5), one clean page. */
 const A4_HEIGHT_PX = 1123
@@ -44,6 +45,12 @@ function ScanArrow({ color }: { color: string }) {
 
 export function ExportQrPage({ templateKey }: { templateKey: string }) {
   const skin = panelSkinFor(templateKey)
+  // Over a template's own corner bouquets the title gets a soft halo of the
+  // paper colour (its first solid tone), so it always reads cleanly.
+  const paperTone = skin.paper.match(/#[0-9A-Fa-f]{6}/)?.[0] ?? '#FFFFFF'
+  const halo = hasPageDecor(templateKey)
+    ? `radial-gradient(closest-side, ${paperTone}F2 62%, ${paperTone}00)`
+    : undefined
 
   return (
     <div
@@ -55,13 +62,18 @@ export function ExportQrPage({ templateKey }: { templateKey: string }) {
         height: A4_HEIGHT_PX,
       }}
     >
-      <PanelDecor templateKey={templateKey} />
+      <PageDecor templateKey={templateKey} />
 
       {/* Title — the stylish invitation to scan. */}
-      <div className="absolute inset-x-0 top-[7.4rem] px-[4.5rem] text-center">
+      <div className="absolute inset-x-0 top-[4.4rem] px-[2.5rem] py-[3rem] text-center" style={{ background: halo }}>
         <h2
-          className={`mx-auto max-w-[34rem] text-balance leading-[1.24] ${skin.titleClass}`}
-          style={{ fontSize: '2.65rem', letterSpacing: '0.012em', color: skin.ink }}
+          className={`mx-auto max-w-[34rem] text-balance ${skin.titleScript ? 'leading-[1.08]' : 'leading-[1.24]'} ${skin.titleClass}`}
+          style={{
+            fontSize: skin.titleScript ? '4.4rem' : '2.65rem',
+            letterSpacing: skin.titleScript ? undefined : '0.012em',
+            fontFamily: skin.titleFont,
+            color: skin.ink,
+          }}
         >
           {QR_PAGE_TITLE}
         </h2>

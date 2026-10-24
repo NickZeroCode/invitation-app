@@ -44,6 +44,10 @@ export interface PanelSkin {
   onAccent: string
   /** Title font classes of the template. */
   titleClass: string
+  /** Title face when the template's titles are not the display serif. */
+  titleFont?: string
+  /** Titles set as a large script line, not spaced capitals (Mood Board). */
+  titleScript?: boolean
 }
 
 const FALLBACK: PanelSkin = {
@@ -171,10 +175,17 @@ export const PANEL_SKINS: Record<string, PanelSkin> = {
     titleClass: 'font-display',
   },
   floraison: {
-    paper: '#F6F2EA',
-    ink: '#2C3E63',
+    // The card's white paper with blue watercolour mist pooling at the edges.
+    paper: [
+      'radial-gradient(ellipse 60% 40% at 0% 0%, rgba(120,150,215,0.22), transparent 70%)',
+      'radial-gradient(ellipse 60% 40% at 100% 0%, rgba(120,150,215,0.18), transparent 70%)',
+      'radial-gradient(ellipse 60% 45% at 0% 100%, rgba(120,150,215,0.24), transparent 70%)',
+      'radial-gradient(ellipse 60% 45% at 100% 100%, rgba(120,150,215,0.2), transparent 70%)',
+      '#FCFDFF',
+    ].join(', '),
+    ink: '#23336E',
     inkSoft: '#6C7B95',
-    accent: '#C29A4E',
+    accent: '#B08A45',
     line: '#C9A876',
     softBg: 'rgba(194, 154, 78, 0.08)',
     chipBg: 'rgba(255, 255, 255, 0.66)',
@@ -237,7 +248,8 @@ export const PANEL_SKINS: Record<string, PanelSkin> = {
     titleClass: 'font-display',
   },
   mandala: {
-    paper: '#8E1F2B',
+    // Velvet red, lit at the heart, as the card.
+    paper: 'radial-gradient(ellipse 80% 65% at 50% 48%, #B8262C, #9A1A21 55%, #7E1218)',
     ink: '#F5E6C8',
     inkSoft: '#E0B86A',
     accent: '#E8C06A',
@@ -270,26 +282,29 @@ export const PANEL_SKINS: Record<string, PanelSkin> = {
     titleClass: 'font-display',
   },
   grenat: {
-    paper: '#F7EDE4',
-    ink: '#8E2F45',
-    inkSoft: '#A86A77',
-    accent: '#8E2F45',
-    line: '#E6C9CE',
-    softBg: 'rgba(142, 47, 69, 0.07)',
+    paper: '#F5F2ED',
+    ink: '#4A3A38',
+    inkSoft: '#7D6A66',
+    accent: '#C29A4E',
+    line: '#E4D3B4',
+    softBg: 'rgba(194, 154, 78, 0.08)',
     chipBg: 'rgba(255, 255, 255, 0.66)',
     onAccent: '#FFFFFF',
     titleClass: 'font-display',
   },
   'mood-board': {
-    paper: '#F8F1E5',
-    ink: '#55240F',
-    inkSoft: '#93684C',
-    accent: '#B4653A',
-    line: '#E6CFA8',
-    softBg: 'rgba(180, 101, 58, 0.08)',
-    chipBg: 'rgba(255, 255, 255, 0.66)',
+    // White board, black ink, titles in the board's signature script.
+    paper: '#FFFFFF',
+    ink: '#111111',
+    inkSoft: '#4A4A4A',
+    accent: '#111111',
+    line: '#D8D8D8',
+    softBg: 'rgba(17, 17, 17, 0.04)',
+    chipBg: 'rgba(255, 255, 255, 0.85)',
     onAccent: '#FFFFFF',
-    titleClass: 'font-display',
+    titleClass: '',
+    titleFont: "'Allison', 'Ms Madi', cursive",
+    titleScript: true,
   },
   kasai: {
     paper: '#EFE3CB',
@@ -586,24 +601,8 @@ function decorFor(templateKey: string) {
         </>
       )
     case 'mood-board':
-      return (
-        <>
-          <div
-            className="absolute inset-[0.55rem]"
-            style={{ border: '1px solid rgba(176, 135, 60, 0.5)' }}
-          />
-          <div
-            className="absolute inset-[0.82rem]"
-            style={{ border: '1px dashed rgba(176, 135, 60, 0.35)' }}
-          />
-          <GoldSprig className="absolute left-[0.5rem] top-[0.55rem] w-[3.2rem]" color="#B0873C" />
-          <GoldSprig
-            className="absolute bottom-[0.55rem] right-[0.5rem] w-[3.2rem]"
-            color="#B0873C"
-            style={{ transform: 'rotate(180deg)' }}
-          />
-        </>
-      )
+      // Plain white board, as the card: the script titles carry it.
+      return null
     default:
       return null
   }

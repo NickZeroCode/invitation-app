@@ -241,7 +241,6 @@ const PATTERNS: Record<string, PatternSpec> = {
   lilas: { svg: clematisTile('#A78FD0'), w: 10, h: 10, opacity: 0.1 },
   romance: { svg: petalsTile('#7D9BC9'), w: 10.5, h: 10.5, opacity: 0.09 },
   grenat: { svg: vineTile('#B98A93'), w: 9, h: 9, opacity: 0.08 },
-  'mood-board': { svg: petalsTile('#B4653A'), w: 10.5, h: 10.5, opacity: 0.1 },
 }
 
 export const LUXE_PATTERN_KEYS = new Set(Object.keys(PATTERNS))
@@ -301,6 +300,33 @@ export function VellumHalo({ color, strength = 0.9 }: { color: string; strength?
 export const FOIL_GOLD =
   'linear-gradient(135deg, #8E6A2C 0%, #E9D08F 18%, #B48A3E 34%, #F6E7B9 50%, #A57B35 66%, #E3C47E 82%, #8E6A2C 100%)'
 
+/**
+ * A foil frame drawn as four gradient bars. `border-image` would be the
+ * natural CSS, but the PDF capture (html-to-image) paints a border-image box
+ * as a solid fill, turning the frame into a gold slab; bars capture exactly.
+ */
+export function FoilFrame({
+  inset,
+  width,
+  gradient,
+  style,
+}: {
+  inset: string
+  width: string
+  gradient: string
+  style?: CSSProperties
+}) {
+  const bar = { position: 'absolute', backgroundImage: gradient } as const
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute" style={{ inset, ...style }}>
+      <span style={{ ...bar, left: 0, right: 0, top: 0, height: width }} />
+      <span style={{ ...bar, left: 0, right: 0, bottom: 0, height: width }} />
+      <span style={{ ...bar, top: 0, bottom: 0, left: 0, width }} />
+      <span style={{ ...bar, top: 0, bottom: 0, right: 0, width }} />
+    </div>
+  )
+}
+
 /** Hot-foil gilt border just inside the card's edge. */
 export function GiltEdge({
   inset = '0.7em',
@@ -313,20 +339,7 @@ export function GiltEdge({
   gradient?: string
   style?: CSSProperties
 }) {
-  return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute"
-      style={{
-        inset,
-        borderStyle: 'solid',
-        borderWidth: width,
-        borderColor: 'transparent',
-        borderImage: `${gradient} 1`,
-        ...style,
-      }}
-    />
-  )
+  return <FoilFrame inset={inset} width={width} gradient={gradient} style={style} />
 }
 
 // ---------------------------------------------------------------------------

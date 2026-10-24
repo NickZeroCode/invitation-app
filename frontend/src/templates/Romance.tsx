@@ -58,6 +58,23 @@ const BLUSH_BOTTOM_RIGHT: FloraItem[] = [
   { k: 'rose', x: 92, y: 200, s: 0.5, r: -10, p: 'dustyBlue' },
 ]
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function RomanceDecor() {
+  return (
+    <>
+      {/* Blush peonies with dusty-blue and gilded leaves at top-left and
+          bottom-right, a blue watercolour mist top-right, the couple at
+          bottom-left — the composition of the reference. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -right-[4em] -top-[4em] h-[18em] w-[22em] rounded-full" style={{ background: 'radial-gradient(closest-side, rgba(150,175,215,0.28), transparent)' }} />
+        <Bouquet items={BLUSH_TOP_LEFT} viewBox="0 0 140 170" className="absolute -left-[0.5em] -top-[0.5em] h-[19em] w-[15.5em]" />
+        <Bouquet items={BLUSH_BOTTOM_RIGHT} viewBox="0 0 170 220" className="absolute -bottom-[0.5em] -right-[0.5em] h-[22em] w-[17em]" />
+        <CoupleArt className="absolute bottom-0 left-[0.8em] h-[19em] w-[12.4em]" />
+      </div>
+    </>
+  )
+}
+
 export function Romance({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -83,15 +100,7 @@ export function Romance({ draft }: TemplateProps) {
       {/* Everything below the cover lives in its own frame, so the
           ornaments start under the photo instead of hiding behind it. */}
       <div className="relative flex flex-1 flex-col">
-        {/* Blush peonies with dusty-blue and gilded leaves at top-left and
-            bottom-right, a blue watercolour mist top-right, the couple at
-            bottom-left — the composition of the reference. */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -right-[4em] -top-[4em] h-[18em] w-[22em] rounded-full" style={{ background: 'radial-gradient(closest-side, rgba(150,175,215,0.28), transparent)' }} />
-          <Bouquet items={BLUSH_TOP_LEFT} viewBox="0 0 140 170" className="absolute -left-[0.5em] -top-[0.5em] h-[19em] w-[15.5em]" />
-          <Bouquet items={BLUSH_BOTTOM_RIGHT} viewBox="0 0 170 220" className="absolute -bottom-[0.5em] -right-[0.5em] h-[22em] w-[17em]" />
-          <CoupleArt className="absolute bottom-0 left-[0.8em] h-[19em] w-[12.4em]" />
-        </div>
+        <RomanceDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[8em] pb-[16em] pt-[8.5em] text-center">
           <p className="uppercase" style={{ fontFamily: SERIF, fontWeight: 500, fontSize: '1.15em', letterSpacing: '0.08em', lineHeight: 1.6, color: '#6B6F7A' }}>

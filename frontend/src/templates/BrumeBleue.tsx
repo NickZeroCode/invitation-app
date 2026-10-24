@@ -63,6 +63,21 @@ const FOLIAGE_BOTTOM_LEFT: FloraItem[] = [
   { k: 'berries', x: 70, y: 120, s: 1.1, r: 20, p: 'dustyBlue' },
 ]
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function BrumeBleueDecor() {
+  return (
+    <>
+      {/* Painted dusty-blue eucalyptus: a dense spill at top-right, a
+          lighter sprig top-left, a rising cluster at bottom-left. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <Bouquet items={FOLIAGE_TOP_RIGHT} viewBox="0 0 220 200" className="absolute -right-[1em] -top-[1em] h-[19em] w-[21em]" />
+        <Bouquet items={FOLIAGE_TOP_LEFT} viewBox="0 0 120 120" className="absolute left-[6em] -top-[0.8em] h-[9em] w-[9em]" />
+        <Bouquet items={FOLIAGE_BOTTOM_LEFT} viewBox="0 0 200 220" className="absolute -bottom-[1em] -left-[1em] h-[20em] w-[18em]" />
+      </div>
+    </>
+  )
+}
+
 export function BrumeBleue({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -88,13 +103,7 @@ export function BrumeBleue({ draft }: TemplateProps) {
       {/* Everything below the cover lives in its own frame, so the
           ornaments start under the photo instead of hiding behind it. */}
       <div className="relative flex flex-1 flex-col">
-        {/* Painted dusty-blue eucalyptus: a dense spill at top-right, a
-            lighter sprig top-left, a rising cluster at bottom-left. */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-          <Bouquet items={FOLIAGE_TOP_RIGHT} viewBox="0 0 220 200" className="absolute -right-[1em] -top-[1em] h-[19em] w-[21em]" />
-          <Bouquet items={FOLIAGE_TOP_LEFT} viewBox="0 0 120 120" className="absolute left-[6em] -top-[0.8em] h-[9em] w-[9em]" />
-          <Bouquet items={FOLIAGE_BOTTOM_LEFT} viewBox="0 0 200 220" className="absolute -bottom-[1em] -left-[1em] h-[20em] w-[18em]" />
-        </div>
+        <BrumeBleueDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[6.2em] pb-[9em] pt-[12em] text-center">
           <p

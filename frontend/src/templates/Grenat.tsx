@@ -95,6 +95,31 @@ function CopperLotus({ className }: { className?: string }) {
   )
 }
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function GrenatDecor() {
+  return (
+    <>
+      {/* Copper frame posts down both sides, as in the reference. */}
+      <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-[1.3em] top-0 w-[0.7em]" style={{ backgroundImage: COPPER }} />
+      <div aria-hidden="true" className="pointer-events-none absolute bottom-0 right-[1.3em] top-0 w-[0.7em]" style={{ backgroundImage: COPPER }} />
+
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <Bouquet items={ROSES_TOP_LEFT} viewBox="0 0 120 110" className="absolute -left-[0.4em] -top-[0.4em] h-[12.5em] w-[13.5em]" />
+        <Bouquet items={ROSES_TOP_RIGHT} viewBox="0 0 120 110" className="absolute -right-[0.4em] -top-[0.4em] h-[12em] w-[13em]" />
+        <Bouquet items={ROSES_BOTTOM_RIGHT} viewBox="0 0 130 140" className="absolute -bottom-[0.4em] -right-[0.4em] h-[15em] w-[14em]" />
+        <Bouquet items={LEAVES_BOTTOM_LEFT} viewBox="0 0 120 130" className="absolute -bottom-[0.4em] -left-[0.4em] h-[13em] w-[12em]" />
+        <Sparkles color="#D4A88A" className="absolute left-[11em] top-[3.5em] h-[3.6em] w-[3.6em]" />
+        <Sparkles color="#D4A88A" className="absolute right-[11em] top-[2.5em] h-[3.4em] w-[3.4em]" />
+      </div>
+      {/* Two copper lotus blooms rising from the bottom edge. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center gap-[8em]">
+        <CopperLotus className="h-[5.5em] w-[10em]" />
+        <CopperLotus className="h-[5.5em] w-[10em]" />
+      </div>
+    </>
+  )
+}
+
 export function Grenat({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -122,24 +147,7 @@ export function Grenat({ draft }: TemplateProps) {
       {/* Everything below the cover lives in its own frame, so the
           ornaments start under the photo instead of hiding behind it. */}
       <div className="relative flex flex-1 flex-col">
-        {/* Copper frame posts down both sides, as in the reference. */}
-        <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-[1.3em] top-0 w-[0.7em]" style={{ backgroundImage: COPPER }} />
-        <div aria-hidden="true" className="pointer-events-none absolute bottom-0 right-[1.3em] top-0 w-[0.7em]" style={{ backgroundImage: COPPER }} />
-
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-          <Bouquet items={ROSES_TOP_LEFT} viewBox="0 0 120 110" className="absolute -left-[0.4em] -top-[0.4em] h-[12.5em] w-[13.5em]" />
-          <Bouquet items={ROSES_TOP_RIGHT} viewBox="0 0 120 110" className="absolute -right-[0.4em] -top-[0.4em] h-[12em] w-[13em]" />
-          <Bouquet items={ROSES_BOTTOM_RIGHT} viewBox="0 0 130 140" className="absolute -bottom-[0.4em] -right-[0.4em] h-[15em] w-[14em]" />
-          <Bouquet items={LEAVES_BOTTOM_LEFT} viewBox="0 0 120 130" className="absolute -bottom-[0.4em] -left-[0.4em] h-[13em] w-[12em]" />
-          <Sparkles color="#D4A88A" className="absolute left-[11em] top-[3.5em] h-[3.6em] w-[3.6em]" />
-          <Sparkles color="#D4A88A" className="absolute right-[11em] top-[2.5em] h-[3.4em] w-[3.4em]" />
-        </div>
-        {/* Two copper lotus blooms rising from the bottom edge. */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center gap-[8em]">
-          <CopperLotus className="h-[5.5em] w-[10em]" />
-          <CopperLotus className="h-[5.5em] w-[10em]" />
-        </div>
-
+        <GrenatDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[7em] pb-[9em] pt-[4em] text-center">
           <p style={{ fontFamily: SERIF, fontWeight: 600, fontSize: titleEm ? '1.65em' : '1.45em', color: INK }}>

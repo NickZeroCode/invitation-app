@@ -32,16 +32,26 @@ function DiamondRule() {
   )
 }
 
-export function Memoire({ draft }: TemplateProps) {
-  const titleEm = isEmphasized(draft, 'title')
-  const dateEm = isEmphasized(draft, 'date')
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function MemoireDecor() {
   return (
-    <InvitationPaper style={{ backgroundColor: '#F7F5F0', color: STONE }}>
+    <>
       <div
         className="absolute inset-[1.6em] border"
         style={{ borderColor: '#D8D2C6' }}
         aria-hidden="true"
       />
+    </>
+  )
+}
+
+export function Memoire({ draft }: TemplateProps) {
+  const titleEm = isEmphasized(draft, 'title')
+  const dateEm = isEmphasized(draft, 'date')
+  return (
+    <InvitationPaper style={{ backgroundColor: '#F7F5F0', color: STONE }}>
+      <MemoireDecor />
+
       <div className="flex flex-1 flex-col items-center px-[7.5em] py-[5em] text-center">
         <CallaLily className="h-[12.5em] w-auto" ink="#6B7368" wash="#E3E6DE" />
 

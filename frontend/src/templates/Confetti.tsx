@@ -224,6 +224,19 @@ function TicketStub({ draft, emphasize }: { draft: TemplateProps['draft']; empha
   )
 }
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function ConfettiDecor() {
+  return (
+    <>
+      <ConfettiField pieces={TOP_PIECES} className="absolute inset-x-0 top-0 h-auto w-full" />
+      <ConfettiField
+        pieces={BOTTOM_PIECES}
+        className="absolute inset-x-0 bottom-0 h-auto w-full"
+      />
+    </>
+  )
+}
+
 export function Confetti({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -251,11 +264,7 @@ export function Confetti({ draft }: TemplateProps) {
       />
 
       <div className="relative flex flex-1 flex-col">
-        <ConfettiField pieces={TOP_PIECES} className="absolute inset-x-0 top-0 h-auto w-full" />
-        <ConfettiField
-          pieces={BOTTOM_PIECES}
-          className="absolute inset-x-0 bottom-0 h-auto w-full"
-        />
+        <ConfettiDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[5.5em] pb-[8em] pt-[7em] text-center">
           <p className="text-[0.92em] font-semibold uppercase" style={{ letterSpacing: '0.42em', color: TOMATO }}>

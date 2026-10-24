@@ -39,6 +39,20 @@ const ROYAL: CSSProperties = {
   fontWeight: 400,
 }
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function MandalaDecor() {
+  return (
+    <>
+      {/* Gold toran along the top edge */}
+      <MarigoldToran color={GOLD} className="pointer-events-none absolute inset-x-0 top-0 h-[9.5em] w-full" />
+
+      {/* Rosettes flanking the sheet */}
+      <LaceMandala color={GOLD} className="pointer-events-none absolute -left-[11.5em] top-[38%] h-[19em] w-[19em]" />
+      <LaceMandala color={GOLD} className="pointer-events-none absolute -right-[11.5em] top-[38%] h-[19em] w-[19em]" />
+    </>
+  )
+}
+
 export function Mandala({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -73,12 +87,7 @@ export function Mandala({ draft }: TemplateProps) {
       {/* Everything below the cover lives in its own frame, so the
           ornaments start under the photo instead of hiding behind it. */}
       <div className="relative flex flex-1 flex-col">
-        {/* Gold toran along the top edge */}
-        <MarigoldToran color={GOLD} className="pointer-events-none absolute inset-x-0 top-0 h-[9.5em] w-full" />
-
-        {/* Rosettes flanking the sheet */}
-        <LaceMandala color={GOLD} className="pointer-events-none absolute -left-[11.5em] top-[38%] h-[19em] w-[19em]" />
-        <LaceMandala color={GOLD} className="pointer-events-none absolute -right-[11.5em] top-[38%] h-[19em] w-[19em]" />
+        <MandalaDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[8.5em] pb-[5em] pt-[10em] text-center">
           <h1

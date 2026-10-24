@@ -100,6 +100,21 @@ function GoldBrushRibbons() {
   )
 }
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function RubanDorDecor() {
+  return (
+    <>
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <GoldBrushRibbons />
+      </div>
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <WatercolorBouquet items={CLUSTER_TOP_RIGHT} viewBox="0 0 200 170" className="absolute -right-[1em] -top-[0.6em] h-[17em] w-[20em]" />
+        <WatercolorBouquet items={CLUSTER_BOTTOM_LEFT} viewBox="0 0 180 200" className="absolute -bottom-[1em] -left-[1em] h-[19em] w-[17em]" />
+      </div>
+    </>
+  )
+}
+
 export function RubanDor({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -116,13 +131,7 @@ export function RubanDor({ draft }: TemplateProps) {
       />
 
       <div className="relative flex flex-1 flex-col">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <GoldBrushRibbons />
-        </div>
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-          <WatercolorBouquet items={CLUSTER_TOP_RIGHT} viewBox="0 0 200 170" className="absolute -right-[1em] -top-[0.6em] h-[17em] w-[20em]" />
-          <WatercolorBouquet items={CLUSTER_BOTTOM_LEFT} viewBox="0 0 180 200" className="absolute -bottom-[1em] -left-[1em] h-[19em] w-[17em]" />
-        </div>
+        <RubanDorDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[6.5em] pb-[12em] pt-[6em] text-center">
           <ArchText

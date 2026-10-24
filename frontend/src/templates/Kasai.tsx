@@ -152,6 +152,22 @@ function Lozenge({ color = KASAI_OCHRE }: { color?: string }) {
   )
 }
 
+/** Kasaï's frame for its PDF pages: the woven band across the head of the
+ * sheet and the fine side rules carrying it down, as on the card. */
+export function KasaiDecor() {
+  return (
+    <>
+      <div className="absolute inset-x-0 top-0 px-[2.2em] pt-[2.2em]">
+        <InterlaceBand />
+      </div>
+      <div
+        className="absolute inset-x-[2.2em] bottom-[2.2em] top-[2.2em]"
+        style={{ borderLeft: `1px solid ${EARTH}55`, borderRight: `1px solid ${EARTH}55` }}
+      />
+    </>
+  )
+}
+
 export function Kasai({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')

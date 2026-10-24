@@ -91,6 +91,24 @@ const DRIED_BOTTOM: FloraItem[] = [
   { k: 'berries', x: 130, y: 120, s: 1, r: 60, p: 'burgundy' },
 ]
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function HexagoneDecor() {
+  return (
+    <>
+      <GemFrame />
+
+      {/* Dried bouquets: cream and blush roses, taupe anemones, tan plumes,
+          burgundy leaves and red berries, at all four corners. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <Bouquet items={DRIED_TOP_LEFT} viewBox="0 0 140 140" className="absolute -left-[0.6em] -top-[0.6em] h-[14em] w-[14em]" />
+        <Bouquet items={DRIED_TOP_RIGHT} viewBox="0 0 180 160" className="absolute -right-[0.6em] -top-[0.4em] h-[16em] w-[18em]" />
+        <Bouquet items={DRIED_BOTTOM} viewBox="0 0 160 170" className="absolute -bottom-[0.6em] -left-[0.6em] h-[15em] w-[14em]" />
+        <Bouquet items={DRIED_BOTTOM} viewBox="0 0 160 170" className="absolute -bottom-[0.6em] -right-[0.6em] h-[16em] w-[15em]" style={{ transform: 'scaleX(-1)' }} />
+      </div>
+    </>
+  )
+}
+
 export function Hexagone({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -123,16 +141,7 @@ export function Hexagone({ draft }: TemplateProps) {
       {/* Everything below the cover lives in its own frame, so the
           ornaments start under the photo instead of hiding behind it. */}
       <div className="relative flex flex-1 flex-col">
-        <GemFrame />
-
-        {/* Dried bouquets: cream and blush roses, taupe anemones, tan plumes,
-            burgundy leaves and red berries, at all four corners. */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-          <Bouquet items={DRIED_TOP_LEFT} viewBox="0 0 140 140" className="absolute -left-[0.6em] -top-[0.6em] h-[14em] w-[14em]" />
-          <Bouquet items={DRIED_TOP_RIGHT} viewBox="0 0 180 160" className="absolute -right-[0.6em] -top-[0.4em] h-[16em] w-[18em]" />
-          <Bouquet items={DRIED_BOTTOM} viewBox="0 0 160 170" className="absolute -bottom-[0.6em] -left-[0.6em] h-[15em] w-[14em]" />
-          <Bouquet items={DRIED_BOTTOM} viewBox="0 0 160 170" className="absolute -bottom-[0.6em] -right-[0.6em] h-[16em] w-[15em]" style={{ transform: 'scaleX(-1)' }} />
-        </div>
+        <HexagoneDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[6.8em] pb-[10em] pt-[10.5em] text-center">
           <p className="font-display" style={{ fontSize: '1.32em', lineHeight: 1.5 }}>

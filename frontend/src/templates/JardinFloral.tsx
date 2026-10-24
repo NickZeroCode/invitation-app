@@ -35,6 +35,20 @@ const ROSE = '#A65A66'
 const SAGE = '#6F7F63'
 const SERIF = "'Cormorant Garamond', 'Playfair Display', Georgia, serif"
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function JardinFloralDecor() {
+  return (
+    <>
+      {/* A single hairline frame: the paper edge of a printed card. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-[2.4em]"
+        style={{ border: '1px solid rgba(166,90,102,0.28)' }}
+      />
+    </>
+  )
+}
+
 export function JardinFloral({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -65,12 +79,7 @@ export function JardinFloral({ draft }: TemplateProps) {
       />
 
       <div className="relative flex flex-1 flex-col">
-        {/* A single hairline frame: the paper edge of a printed card. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-[2.4em]"
-          style={{ border: '1px solid rgba(166,90,102,0.28)' }}
-        />
+        <JardinFloralDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[6.5em] pb-[4.5em] pt-[4.6em] text-center">
           <p

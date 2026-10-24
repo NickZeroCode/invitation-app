@@ -90,6 +90,23 @@ const BOTTOM_RIGHT: EngravedItem[] = [
   { k: 'rose', x: 116, y: 162, s: 1.35, r: 8 },
 ]
 
+/** The card’s decoration layer — also dresses its PDF pages (see pageDecor). */
+export function RosesDorDecor() {
+  return (
+    <>
+      {/* Engraved gold rose clusters (top-left, bottom-left, bottom-right) and
+          a fine gold corner frame top-right, as in the reference. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <EngravedBouquet strokeWidth={0.85} items={TOP_LEFT} viewBox="0 0 180 220" className="absolute -left-[0.4em] -top-[0.4em] h-[27em] w-[22em]" />
+        <EngravedBouquet strokeWidth={0.85} items={BOTTOM_LEFT} viewBox="0 0 180 210" className="absolute -bottom-[0.4em] -left-[0.4em] h-[24em] w-[20.5em]" />
+        <EngravedBouquet strokeWidth={0.85} items={BOTTOM_RIGHT} viewBox="0 0 190 200" className="absolute -bottom-[0.4em] -right-[0.4em] h-[23em] w-[22em]" />
+        <div className="absolute right-[1.4em] top-[1.4em] h-[45%] w-[55%]" style={{ borderTop: `1px solid ${GOLD}`, borderRight: `1px solid ${GOLD}` }} />
+      </div>
+      <FiligreeCorner corner="tr" color={GOLD} opacity={0.9} />
+    </>
+  )
+}
+
 export function RosesDor({ draft }: TemplateProps) {
   const titleEm = isEmphasized(draft, 'title')
   const dateEm = isEmphasized(draft, 'date')
@@ -115,15 +132,7 @@ export function RosesDor({ draft }: TemplateProps) {
       {/* Everything below the cover lives in its own frame, so the
           ornaments start under the photo instead of hiding behind it. */}
       <div className="relative flex flex-1 flex-col">
-        {/* Engraved gold rose clusters (top-left, bottom-left, bottom-right) and
-            a fine gold corner frame top-right, as in the reference. */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-          <EngravedBouquet strokeWidth={0.85} items={TOP_LEFT} viewBox="0 0 180 220" className="absolute -left-[0.4em] -top-[0.4em] h-[27em] w-[22em]" />
-          <EngravedBouquet strokeWidth={0.85} items={BOTTOM_LEFT} viewBox="0 0 180 210" className="absolute -bottom-[0.4em] -left-[0.4em] h-[24em] w-[20.5em]" />
-          <EngravedBouquet strokeWidth={0.85} items={BOTTOM_RIGHT} viewBox="0 0 190 200" className="absolute -bottom-[0.4em] -right-[0.4em] h-[23em] w-[22em]" />
-          <div className="absolute right-[1.4em] top-[1.4em] h-[45%] w-[55%]" style={{ borderTop: `1px solid ${GOLD}`, borderRight: `1px solid ${GOLD}` }} />
-        </div>
-        <FiligreeCorner corner="tr" color={GOLD} opacity={0.9} />
+        <RosesDorDecor />
 
         <div className="relative flex flex-1 flex-col items-center px-[6.4em] pb-[12em] pt-[7em] text-center">
           <p style={{ fontFamily: SERIF, fontSize: '1.2em', color: INK }}>Nous vous invitons à célébrer</p>
