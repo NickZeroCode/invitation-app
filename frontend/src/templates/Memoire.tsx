@@ -74,6 +74,10 @@ export function Memoire({ draft }: TemplateProps) {
           {draft.title}
         </h1>
 
+        <p className="mt-[1.4em] text-[1.08em] italic" style={{ color: SAGE }}>
+          {guestLabel(draft)}
+        </p>
+
         {draft.message ? (
           <p className="mt-[2em] max-w-[27em] text-pretty font-display text-[1.2em] italic leading-[1.9] break-words opacity-92" style={{ fontFamily: messageFontCss(draft.messageFont) }}>
             {draft.message}
@@ -124,10 +128,6 @@ export function Memoire({ draft }: TemplateProps) {
           ornament={<DiamondRule />}
           titleStyle={{ letterSpacing: '0.5em' }}
         />
-
-        <p className="mt-auto pt-[2.4em] text-[1.08em] italic" style={{ color: SAGE }}>
-          {guestLabel(draft)}
-        </p>
       </div>
     </InvitationPaper>
   )

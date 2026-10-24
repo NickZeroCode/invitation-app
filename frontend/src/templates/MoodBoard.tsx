@@ -426,26 +426,20 @@ export function MoodBoard({ draft }: TemplateProps) {
           </span>
         </h1>
 
-        {draft.message ? (
-          <p
-            className="mt-[0.9em] max-w-[30em] whitespace-pre-line text-pretty break-words leading-[1.6]"
-            style={{ fontFamily: messageFontCss(draft.messageFont) ?? GILL, fontSize: '1.15em', color: INK }}
-          >
-            {draft.message}
-          </p>
-        ) : null}
-
+        {/* The guest is addressed first, then the organizer's message. */}
         {draft.guestName?.trim() ? (
-          <p className="mt-[0.6em] italic" style={{ fontFamily: TIMES, fontSize: '1.2em' }}>
+          <p className="mt-[0.8em] italic" style={{ fontFamily: TIMES, fontSize: '1.2em' }}>
             {draft.guestName}
           </p>
         ) : null}
 
-        {quote ? (
-          <div className="mt-[0.9em] max-w-[19.8em]" style={{ fontFamily: GILL, fontSize: '1.13em', fontVariant: 'small-caps', lineHeight: 1.75, color: INK }}>
-            <p>{quote}</p>
-            {author ? <p style={{ fontWeight: 600 }}>{author}</p> : null}
-          </div>
+        {draft.message ? (
+          <p
+            className={`${draft.guestName?.trim() ? 'mt-[0.6em]' : 'mt-[0.9em]'} max-w-[30em] whitespace-pre-line text-pretty break-words leading-[1.6]`}
+            style={{ fontFamily: messageFontCss(draft.messageFont) ?? GILL, fontSize: '1.15em', color: INK }}
+          >
+            {draft.message}
+          </p>
         ) : null}
 
         <WeekStrip iso={draft.event_date} />
@@ -508,6 +502,14 @@ export function MoodBoard({ draft }: TemplateProps) {
             Merci d&rsquo;avance de partager ce moment de bonheur avec nous&nbsp;!
           </p>
         </div>
+
+        {/* The organizer's note closes the sheet. */}
+        {quote ? (
+          <div className="mt-[1.6em] max-w-[19.8em]" style={{ fontFamily: GILL, fontSize: '1.13em', fontVariant: 'small-caps', lineHeight: 1.75, color: INK }}>
+            <p>{quote}</p>
+            {author ? <p style={{ fontWeight: 600 }}>{author}</p> : null}
+          </div>
+        ) : null}
 
         {/* Closing photo behind a torn-paper edge, full bleed. */}
         {draft.cover_url ? (
