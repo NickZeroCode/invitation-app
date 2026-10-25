@@ -526,10 +526,18 @@ export function MoodBoard({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        {/* Closing photo behind a torn-paper edge, full bleed. */}
+        {/* Closing photo under a torn-paper edge, full bleed. The photo
+            starts below the tear's solid band — only its ragged tips touch
+            the picture — and the crop is tall, anchored near the top, so
+            heads and faces stay whole. */}
         {draft.cover_url ? (
-          <div className="relative -mx-[2.6em] mt-[1.6em] w-[calc(100%+5.2em)] overflow-hidden" style={{ aspectRatio: '1160 / 700' }}>
-            <img src={draft.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover object-top" />
+          <div className="relative -mx-[2.6em] mt-[1.6em] w-[calc(100%+5.2em)] overflow-hidden" style={{ aspectRatio: '1 / 0.92' }}>
+            <img
+              src={draft.cover_url}
+              alt=""
+              className="absolute inset-x-0 bottom-0 top-[2.3em] h-[calc(100%-2.3em)] w-full object-cover"
+              style={{ objectPosition: 'center 12%' }}
+            />
             <TornEdge />
           </div>
         ) : (
