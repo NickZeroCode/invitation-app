@@ -58,7 +58,9 @@ export function ExportQrPage({ templateKey }: { templateKey: string }) {
       style={{
         background: skin.paper,
         color: skin.ink,
-        fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+        // The app loads Inter as « Inter Variable »: a plain 'Inter' never
+        // matched, so each device fell back to its own sans (Arial, Helvetica…).
+        fontFamily: "'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif",
         height: A4_HEIGHT_PX,
       }}
     >
@@ -85,14 +87,18 @@ export function ExportQrPage({ templateKey }: { templateKey: string }) {
       </div>
 
       {/* Arrow — pointing straight at the QR card below. */}
-      <div className="absolute left-1/2 top-[18.75rem] -translate-x-1/2">
+      <div className="absolute top-[18.75rem]" style={{ left: 'calc(50% - 14px)' }}>
         <ScanArrow color={skin.accent} />
       </div>
 
       {/* QR card at the page's exact center — the exporter overlays the QR. */}
       <div
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+        className="absolute"
         style={{
+          // Centred by offsets, not a translate: the exporter lays the QR
+          // at the page's exact centre, and the card must sit right behind it.
+          left: `calc(50% - ${QR_CARD_PX / 2}px)`,
+          top: `calc(50% - ${QR_CARD_PX / 2}px)`,
           width: QR_CARD_PX,
           height: QR_CARD_PX,
           background: '#ffffff',

@@ -71,7 +71,9 @@ export function ExportDetailsPage({
       style={{
         background: skin.paper,
         color: skin.ink,
-        fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+        // The app loads Inter as « Inter Variable »: a plain 'Inter' never
+        // matched, so each device fell back to its own sans (Arial, Helvetica…).
+        fontFamily: "'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif",
         minHeight: A4_HEIGHT_PX,
       }}
     >

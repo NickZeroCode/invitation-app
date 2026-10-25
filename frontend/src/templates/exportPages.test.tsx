@@ -35,6 +35,26 @@ describe('PDF details and QR pages', () => {
     cleanup()
   })
 
+  it('centres the QR card with offsets (no translate a phone capture could drop)', () => {
+    const { container } = render(<ExportQrPage templateKey="heritage-luxe" />)
+    const card = Array.from(container.querySelectorAll<HTMLElement>('div')).find((div) => div.style.width === '317.6px')
+    expect(card?.style.left).toBe('calc(50% - 158.8px)')
+    expect(card?.style.top).toBe('calc(50% - 158.8px)')
+    expect(card?.className).not.toMatch(/translate/)
+  })
+
+  it('asks for Inter under the name the app loads it', () => {
+    const { container } = render(
+      <>
+        <ExportDetailsPage templateKey="heritage-luxe" dressCode={dressCode} program={program} />
+        <ExportQrPage templateKey="heritage-luxe" />
+      </>,
+    )
+    for (const page of Array.from(container.children) as HTMLElement[]) {
+      expect(page.style.fontFamily.startsWith('"Inter Variable"')).toBe(true)
+    }
+  })
+
   it('sets the Mood Board pages on white with its script titles', () => {
     const skin = panelSkinFor('mood-board')
     expect(skin.paper).toBe('#FFFFFF')

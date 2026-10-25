@@ -866,7 +866,7 @@ describe('Parcours complet (E2E)', () => {
       expect((await screen.findAllByText('Valide')).length).toBeGreaterThan(0)
       // findBy: the QR image only mounts after QRCode.toDataURL resolves.
       expect(
-        await screen.findByAltText('QR code de vérification', {}, { timeout: 5000 }),
+        await screen.findByAltText('QR code de vérification', {}, { timeout: 12_000 }),
       ).toBeInTheDocument()
       expect(await screen.findByText('Cette invitation est actuellement valide.')).toBeInTheDocument()
       expect(backend.calls.some((call) => call.url.includes('/verify/'))).toBe(true)

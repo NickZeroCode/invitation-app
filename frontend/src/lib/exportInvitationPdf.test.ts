@@ -21,6 +21,10 @@ const pdfState = vi.hoisted(() => ({
 const captureState = vi.hoisted(() => ({
   skipDisplayDuringCapture: [] as string[],
   capturedText: [] as string[],
+  /** Inline transform of `[data-shift]` at capture time, per capture. */
+  capturedShift: [] as string[],
+  /** Embedded-font CSS handed to each capture. */
+  capturedFonts: [] as Array<string | undefined>,
 }))
 
 vi.mock('jspdf', () => {
@@ -56,13 +60,17 @@ vi.mock('jspdf', () => {
 })
 
 vi.mock('html-to-image', () => ({
-  toJpeg: vi.fn(async (node: HTMLElement) => {
+  toJpeg: vi.fn(async (node: HTMLElement, options?: { fontEmbedCSS?: string }) => {
     const skip = node.querySelector<HTMLElement>('[data-export-skip=""]')
     captureState.skipDisplayDuringCapture.push(skip ? skip.style.display : 'missing')
     // Snapshot now: off-screen pages are unmounted after the export.
     captureState.capturedText.push(node.textContent ?? '')
+    captureState.capturedShift.push(node.querySelector<HTMLElement>('[data-shift]')?.style.transform ?? '')
+    captureState.capturedFonts.push(options?.fontEmbedCSS)
     return 'data:image/jpeg;base64,JPEGDATA'
   }),
+  // One font set per page: name it after the page's first words.
+  getFontEmbedCSS: vi.fn(async (node: HTMLElement) => `fonts:${(node.textContent ?? '').trim().slice(0, 12)}`),
 }))
 
 vi.mock('qrcode', () => ({
@@ -114,6 +122,8 @@ beforeEach(() => {
   pdfState.instances.length = 0
   captureState.skipDisplayDuringCapture.length = 0
   captureState.capturedText.length = 0
+  captureState.capturedShift.length = 0
+  captureState.capturedFonts.length = 0
   document.body.innerHTML = ''
 })
 
@@ -272,6 +282,42 @@ describe('exportInvitationPdf', () => {
     const doc = pdfState.instances.at(-1) as FakePdfRecord
     expect(doc.pages).toHaveLength(3)
     expect(captureState.capturedText[1]).toContain('Tenue de soirée')
+    restore()
+  })
+
+  it('folds CSS translate into transform for the capture, then restores it', async () => {
+    const card = buildCard()
+    const shifted = document.createElement('span')
+    shifted.setAttribute('data-shift', '')
+    shifted.style.setProperty('translate', '-50% 10px')
+    shifted.style.setProperty('rotate', '45deg')
+    card.appendChild(shifted)
+    const { restore } = captureDownloads()
+
+    await exportInvitationPdf({ cardNode: card, templateKey: 'heritage-luxe', dressCode: [], program: [], title: 'Gala' })
+
+    // WebKit drops `translate`/`rotate` in the capture: they travel as `transform`.
+    expect(captureState.capturedShift[0]).toBe('translate(-50%, 10px) rotate(45deg)')
+    expect(shifted.style.transform).toBe('')
+    expect(shifted.style.getPropertyValue('translate')).toBe('-50% 10px')
+    restore()
+  })
+
+  it('embeds the fonts of each page, not only those of the card', async () => {
+    const card = buildCard()
+    const { restore } = captureDownloads()
+
+    await exportInvitationPdf({
+      cardNode: card,
+      templateKey: 'heritage-luxe',
+      dressCode: [],
+      program: [{ start_time: '15:00:00', end_time: null, description: 'Cérémonie' }],
+      title: 'Gala',
+      qrText: 'https://www.malaikaevent.com/i/tok-1',
+    })
+
+    expect(captureState.capturedFonts).toHaveLength(3)
+    expect(new Set(captureState.capturedFonts).size).toBe(3)
     restore()
   })
 

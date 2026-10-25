@@ -610,6 +610,7 @@ async function compositeLayers(
 async function captureRaster(node: HTMLElement, fontEmbedCSS?: string): Promise<PageRaster> {
   const { widthPx, heightPx } = measure(node)
   const pixelRatio = safePixelRatio(widthPx, heightPx)
+  const restoreTransforms = flattenIndividualTransforms(node)
   const neutralized: Array<{ image: HTMLImageElement; source: string }> = []
   for (const image of Array.from(node.querySelectorAll('img'))) {
     const source = image.getAttribute('src') ?? ''
@@ -628,6 +629,12 @@ async function captureRaster(node: HTMLElement, fontEmbedCSS?: string): Promise<
       includeStyleProperties: styleProperties(),
       style: { position: 'static' as const, left: '0px', top: '0px' },
       ...(fontEmbedCSS != null ? { fontEmbedCSS } : {}),
+    }
+    if (isWebKit() && canCompositeRaster()) {
+      // WebKit paints the first SVG image of a capture before its embedded
+      // fonts are decoded (the page came out in a fallback face on iPhone).
+      // A tiny throwaway capture warms them so the real one is faithful.
+      await toJpeg(node, { ...options, pixelRatio: 0.15 }).catch(() => undefined)
     }
     const layers = isWebKit() && canCompositeRaster() ? collectCompositeLayers(node) : []
     if (layers.length === 0) {
@@ -664,6 +671,99 @@ async function captureRaster(node: HTMLElement, fontEmbedCSS?: string): Promise<
     for (const entry of neutralized) {
       entry.image.setAttribute('src', entry.source)
     }
+    restoreTransforms()
+  }
+}
+
+/**
+ * The embedded-font CSS for one page. html-to-image only embeds the faces a
+ * node actually uses, so the card's set misses faces found only on the
+ * details or QR page (a script title, the body sans): those pages then fell
+ * back to the device's own fonts. Each page gets its own set; the fetched
+ * font files are cached by html-to-image, so this costs little.
+ */
+async function embeddedFontsFor(node: HTMLElement, fallback?: string): Promise<string | undefined> {
+  try {
+    return await getFontEmbedCSS(node)
+  } catch {
+    return fallback
+  }
+}
+
+/** Angle with an optional axis (`rotate` computed value) → a transform function. */
+function rotateFunction(value: string): string {
+  const parts = value.trim().split(/\s+/)
+  if (parts.length === 1) return `rotate(${parts[0]})`
+  const angle = parts[parts.length - 1]
+  const axis = parts.slice(0, -1)
+  if (axis.length === 1) {
+    const vector = { x: '1, 0, 0', y: '0, 1, 0', z: '0, 0, 1' }[axis[0]] ?? '0, 0, 1'
+    return `rotate3d(${vector}, ${angle})`
+  }
+  return `rotate3d(${axis.join(', ')}, ${angle})`
+}
+
+/**
+ * Prepares a node for a capture that WebKit renders faithfully:
+ * - folds the individual transform properties (`translate`, `rotate`,
+ *   `scale` — what Tailwind v4's utilities set) into the classic `transform`.
+ *   WebKit loses them when the clone is painted through SVG foreignObject, so
+ *   in iPhone PDFs centred pieces slid sideways (the QR card's shadow sat to
+ *   the right of the code); `transform` is painted by every engine;
+ * - writes out the prefixed `-webkit-background-clip: text` of gradient
+ *   lettering, the only form Safari honours.
+ * The original inline styles are restored afterwards.
+ */
+function flattenIndividualTransforms(root: HTMLElement): () => void {
+  const restore: Array<() => void> = []
+  const elements = [root, ...Array.from(root.querySelectorAll<HTMLElement | SVGElement>('*'))]
+  for (const element of elements) {
+    // Inner SVG shapes never carry these utilities; skip them (cheap walk).
+    if (element.parentElement instanceof SVGElement) continue
+    const computed = window.getComputedStyle(element)
+    // Gradient lettering (gold names): Safari only honours the prefixed
+    // clip, so it is written out explicitly for the clone.
+    if (computed.getPropertyValue('background-clip') === 'text' && element instanceof HTMLElement) {
+      const previousClip = element.style.getPropertyValue('-webkit-background-clip')
+      element.style.setProperty('-webkit-background-clip', 'text')
+      restore.push(() => element.style.setProperty('-webkit-background-clip', previousClip))
+    }
+    const translate = computed.getPropertyValue('translate')
+    const rotate = computed.getPropertyValue('rotate')
+    const scale = computed.getPropertyValue('scale')
+    const has = (value: string) => Boolean(value) && value !== 'none'
+    if (!has(translate) && !has(rotate) && !has(scale)) continue
+    const functions: string[] = []
+    if (has(translate)) {
+      const [x = '0px', y = '0px', z] = translate.trim().split(/\s+/)
+      functions.push(z ? `translate3d(${x}, ${y}, ${z})` : `translate(${x}, ${y})`)
+    }
+    if (has(rotate)) functions.push(rotateFunction(rotate))
+    if (has(scale)) {
+      const values = scale.trim().split(/\s+/)
+      functions.push(values.length === 3 ? `scale3d(${values.join(', ')})` : `scale(${values.join(', ')})`)
+    }
+    const own = computed.transform && computed.transform !== 'none' ? computed.transform : ''
+    const style = element.style
+    const previous = {
+      transform: style.transform,
+      translate: style.getPropertyValue('translate'),
+      rotate: style.getPropertyValue('rotate'),
+      scale: style.getPropertyValue('scale'),
+    }
+    style.transform = [...functions, own].filter(Boolean).join(' ')
+    style.setProperty('translate', 'none')
+    style.setProperty('rotate', 'none')
+    style.setProperty('scale', 'none')
+    restore.push(() => {
+      style.transform = previous.transform
+      style.setProperty('translate', previous.translate)
+      style.setProperty('rotate', previous.rotate)
+      style.setProperty('scale', previous.scale)
+    })
+  }
+  return () => {
+    for (const undo of restore.reverse()) undo()
   }
 }
 
@@ -860,7 +960,8 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
       )
       try {
         await decodeImages(details.node)
-        pages.push(await timed('capture-details', () => captureRaster(details.node, fontEmbedCSS)))
+        const detailsFonts = await embeddedFontsFor(details.node, fontEmbedCSS)
+        pages.push(await timed('capture-details', () => captureRaster(details.node, detailsFonts)))
       } catch (error) {
         console.warn('[exportInvitationPdf] details page skipped', error)
       } finally {
@@ -886,7 +987,8 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
         createElement(ExportQrPage, { templateKey: content.templateKey }),
       )
       try {
-        qrPage = await timed('capture-qr-page', () => captureRaster(qrBackground.node, fontEmbedCSS))
+        const qrFonts = await embeddedFontsFor(qrBackground.node, fontEmbedCSS)
+        qrPage = await timed('capture-qr-page', () => captureRaster(qrBackground.node, qrFonts))
       } catch (error) {
         console.warn('[exportInvitationPdf] QR page background skipped', error)
       } finally {
