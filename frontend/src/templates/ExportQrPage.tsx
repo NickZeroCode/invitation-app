@@ -5,12 +5,13 @@
  * Composition (A4, 794 × 1123 px):
  *   - a stylish invitation title (« Scannez pour confirmer la présence »),
  *   - the template's flourish under it,
- *   - an elegant arrow pointing down to the page's exact center,
- *   - a soft white card at the center, where the exporter overlays the
- *     print-resolution QR code (a crisp PNG at 70 × 70 mm).
+ *   - an elegant arrow pointing down to the page's exact center.
  *
- * The QR itself is never rasterized into this page: it stays a sharp PNG
- * placed by jsPDF, so scanning is print-perfect.
+ * The white QR card, its soft shadow and the QR code itself are NOT part of
+ * this page: the exporter draws them straight into the PDF at the page's
+ * centre (see qrCard.ts), all from the same coordinates. Drawn
+ * inside the captured page, the card's shadow drifted beside the code on
+ * phones; this way they cannot part, and the QR stays a print-sharp PNG.
  */
 import { TemplateOrnament } from './ornaments.tsx'
 import { PageDecor, hasPageDecor } from './pageDecor.tsx'
@@ -18,8 +19,6 @@ import { panelSkinFor } from './panelSkin.tsx'
 
 /** Full A4 height at 96dpi (794 × 297 ⁄ 210 ≈ 1122.5), one clean page. */
 const A4_HEIGHT_PX = 1123
-/** White QR card side: 84 mm — the 70 mm QR lands centered inside it. */
-const QR_CARD_PX = 317.6
 /** Invitation title on the verification page. */
 export const QR_PAGE_TITLE = 'Scannez pour confirmer la présence'
 
@@ -90,22 +89,6 @@ export function ExportQrPage({ templateKey }: { templateKey: string }) {
       <div className="absolute top-[18.75rem]" style={{ left: 'calc(50% - 14px)' }}>
         <ScanArrow color={skin.accent} />
       </div>
-
-      {/* QR card at the page's exact center — the exporter overlays the QR. */}
-      <div
-        className="absolute"
-        style={{
-          // Centred by offsets, not a translate: the exporter lays the QR
-          // at the page's exact centre, and the card must sit right behind it.
-          left: `calc(50% - ${QR_CARD_PX / 2}px)`,
-          top: `calc(50% - ${QR_CARD_PX / 2}px)`,
-          width: QR_CARD_PX,
-          height: QR_CARD_PX,
-          background: '#ffffff',
-          borderRadius: 22,
-          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.05)',
-        }}
-      />
     </div>
   )
 }

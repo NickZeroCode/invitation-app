@@ -303,6 +303,40 @@ describe('exportInvitationPdf', () => {
     restore()
   })
 
+  it('paints the QR card in the PDF, centred exactly behind the code', async () => {
+    const card = buildCard()
+    const { restore } = captureDownloads()
+    const context = new Proxy({}, { get: () => () => undefined, set: () => true })
+    const getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context as never)
+    const toDataURL = vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/png;base64,CARD')
+
+    await exportInvitationPdf({
+      cardNode: card,
+      templateKey: 'heritage-luxe',
+      dressCode: [],
+      program: [],
+      title: 'Gala',
+      qrText: 'https://www.malaikaevent.com/i/tok-1',
+    })
+
+    const doc = pdfState.instances.at(-1) as FakePdfRecord
+    const qrPage = doc.pages.length - 1
+    const cardImage = doc.images.find((image) => image.page === qrPage && image.dataUrl.endsWith('CARD'))
+    const qrImage = doc.images.find((image) => image.page === qrPage && image.dataUrl.includes('QRDATA'))
+    expect(cardImage).toBeDefined()
+    expect(qrImage).toBeDefined()
+    const centre = (image: { x: number; y: number; w: number; h: number }) => [image.x + image.w / 2, image.y + image.h / 2]
+    const [cx, cy] = centre(cardImage!)
+    const [qx, qy] = centre(qrImage!)
+    expect(cx).toBeCloseTo(qx, 6)
+    expect(cy).toBeCloseTo(qy, 6)
+    // Drawn before the code, so the code sits on top of its card.
+    expect(doc.images.indexOf(cardImage!)).toBeLessThan(doc.images.indexOf(qrImage!))
+    getContext.mockRestore()
+    toDataURL.mockRestore()
+    restore()
+  })
+
   it('embeds the fonts of each page, not only those of the card', async () => {
     const card = buildCard()
     const { restore } = captureDownloads()

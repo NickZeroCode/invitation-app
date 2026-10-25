@@ -35,12 +35,10 @@ describe('PDF details and QR pages', () => {
     cleanup()
   })
 
-  it('centres the QR card with offsets (no translate a phone capture could drop)', () => {
+  it('leaves the QR card to the exporter (it is painted in the PDF, behind the code)', () => {
     const { container } = render(<ExportQrPage templateKey="heritage-luxe" />)
     const card = Array.from(container.querySelectorAll<HTMLElement>('div')).find((div) => div.style.width === '317.6px')
-    expect(card?.style.left).toBe('calc(50% - 158.8px)')
-    expect(card?.style.top).toBe('calc(50% - 158.8px)')
-    expect(card?.className).not.toMatch(/translate/)
+    expect(card).toBeUndefined()
   })
 
   it('asks for Inter under the name the app loads it', () => {

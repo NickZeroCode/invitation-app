@@ -345,14 +345,33 @@ function RingsFlourish() {
 }
 
 /** Torn white paper over the closing photo: ragged ridges, a soft shadow. */
+/*
+ * Torn paper over the closing photo. The tear is a band TEAR_EM tall (SVG
+ * units 0–40); its ragged edge only ever dips between y = 24 and y = 38, so
+ * the shallowest notch sits at 24/40 of the band. The photo starts just
+ * above that notch: the jagged paper is its only top edge — no strip of
+ * bare paper and no straight cut of the picture show through a notch — and
+ * the deepest tooth covers under 1em of the picture.
+ */
+const TEAR_EM = 2.4
+const TEAR_SHALLOWEST = 24 / 40
+const PHOTO_TOP_EM = TEAR_EM * TEAR_SHALLOWEST - 0.08
+const TEAR_POINTS =
+  '400,35 392,38 384,33 373,36 366,30 356,33 345,26 336,31 326,28 314,35 305,31 296,37 286,33 276,36 266,29 256,33 ' +
+  '247,25 238,29 228,27 219,33 208,31 198,37 189,33 178,35 168,29 160,32 150,25 140,30 131,28 121,34 110,31 101,37 ' +
+  '92,33 82,35 72,29 63,31 53,24 44,29 35,27 26,34 16,31 8,36 0,33'
+
 function TornEdge() {
-  const ridge =
-    'M0 0 H400 V30 L392 34 L384 26 L373 31 L366 22 L356 27 L345 16 L336 24 L326 19 L314 29 L305 24 L296 33 L286 27 L276 31 ' +
-    'L266 20 L256 26 L247 14 L238 21 L228 18 L219 27 L208 23 L198 32 L189 26 L178 30 L168 21 L160 25 L150 15 L140 22 ' +
-    'L131 19 L121 28 L110 24 L101 32 L92 27 L82 30 L72 20 L63 24 L53 13 L44 21 L35 18 L26 28 L16 24 L8 31 L0 27 Z'
+  const ridge = `M0 0 H400 V35 L${TEAR_POINTS.split(' ').slice(1).join(' L')} Z`
   return (
-    <svg viewBox="0 0 400 40" preserveAspectRatio="none" className="absolute inset-x-0 top-0 h-[3.6em] w-full" aria-hidden="true">
-      <path d={ridge} fill="rgba(0,0,0,0.18)" transform="translate(0 2)" />
+    <svg
+      viewBox="0 0 400 40"
+      preserveAspectRatio="none"
+      className="absolute inset-x-0 top-0 w-full"
+      style={{ height: `${TEAR_EM}em` }}
+      aria-hidden="true"
+    >
+      <path d={ridge} fill="rgba(0,0,0,0.16)" transform="translate(0 1.5)" />
       <path d={ridge} fill={PAPER} />
     </svg>
   )
@@ -526,17 +545,16 @@ export function MoodBoard({ draft }: TemplateProps) {
           </div>
         ) : null}
 
-        {/* Closing photo under a torn-paper edge, full bleed. The photo
-            starts below the tear's solid band — only its ragged tips touch
-            the picture — and the crop is tall, anchored near the top, so
-            heads and faces stay whole. */}
+        {/* Closing photo under a torn-paper edge, full bleed: a tall crop
+            anchored near the top so heads and faces stay whole (see TornEdge
+            for how the photo meets the tear). */}
         {draft.cover_url ? (
           <div className="relative -mx-[2.6em] mt-[1.6em] w-[calc(100%+5.2em)] overflow-hidden" style={{ aspectRatio: '1 / 0.92' }}>
             <img
               src={draft.cover_url}
               alt=""
-              className="absolute inset-x-0 bottom-0 top-[2.3em] h-[calc(100%-2.3em)] w-full object-cover"
-              style={{ objectPosition: 'center 12%' }}
+              className="absolute inset-x-0 bottom-0 w-full object-cover"
+              style={{ top: `${PHOTO_TOP_EM}em`, height: `calc(100% - ${PHOTO_TOP_EM}em)`, objectPosition: 'center 12%' }}
             />
             <TornEdge />
           </div>

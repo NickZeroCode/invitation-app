@@ -28,6 +28,7 @@ import { getFontEmbedCSS, toJpeg, toPng } from 'html-to-image'
 
 import { ExportDetailsPage } from '../templates/ExportDetailsPage.tsx'
 import { ExportQrPage } from '../templates/ExportQrPage.tsx'
+import { QR_CARD_PX, QR_CARD_STYLE } from '../templates/qrCard.ts'
 import { fontScaleStyle } from '../templates/fontSizes.ts'
 import { getTemplate } from '../templates/registry.tsx'
 import type { DressCodeEntry, InvitationDraft, ProgramEntry, TableEntry } from '../templates/types.ts'
@@ -676,6 +677,61 @@ async function captureRaster(node: HTMLElement, fontEmbedCSS?: string): Promise<
 }
 
 /**
+ * Paints the QR page's white card and its soft drop shadow on a canvas, as a
+ * transparent PNG centred on the card. Canvas shadows render identically in
+ * every engine (unlike a box-shadow inside a WebKit capture), and the PDF
+ * places this image with the very coordinates of the QR code. Returns null
+ * where no canvas is available; the QR then stands on the page alone.
+ */
+function renderQrCard(): { dataUrl: string; sidePx: number } | null {
+  if (typeof document === 'undefined') return null
+  const { radiusPx: radius, shadow, ring } = QR_CARD_STYLE
+  // Room around the card for the blur, plus the downward offset.
+  const margin = shadow.blurPx + shadow.offsetYPx
+  const sidePx = QR_CARD_PX + margin * 2
+  const scale = 2.5
+  let canvas: HTMLCanvasElement
+  try {
+    canvas = document.createElement('canvas')
+    canvas.width = Math.round(sidePx * scale)
+    canvas.height = Math.round(sidePx * scale)
+  } catch {
+    return null
+  }
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+  const card = (inset: number) => {
+    const x = (margin + inset) * scale
+    const size = (QR_CARD_PX - inset * 2) * scale
+    const r = Math.max(0, (radius - inset) * scale)
+    ctx.beginPath()
+    ctx.moveTo(x + r, x)
+    ctx.arcTo(x + size, x, x + size, x + size, r)
+    ctx.arcTo(x + size, x + size, x, x + size, r)
+    ctx.arcTo(x, x + size, x, x, r)
+    ctx.arcTo(x, x, x + size, x, r)
+    ctx.closePath()
+  }
+  // Shadow geometry is in device pixels (the canvas transform ignores it).
+  ctx.shadowColor = shadow.color
+  ctx.shadowBlur = shadow.blurPx * scale
+  ctx.shadowOffsetY = shadow.offsetYPx * scale
+  ctx.fillStyle = '#ffffff'
+  card(0)
+  ctx.fill()
+  ctx.shadowColor = 'transparent'
+  ctx.strokeStyle = ring
+  ctx.lineWidth = scale
+  card(0.5)
+  ctx.stroke()
+  try {
+    return { dataUrl: canvas.toDataURL('image/png'), sidePx }
+  } catch {
+    return null
+  }
+}
+
+/**
  * The embedded-font CSS for one page. html-to-image only embeds the faces a
  * node actually uses, so the card's set misses faces found only on the
  * details or QR page (a script title, the body sans): those pages then fell
@@ -1006,7 +1062,10 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
     // finished file never exceeds PDF_MAX_BYTES. The QR code stays a crisp,
     // untouched PNG: its bytes are reserved from the budget instead.
     const rasters: PageRaster[] = qrPage ? [...pages, qrPage] : [...pages]
-    const qrBytes = qrDataUrl ? dataUrlBytes(qrDataUrl) : 0
+    // The QR card (white square + soft shadow) is painted for the PDF here,
+    // not captured with the page, so it always sits exactly behind the code.
+    const qrCard = qrDataUrl ? renderQrCard() : null
+    const qrBytes = (qrDataUrl ? dataUrlBytes(qrDataUrl) : 0) + (qrCard ? dataUrlBytes(qrCard.dataUrl) : 0)
     const pageCount = pages.length + (qrDataUrl ? 1 : 0)
 
     const assemble = (fitted: PageRaster[]) => {
@@ -1031,6 +1090,11 @@ export async function exportInvitationPdf(content: InvitationPdfContent): Promis
         doc.addPage([A4_WIDTH_MM, A4_HEIGHT_MM], 'portrait')
         if (qrPage) {
           doc.addImage(fitted[pages.length].dataUrl, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM)
+        }
+        if (qrCard) {
+          // Centred on the page like the QR: one set of coordinates for both.
+          const side = (qrCard.sidePx * A4_WIDTH_MM) / PAGE_WIDTH_PX
+          doc.addImage(qrCard.dataUrl, 'PNG', (A4_WIDTH_MM - side) / 2, (A4_HEIGHT_MM - side) / 2, side, side)
         }
         doc.addImage(
           qrDataUrl,
