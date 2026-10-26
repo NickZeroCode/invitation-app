@@ -82,23 +82,23 @@ class TestDownload:
         workbook = load_workbook(io.BytesIO(response.content))
         assert workbook.sheetnames == ["Invités", "Tables", "Résumé"]
 
-    def test_lists_guests_by_table_with_presence_answers_and_links(self, auth_client, event, seated):
+    def test_lists_guests_by_table_with_presence_and_status(self, auth_client, event, seated):
         workbook = load_workbook(io.BytesIO(auth_client.get(export_url(event)).content))
         header, data = rows(workbook["Invités"], "N°")
         assert header[:11] == (
             "N°", "Invité", "Civilité", "Nom", "Table", "Précision de table",
             "Présence", "Confirmée le", "Invitation", "Émise le", "Expire le",
         )
-        assert header[11] == "Choix du repas"
-        assert header[-1] == "Lien personnel"
+        # No answer columns, no personal link: the header stops at « Expire le ».
+        assert [cell for cell in header if cell is not None] == list(header[:11])
         # Table 2 before table 10 (natural order), guests without a table last;
         # the deleted invitation is left out, the revoked one stays listed.
         assert [row[1] for row in data] == ["Aline Kasongo", "M. Révoqué", "Mme Zoé Mbuyi", "M. Bob Ilunga"]
         aline = data[0]
         assert aline[4] == "2" and aline[5] == "Près de la piste"
         assert aline[6] == "Confirmée" and aline[7] is not None
-        assert aline[11] == "Standard"
-        assert aline[-1] == f"https://www.malaikaevent.com/i/{seated['early'].token}"
+        everything = [str(cell) for row in workbook["Invités"].iter_rows(values_only=True) for cell in row if cell]
+        assert not any("Standard" in cell or "/i/" in cell for cell in everything)
         assert data[1][8] == "Révoquée"
         assert data[2][6] == "En attente"
 
@@ -119,6 +119,7 @@ class TestDownload:
         assert figures["Présences confirmées"] == 1
         assert figures["Invitations révoquées"] == 1
         assert figures["Tables"] == 3
+        assert "Réponses aux questions" not in figures
 
     def test_user_text_never_becomes_a_formula(self, auth_client, event):
         make_invitation(event, guest_name='=HYPERLINK("http://evil.example","clic")', civility=Invitation.Civility.NONE)

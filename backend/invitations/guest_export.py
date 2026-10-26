@@ -5,9 +5,8 @@ caterer, a venue manager…). The workbook is built server-side from the same
 data the guest list shows, so both routes deliver the same file:
 
 * « Invités » — one row per guest (deleted invitations excluded), sorted by
-  table then name: name and civility, table and its note, presence,
-  invitation status and dates, one column per question with the guest's
-  answers, and the personal invitation link.
+  table then name: name and civility, table and its note, presence, and
+  invitation status and dates.
 * « Tables » — every table (registry tables included, even empty) with its
   guest count, confirmed presences and guest names; « Sans table » last.
 * « Résumé » — the event and its totals.
@@ -49,9 +48,7 @@ from invitations.sharing import (
     EmailDeliveryUnavailable,
     french_date,
     french_time,
-    public_invitation_url,
 )
-from preferences.models import PreferenceQuestion
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +100,7 @@ def _put(sheet: Worksheet, row: int, column: int, value, **style):
     """Write a cell; text is always stored as text.
 
     openpyxl turns any string starting with « = » into a live formula, and a
-    guest name or an answer is user input: forcing the string type blocks
+    guest name or a table note is user input: forcing the string type blocks
     spreadsheet formula injection.
     """
     cell = sheet.cell(row=row, column=column, value=value)
@@ -167,24 +164,20 @@ def _title_block(sheet: Worksheet, event: EventModel, title: str, exported_at: d
 
 
 def guest_rows(event: EventModel):
-    """The event's live invitations, in seating order, with their answers."""
+    """The event's live invitations, in seating order."""
     invitations = list(
         Invitation.objects.filter(event_model=event)
         .exclude(state=Invitation.State.DELETED)
-        .select_related("table", "preference_response")
-        .prefetch_related("preference_response__answers__options")
+        .select_related("table")
     )
     invitations.sort(key=lambda item: (_table_sort_key(item.table_number), item.guest_name.casefold()))
     return invitations
 
 
-def build_guest_workbook(event: EventModel, request) -> bytes:
+def build_guest_workbook(event: EventModel) -> bytes:
     zone = _event_zone(event)
     exported_at = _local(timezone_now(), zone)
     invitations = guest_rows(event)
-    questions = list(
-        PreferenceQuestion.objects.filter(event_model=event, is_active=True).order_by("order", "id")
-    )
 
     workbook = Workbook()
 
@@ -204,23 +197,13 @@ def build_guest_workbook(event: EventModel, request) -> bytes:
         "Invitation",
         "Émise le",
         "Expire le",
-        *[question.label for question in questions],
-        "Lien personnel",
     ]
     header_row = row
     _header_row(sheet, header_row, labels)
     civilities = dict(Invitation.Civility.choices)
     for index, invitation in enumerate(invitations, start=1):
         row += 1
-        response = getattr(invitation, "preference_response", None)
-        answers: dict[int, str] = {}
-        if response is not None:
-            for answer in response.answers.all():
-                answers[answer.question_id] = ", ".join(
-                    option.label for option in sorted(answer.options.all(), key=lambda o: (o.order, o.id))
-                )
         confirmed = invitation.presence_confirmed_at is not None
-        url = public_invitation_url(request, invitation)
         values = [
             index,
             invitation.display_name,
@@ -233,8 +216,6 @@ def build_guest_workbook(event: EventModel, request) -> bytes:
             STATUS_LABELS.get(invitation.status, invitation.status),
             _local(invitation.issued_at, zone),
             _local(invitation.expires_at, zone),
-            *[answers.get(question.id, "") for question in questions],
-            url,
         ]
         for column, value in enumerate(values, start=1):
             cell = _put(sheet, row, column, value, border=Border(bottom=THIN))
@@ -244,15 +225,12 @@ def build_guest_workbook(event: EventModel, request) -> bytes:
         if confirmed:
             presence.fill = CONFIRMED_FILL
             presence.font = Font(bold=True, color="1F6B3A")
-        link = sheet.cell(row=row, column=len(values))
-        link.hyperlink = url
-        link.font = Font(color="8E6A2E", underline="single")
     if invitations:
         sheet.auto_filter.ref = f"A{header_row}:{get_column_letter(len(labels))}{row}"
     else:
         _put(sheet, header_row + 1, 1, "Aucun invité pour le moment.", font=Font(italic=True, color="7A6A50"))
     sheet.freeze_panes = sheet.cell(row=header_row + 1, column=3)
-    _fit_columns(sheet, {1: 6, len(labels): 46}, first_row=header_row)
+    _fit_columns(sheet, {1: 6}, first_row=header_row)
     sheet.print_title_rows = f"{header_row}:{header_row}"
     sheet.page_setup.orientation = "landscape"
     sheet.page_setup.fitToWidth = 1
@@ -311,7 +289,6 @@ def build_guest_workbook(event: EventModel, request) -> bytes:
         ("Invitations révoquées", statuses.count(Invitation.State.REVOKED)),
         ("Tables", len([key for key in seating if key != NO_TABLE])),
         ("Invités placés à une table", len(seated)),
-        ("Réponses aux questions", sum(1 for i in invitations if getattr(i, "preference_response", None))),
     ]
     _header_row(summary, row, ["Indicateur", "Valeur"])
     for label, value in figures:
@@ -355,7 +332,7 @@ class GuestListExportView(APIView):
 
     def get(self, request, pk):
         event = _owned_event(request, pk)
-        content = build_guest_workbook(event, request)
+        content = build_guest_workbook(event)
         response = HttpResponse(content, content_type=XLSX_CONTENT_TYPE)
         response["Content-Disposition"] = f'attachment; filename="{export_filename(event)}"'
         response["Cache-Control"] = "no-store"
@@ -407,7 +384,7 @@ class GuestListEmailView(APIView):
                 text=render_to_string("invitations/email/guest_list.txt", context),
                 reply_to=request.user.email or None,
                 attachments=[
-                    Attachment(export_filename(event), build_guest_workbook(event, request), XLSX_CONTENT_TYPE)
+                    Attachment(export_filename(event), build_guest_workbook(event), XLSX_CONTENT_TYPE)
                 ],
             )
         except DeliveryError:  # never report a send that did not happen

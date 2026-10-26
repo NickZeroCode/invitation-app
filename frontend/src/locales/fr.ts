@@ -417,8 +417,7 @@ export const fr = {
       contentsTitle: 'Le fichier contient',
       contents: [
         'Chaque invité avec sa table, sa précision de table et sa confirmation de présence',
-        'L’état de chaque invitation, ses dates et le lien personnel de l’invité',
-        'Les réponses aux questions de l’événement',
+        'L’état de chaque invitation et ses dates',
         'Un plan de table et un résumé chiffré',
       ],
       downloadTitle: 'Télécharger',
