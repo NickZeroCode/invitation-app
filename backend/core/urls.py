@@ -15,6 +15,7 @@ from invitations.public import (
     PublicInvitationView,
     PublicVerificationView,
 )
+from invitations.guest_export import GuestListEmailView, GuestListExportView
 from invitations.sharing import ShareContextView, ShareEmailView
 from invitations.verification import (
     EventVerificationLinksView,
@@ -72,6 +73,13 @@ urlpatterns = [
         "events/<int:pk>/dress-code/<int:item_pk>/",
         EventDressCodeItemView.as_view(),
         name="event-dress-code-item",
+    ),
+    # Guest list as an Excel workbook: download, or e-mail it as an attachment.
+    path("events/<int:pk>/guests/export/", GuestListExportView.as_view(), name="event-guests-export"),
+    path(
+        "events/<int:pk>/guests/export/email/",
+        GuestListEmailView.as_view(),
+        name="event-guests-export-email",
     ),
     # Individual guest invitations (product brief Section 9).
     path(

@@ -9,6 +9,8 @@ Pillow==12.3.0
 django-storages[s3]==1.14.6
 # Transactional e-mail (invitation delivery) — RESEND_API_KEY in production.
 resend==2.50.0
+# Guest list export (Excel .xlsx workbooks).
+openpyxl==3.1.5
 
 # Testing
 pytest==9.1.1

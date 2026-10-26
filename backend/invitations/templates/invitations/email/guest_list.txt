@@ -1,0 +1,15 @@
+{% autoescape off %}Liste des invités — {{ event_title }}
+{{ event_when }}{% if venue_name %} · {{ venue_name }}{% endif %}
+
+{% if note %}{{ note }}
+
+{% endif %}Vous trouverez en pièce jointe la liste des invités ({{ guest_count }} invité{{ guest_count|pluralize }}) au format Excel : {{ filename }}
+
+Elle contient, pour chaque invité, sa table et sa précision de table, sa confirmation de présence, l’état de son invitation, ses réponses aux questions et son lien personnel, ainsi qu’un plan de table et un résumé.
+
+Envoyée par {{ organizer }} via MalaikaEvents. Répondez à cet e-mail pour lui écrire.
+
+——
+MalaikaEvents · Invitations d’exception pour vos grands moments
+{{ site_url }}
+{% endautoescape %}

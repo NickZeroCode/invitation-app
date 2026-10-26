@@ -183,6 +183,48 @@ async function request<T>(
   return data as T
 }
 
+/** A file served by the API, with the name the server gave it. */
+export interface DownloadedFile {
+  blob: Blob
+  filename: string
+}
+
+/** File name from a `Content-Disposition: attachment; filename="…"` header. */
+function attachmentName(header: string | null, fallback: string): string {
+  const match = header?.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i)
+  if (!match) return fallback
+  try {
+    return decodeURIComponent(match[1])
+  } catch {
+    return match[1]
+  }
+}
+
+/** GET a binary file (session cookie applies); API errors keep their message. */
+async function download(path: string, fallbackName: string): Promise<DownloadedFile> {
+  let res: Response
+  try {
+    res = await fetch(API_BASE + path, { method: 'GET', credentials: 'include' })
+  } catch {
+    throw new ApiError('network', 0, NETWORK_MESSAGE)
+  }
+  if (!res.ok) {
+    let data: unknown = null
+    try {
+      data = await res.json()
+    } catch {
+      data = null
+    }
+    throw toApiError(res.status, data)
+  }
+  return { blob: await res.blob(), filename: attachmentName(res.headers.get('Content-Disposition'), fallbackName) }
+}
+
+export interface GuestListEmailPayload {
+  recipient: string
+  message?: string
+}
+
 export const authApi = {
   me: () => request<Organizer>('GET', '/api/auth/me/'),
   login: (payload: LoginPayload) => request<Organizer>('POST', '/api/auth/login/', payload),
@@ -210,6 +252,11 @@ export function isApiUrl(url: string): boolean {
 }
 
 export const eventsApi = {
+  /** The guest list as an Excel workbook (Invités, Tables, Résumé). */
+  exportGuests: (id: number) => download(`/api/events/${id}/guests/export/`, 'liste-des-invites.xlsx'),
+  /** E-mails that workbook; resolves only once the provider accepted it. */
+  emailGuests: (id: number, payload: GuestListEmailPayload) =>
+    request<{ status: 'accepted' }>('POST', `/api/events/${id}/guests/export/email/`, payload),
   /**
    * Same-origin picture bytes for the PDF export. Unlike the storage URLs in
    * `cover_url` / `dress_code[].url` these never expire and need no bucket

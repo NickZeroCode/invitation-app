@@ -61,6 +61,7 @@ import type {
   InvitationPayload,
   InvitationState,
 } from '../lib/types.ts'
+import { GuestListExportDialog } from '../components/GuestListExportDialog.tsx'
 import { ShareInvitationDialog } from '../components/ShareInvitationDialog.tsx'
 import { fr } from '../locales/fr.ts'
 import { emptyDraft } from '../templates/registry.tsx'
@@ -1272,6 +1273,7 @@ export function GuestsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '')
   const [addOpen, setAddOpen] = useState(false)
+  const [exportListOpen, setExportListOpen] = useState(false)
   const [autoExport, setAutoExport] = useState(false)
   const [exportProgress, setExportProgress] = useState<ExportProgressState | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -1338,6 +1340,10 @@ export function GuestsPage() {
               <IconChart className="h-4 w-4" />
               {fr.guests.viewResponses}
             </Link>
+            <Button variant="secondary" className="flex-1 sm:flex-none" onClick={() => setExportListOpen(true)}>
+              <IconDownload className="h-4 w-4" />
+              {fr.guests.exportListButton}
+            </Button>
             <Button
               className="flex-1 sm:flex-none"
               onClick={() => {
@@ -1353,6 +1359,8 @@ export function GuestsPage() {
       />
 
       {eventQuery.isError ? <Alert tone="danger">{fr.guests.loadEventError}</Alert> : null}
+
+      <GuestListExportDialog eventId={eventId} open={exportListOpen} onClose={() => setExportListOpen(false)} />
 
       {notice ? <Alert tone="success">{notice}</Alert> : null}
 

@@ -17,6 +17,8 @@ export interface MockRoute {
   bytes?: Uint8Array<ArrayBuffer>
   /** Content type for `bytes`. Defaults to `image/jpeg`. */
   contentType?: string
+  /** Extra response headers for `bytes` (e.g. Content-Disposition). */
+  headers?: Record<string, string>
   /** Consume the route after the first match (for call sequencing). */
   once?: boolean
   /** Runs when the route is hit (e.g. to set cookies as Django would). */
@@ -71,7 +73,7 @@ export function mockFetch(routes: MockRoute[]): MockFetch {
     if (route.bytes) {
       return new Response(route.bytes, {
         status: route.status ?? 200,
-        headers: { 'Content-Type': route.contentType ?? 'image/jpeg' },
+        headers: { 'Content-Type': route.contentType ?? 'image/jpeg', ...route.headers },
       })
     }
     return jsonResponse(route.status ?? 200, route.body)

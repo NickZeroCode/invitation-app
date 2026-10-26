@@ -100,6 +100,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 # The SPA (Vercel frontend project) calls the API with credentials.
 CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "http://localhost:5173")
 CORS_ALLOW_CREDENTIALS = True
+# The guest-list download names its file here; cross-origin JS only sees
+# headers listed explicitly.
+CORS_EXPOSE_HEADERS = ["Content-Disposition"]
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", "http://localhost:5173")
 
 # The SPA reads the CSRF cookie to send the X-CSRFToken header.
