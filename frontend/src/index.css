@@ -29,10 +29,11 @@
   --color-brand-strong: #0a4433;
   --color-brand-soft: #e1ede6;
 
-  /* Malachite grounds (dark stages) and what is set on them. */
-  --color-malachite: #0b3326;
-  --color-malachite-deep: #072019;
-  --color-jade: #8fcbad;
+  /* Malachite grounds (near-black stages) and the one pale sage-lime set
+     on them — a single dominant colour for type on dark. */
+  --color-malachite: #0b1d16;
+  --color-malachite-deep: #06110c;
+  --color-jade: #d3dfab;
   --color-paper-on-dark: #f2eee6;
 
   /* The wax seal — a single vermilion accent, used in small doses. */
@@ -54,7 +55,10 @@
      titles and the wordmark; a wide geometric sans for the small-caps
      labels. `font-display` stays the templates' face. */
   --font-brand: 'Bodoni Moda', 'Playfair Display', ui-serif, Georgia, serif;
-  --font-label: 'Montserrat', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-label: 'Archivo Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  /* The heavy statement face: Archivo, black and a little wide, set in
+     capitals — paired with Bodoni Moda capitals for names. */
+  --font-grotesk: 'Archivo Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
 
   /* Radii */
   --radius-sm: 6px;
@@ -258,18 +262,35 @@
  * light object (a card, a chip) back on paper inside one.
  */
 .theme-malachite {
-  --color-paper: #0b3326;
-  --color-surface: #0f3d2e;
-  --color-surface-muted: #134636;
-  --color-surface-sunken: #082a1f;
-  --color-ink: #f2eee6;
-  --color-ink-soft: rgb(242 238 230 / 0.74);
-  --color-ink-faint: rgb(242 238 230 / 0.52);
-  --color-line: rgb(242 238 230 / 0.14);
-  --color-line-strong: rgb(242 238 230 / 0.28);
-  --color-brand: #8fcbad;
-  --color-brand-strong: #b4ddc8;
-  --color-brand-soft: rgb(143 203 173 / 0.14);
+  --color-paper: #0b1d16;
+  --color-surface: #10261d;
+  --color-surface-muted: #153026;
+  --color-surface-sunken: #081610;
+  --color-ink: #d3dfab;
+  --color-ink-soft: rgb(211 223 171 / 0.72);
+  --color-ink-faint: rgb(211 223 171 / 0.5);
+  --color-line: rgb(211 223 171 / 0.16);
+  --color-line-strong: rgb(211 223 171 / 0.3);
+  --color-brand: #d3dfab;
+  --color-brand-strong: #e4edc4;
+  --color-brand-soft: rgb(211 223 171 / 0.12);
+  color-scheme: dark;
+}
+
+/* The vermilion room: a template opened in the viewer. */
+.theme-seal {
+  --color-paper: #c8432b;
+  --color-surface: #b93b24;
+  --color-surface-muted: #a9351f;
+  --color-surface-sunken: #9c301c;
+  --color-ink: #fff4ec;
+  --color-ink-soft: rgb(255 244 236 / 0.82);
+  --color-ink-faint: rgb(255 244 236 / 0.62);
+  --color-line: rgb(255 244 236 / 0.24);
+  --color-line-strong: rgb(255 244 236 / 0.4);
+  --color-brand: #0b1d16;
+  --color-brand-strong: #06110c;
+  --color-brand-soft: rgb(11 29 22 / 0.12);
   color-scheme: dark;
 }
 
@@ -331,4 +352,43 @@ html[data-intro='on'] .landing-rise {
 }
 html[data-intro='on'] .word-rise {
   animation-delay: calc(var(--word-delay, 0ms) + 1150ms);
+}
+
+/* Statement type: Archivo black, a touch wide, capitals, set tight. */
+.statement {
+  font-family: var(--font-grotesk);
+  font-weight: 860;
+  font-stretch: 112%;
+  text-transform: uppercase;
+  letter-spacing: -0.012em;
+  line-height: 0.92;
+}
+/* Names inside a statement: Bodoni capitals, light and wide, underlined. */
+.statement-name {
+  font-family: var(--font-brand);
+  font-weight: 400;
+  font-stretch: normal;
+  letter-spacing: 0.01em;
+  text-decoration: underline;
+  text-decoration-thickness: 0.035em;
+  text-underline-offset: 0.12em;
+}
+/* Tiny margin labels, like printer's marks. */
+.mark-label {
+  font-family: var(--font-grotesk);
+  font-size: 0.625rem;
+  font-weight: 600;
+  font-stretch: 105%;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+/* Word masks for capitals set tight: room above for accents (É, À). */
+.word-mask-caps {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-block: 0.16em 0.04em;
+  margin-block: -0.16em -0.04em;
 }

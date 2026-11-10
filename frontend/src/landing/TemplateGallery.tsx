@@ -262,7 +262,7 @@ export function TemplateGallery({
         <p
           ref={wordRef}
           aria-hidden="true"
-          className="pointer-events-none absolute left-[4%] top-1/2 -translate-y-1/2 whitespace-nowrap font-brand text-[clamp(7rem,24vw,22rem)] leading-none tracking-[-0.04em] text-[#0F3D2E]"
+          className="pointer-events-none absolute left-[4%] top-1/2 -translate-y-1/2 statement whitespace-nowrap text-[clamp(6rem,21vw,20rem)] text-[#10241B]"
         >
           {backdropWord}
         </p>
@@ -282,11 +282,11 @@ export function TemplateGallery({
           </ul>
         </div>
 
-        {/* A jade disc names the action under the pointer: open this card. */}
+        {/* A vermilion disc names the action under the pointer: open this card. */}
         <span
           ref={cursorRef}
           aria-hidden="true"
-          className="pointer-events-none absolute left-0 top-0 z-20 flex h-20 w-20 items-center justify-center rounded-full bg-jade font-label text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-malachite transition-transform duration-300 ease-out"
+          className="pointer-events-none absolute left-0 top-0 z-20 flex h-20 w-20 items-center justify-center rounded-full bg-seal mark-label text-white transition-transform duration-300 ease-out"
           style={{ transform: 'scale(0)' }}
         >
           {cursorLabel}
@@ -305,11 +305,11 @@ export function TemplateGallery({
             {current ? (
               <div className="min-w-0">
                 <p className="flex items-baseline gap-3">
-                  <span className="text-jade font-brand text-[3rem] leading-none sm:text-[4.5rem]">{pad(front + 1)}</span>
+                  <span className="statement text-[3rem] text-ink sm:text-[4.5rem]">{pad(front + 1)}</span>
                   <span className="font-label text-[0.6875rem] font-semibold tracking-[0.2em] text-ink-faint">/ {pad(count)}</span>
                 </p>
                 <p className="mt-2 truncate font-brand text-[1.5rem] leading-tight text-ink sm:text-[2rem]">{current.name}</p>
-                <p className="mt-1.5 font-label text-[0.625rem] font-semibold uppercase tracking-[0.22em] text-jade">{current.categoryLabel}</p>
+                <p className="mark-label mt-1.5 text-ink-soft">{current.categoryLabel}</p>
                 <p className="mt-2 hidden max-w-[30rem] text-[0.875rem] leading-relaxed text-ink-soft sm:block">{current.description}</p>
               </div>
             ) : null}
@@ -319,7 +319,7 @@ export function TemplateGallery({
                 onClick={() => onOpen(front)}
                 className="inline-flex h-11 items-center gap-2.5 rounded-full border border-jade/50 bg-malachite px-5 text-[0.8125rem] font-medium text-ink transition-colors hover:border-jade hover:bg-jade hover:text-malachite focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade"
               >
-                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-jade" />
+                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-seal" />
                 {detailLabel}
               </button>
               <span aria-hidden="true" className="hidden h-px w-40 overflow-hidden bg-line sm:block">

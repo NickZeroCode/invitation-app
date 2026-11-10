@@ -34,6 +34,7 @@ import QRCode from 'qrcode'
 import { LegalLinks } from '../components/LegalLinks.tsx'
 import { IntroCurtain } from '../landing/IntroCurtain.tsx'
 import { InvitationScene } from '../landing/InvitationScene.tsx'
+import { KinshasaClock } from '../landing/KinshasaClock.tsx'
 import { MalachiteCanvas } from '../landing/MalachiteCanvas.tsx'
 import { useRichMotion } from '../landing/motion.ts'
 import { Reveal } from '../landing/Reveal.tsx'
@@ -66,7 +67,7 @@ const COPY = fr.landing
 /** One measure and one padding scale for the whole page. */
 const WRAP = 'mx-auto w-full max-w-[80rem] px-5 sm:px-8 lg:px-12'
 const SECTION_Y = 'py-24 sm:py-28 lg:py-36'
-const H2 = 'text-balance font-brand text-[2.5rem] font-normal leading-[1.02] tracking-[-0.025em] text-ink sm:text-[3.25rem] lg:text-[4.25rem]'
+const H2 = 'statement text-balance text-[clamp(2rem,4vw,4.25rem)] leading-[1] text-ink'
 const LEAD = 'text-[1.0625rem] leading-relaxed text-ink-soft'
 const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-paper'
 
@@ -119,7 +120,7 @@ function Roll({ children }: { children: string }) {
 
 /** The house call to action: a solid pill with an arrow tile. */
 function PrimaryCta({ to, children, onDark = false, className = '' }: { to: string; children: string; onDark?: boolean; className?: string }) {
-  const tone = onDark ? 'bg-paper-on-dark text-malachite hover:bg-white' : 'bg-brand text-white hover:bg-brand-strong'
+  const tone = onDark ? 'bg-jade text-malachite hover:bg-paper-on-dark' : 'bg-brand text-white hover:bg-brand-strong'
   const tile = onDark ? 'bg-malachite text-paper-on-dark' : 'bg-white text-brand'
   return (
     <Link
@@ -148,9 +149,10 @@ function GhostCta({ to, href, children }: { to?: string; href?: string; children
 }
 
 /**
- * Splits a headline into its first breath and the rest, set in two tones of
- * the same roman (« L’élégance du papier, » ink / « sans ses contraintes. »
- * malachite). Falls back to a single tone without a natural break.
+ * Splits a headline into its first breath and the rest: the first in heavy
+ * grotesk capitals, the rest in light Bodoni capitals in the brand colour
+ * (« L’ÉLÉGANCE DU PAPIER, » / « SANS SES CONTRAINTES. »). Falls back to a
+ * single voice without a natural break.
  */
 function twoTone(title: string): [string, string] {
   const match = title.match(/^(.{8,}?[,:;])\s+(.+)$/)
@@ -191,7 +193,7 @@ function SectionHeader({
         {tail ? (
           <>
             {' '}
-            <span className="text-brand">{tail}</span>
+            <span className="font-brand font-normal tracking-[0.005em] text-brand [font-stretch:normal]">{tail}</span>
           </>
         ) : null}
       </h2>
@@ -323,12 +325,12 @@ function SuiteChip({ className = '', children }: { className?: string; children:
 }
 
 /** Headline words rising one after another out of their own line. */
-function RisingWords({ text, startMs, className = '' }: { text: string; startMs: number; className?: string }) {
+function RisingWords({ text, startMs, className = '', caps = false }: { text: string; startMs: number; className?: string; caps?: boolean }) {
   return (
     <>
       {text.split(' ').map((word, index, words) => (
         <Fragment key={`${word}-${index}`}>
-          <span className="word-mask">
+          <span className={caps ? 'word-mask-caps' : 'word-mask'}>
             <span className={`word-rise ${className}`} style={{ ['--word-delay' as string]: `${startMs + index * 70}ms` }}>
               {word}
             </span>
@@ -340,16 +342,21 @@ function RisingWords({ text, startMs, className = '' }: { text: string; startMs:
   )
 }
 
+/** A circled footnote number set in the statement (① ② ③). */
+function NoteMark({ n }: { n: number }) {
+  return (
+    <span className="ml-[0.06em] inline-flex h-[0.62em] w-[0.62em] items-center justify-center relative -top-[1.15em] rounded-full border-[0.045em] border-current font-grotesk text-[0.36em] font-semibold leading-none [font-stretch:100%]">
+      {n}
+    </span>
+  )
+}
+
 function Hero({ qrDataUrl, rich }: { qrDataUrl: string; rich: boolean }) {
-  const [lead, rest] = useMemo(() => {
-    const words = COPY.hero.title.split(' ')
-    return [words.slice(0, 3).join(' '), words.slice(3).join(' ')]
-  }, [])
   const chips = [
     {
       key: 'rsvp',
       depth: 90,
-      style: { left: '-6%', top: '30%', width: '46%' },
+      style: { left: '-14%', top: '30%', width: '52%' },
       content: (
         <SuiteChip>
           <p className="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-brand sm:text-[0.625rem]">{COPY.hero.rsvpTitle}</p>
@@ -364,7 +371,7 @@ function Hero({ qrDataUrl, rich }: { qrDataUrl: string; rich: boolean }) {
     {
       key: 'access',
       depth: 120,
-      style: { right: '-5%', top: '10%', width: '30%' },
+      style: { right: '-12%', top: '8%', width: '36%' },
       content: (
         <SuiteChip className="flex flex-col items-center px-3 text-center">
           <p className="whitespace-nowrap text-[0.5625rem] font-semibold uppercase tracking-[0.14em] text-brand sm:text-[0.625rem]">{COPY.hero.accessTitle}</p>
@@ -383,7 +390,7 @@ function Hero({ qrDataUrl, rich }: { qrDataUrl: string; rich: boolean }) {
     {
       key: 'sent',
       depth: 60,
-      style: { right: '2%', bottom: '6%' },
+      style: { right: '-6%', bottom: '6%' },
       content: (
         <SuiteChip className="flex items-center gap-2 whitespace-nowrap py-2.5">
           <IconChat className="h-4 w-4 text-brand" />
@@ -396,58 +403,85 @@ function Hero({ qrDataUrl, rich }: { qrDataUrl: string; rich: boolean }) {
   return (
     <section aria-labelledby="hero-titre" className="relative px-2.5 pt-2.5 sm:px-3 sm:pt-3">
       <div className="theme-malachite relative isolate overflow-hidden rounded-[24px] bg-malachite-deep text-ink sm:rounded-[32px]">
-        {/* The living stone, with its flat colour underneath. */}
+        {/* The living stone, dark and quiet, with its flat colour underneath. */}
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-malachite-deep">
           <MalachiteCanvas animate={rich} />
         </div>
 
-        <div className="mx-auto w-full max-w-[84rem] px-5 pb-10 pt-24 sm:px-10 sm:pt-28 lg:px-14 lg:pb-14">
-          {/* The masthead: the full house name. */}
-          <p aria-hidden="true" className="landing-rise select-none whitespace-nowrap font-brand font-normal leading-[0.86] tracking-[-0.045em] text-[clamp(2.6rem,12.4vw,12.5rem)]">
-            Malaika<span className="text-jade">Events</span>
-          </p>
+        <div className="mx-auto w-full max-w-[86rem] px-5 pb-6 pt-24 sm:px-10 sm:pt-28 lg:px-14">
+          {/* The object, flanked by its pronunciation notes. */}
+          <div className="grid grid-cols-2 items-start gap-x-6 gap-y-6 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+            <p aria-hidden="true" className="mark-label landing-rise order-2 max-w-[13rem] text-ink-soft sm:order-none sm:pt-[14%]" style={{ ['--rise-delay' as string]: '500ms' }}>
+              {COPY.hero.pronounceName}
+            </p>
+            <div className="landing-rise order-1 col-span-2 mx-auto w-[min(62vw,17rem)] sm:order-none sm:col-span-1 lg:w-[19rem]" style={{ ['--rise-delay' as string]: '150ms' }}>
+              <InvitationScene animate={rich} label={COPY.hero.stageLabel} card={<TemplatePreview templateKey="floraison" />} chips={chips} />
+            </div>
+            <p aria-hidden="true" className="mark-label landing-rise order-3 max-w-[13rem] justify-self-end text-right text-ink-soft sm:order-none sm:pt-[14%]" style={{ ['--rise-delay' as string]: '500ms' }}>
+              {COPY.hero.pronounceEvents}
+            </p>
+          </div>
 
-          <div className="mt-12 grid items-end gap-14 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] lg:gap-10">
-            <div className="max-w-[35rem] pb-2">
-              <p className="landing-rise flex items-center gap-3 font-label text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-ink-soft" style={{ ['--rise-delay' as string]: '200ms' }}>
-                <span aria-hidden="true" className="h-2 w-2 rounded-full bg-seal" />
-                {COPY.hero.eyebrow}
+          {/* The statement: one block, its second breath stepping in. */}
+          <h1 id="hero-titre" className="mt-10 sm:mt-14">
+            <span className="sr-only">{COPY.hero.title}</span>
+            <span aria-hidden="true" className="statement block text-[clamp(2rem,5.6vw,5.75rem)] max-sm:leading-[1]">
+              <RisingWords caps text={COPY.hero.statementLead} startMs={260} />
+            </span>
+          </h1>
+
+          <div className="grid lg:grid-cols-[28%_minmax(0,1fr)]">
+            <div className="order-2 mt-10 flex flex-col justify-end gap-5 lg:order-none lg:mt-0 lg:pb-2 lg:pr-10">
+              <ol aria-hidden="true" className="mark-label space-y-2 text-ink-soft">
+                {COPY.hero.notes.map((note, index) => (
+                  <li key={note} className="flex gap-2.5">
+                    <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-current text-[0.5625rem] leading-none">{index + 1}</span>
+                    <span className="pt-px">{note}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="order-1 lg:order-none">
+              <p aria-hidden="true" className="statement landing-rise mt-[0.06em] text-[clamp(2rem,5.6vw,5.75rem)] max-sm:leading-[1]" style={{ ['--rise-delay' as string]: '650ms' }}>
+                {COPY.hero.statement.map((part, index) =>
+                  'name' in part ? (
+                    <Fragment key={index}>
+                      <span className="statement-name">{part.name}</span>
+                      <NoteMark n={part.note} />
+                    </Fragment>
+                  ) : (
+                    <Fragment key={index}>{part.text}</Fragment>
+                  ),
+                )}
               </p>
-              <h1 id="hero-titre" className="mt-6 font-brand text-[2.5rem] font-normal leading-[1.04] tracking-[-0.02em] sm:text-[3.3rem] lg:text-[3.75rem]">
-                <span className="sr-only">{COPY.hero.title}</span>
-                <span aria-hidden="true">
-                  <RisingWords text={lead} startMs={260} />{' '}
-                  <RisingWords text={rest} startMs={470} className="text-jade" />
-                </span>
-              </h1>
-              <p className="landing-rise mt-6 max-w-[30rem] text-[1.0625rem] leading-relaxed text-ink-soft" style={{ ['--rise-delay' as string]: '700ms' }}>
-                {COPY.hero.text}
-              </p>
-              <div className="landing-rise mt-9 flex flex-col gap-3 sm:flex-row sm:items-center" style={{ ['--rise-delay' as string]: '820ms' }}>
-                <PrimaryCta to="/inscription" onDark>
-                  {COPY.hero.signupCta}
-                </PrimaryCta>
-                <GhostCta href="#modeles">{COPY.hero.secondaryCta}</GhostCta>
+              <div className="mt-10 flex flex-col gap-8">
+                <p className="landing-rise max-w-[34rem] text-[1.0625rem] leading-relaxed text-ink-soft" style={{ ['--rise-delay' as string]: '800ms' }}>
+                  {COPY.hero.text}
+                </p>
+                <div className="landing-rise flex flex-col gap-3 sm:flex-row sm:items-center" style={{ ['--rise-delay' as string]: '880ms' }}>
+                  <PrimaryCta to="/inscription" onDark>
+                    {COPY.hero.signupCta}
+                  </PrimaryCta>
+                  <GhostCta href="#modeles">{COPY.hero.secondaryCta}</GhostCta>
+                </div>
               </div>
-              <p className="landing-rise mt-6 text-[0.875rem] text-ink-faint" style={{ ['--rise-delay' as string]: '900ms' }}>
+              <p className="landing-rise mt-6 text-[0.875rem] text-ink-faint" style={{ ['--rise-delay' as string]: '940ms' }}>
                 {COPY.hero.loginPrompt}{' '}
-                <Link to="/connexion" className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-jade">
+                <Link to="/connexion" className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink">
                   {COPY.hero.primaryCta}
                 </Link>
               </p>
             </div>
-
-            <div className="landing-rise relative mx-auto w-[86%] max-w-[29rem] lg:mr-6 lg:w-full" style={{ ['--rise-delay' as string]: '300ms' }}>
-              <InvitationScene animate={rich} label={COPY.hero.stageLabel} card={<TemplatePreview templateKey="floraison" />} chips={chips} />
-            </div>
           </div>
 
-          <div className="mt-10 flex items-center justify-between gap-6 border-t border-line pt-5 text-[0.75rem] text-ink-faint">
-            <span>{COPY.hero.footnote}</span>
-            <a href="#modeles" className="inline-flex shrink-0 items-center gap-2 text-ink-soft transition-colors hover:text-ink">
-              <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse rounded-full bg-jade motion-reduce:animate-none" />
+          {/* Printer's marks along the foot of the stage. */}
+          <div className="mark-label mt-14 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-line pt-5 text-ink-faint">
+            <KinshasaClock city={COPY.hero.clockCity} />
+            <a href="#modeles" className="inline-flex items-center gap-2 text-ink-soft transition-colors hover:text-ink">
+              <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse rounded-full bg-seal motion-reduce:animate-none" />
               <Roll>{COPY.hero.scroll}</Roll>
             </a>
+            <span>©{CURRENT_YEAR}</span>
           </div>
         </div>
       </div>
@@ -475,7 +509,7 @@ function FactsBand() {
           >
             <dt className="sr-only">{label}</dt>
             <dd>
-              <span className="block font-brand text-[4rem] leading-none tracking-[-0.03em] text-ink [font-variant-numeric:lining-nums] sm:text-[5.5rem]">{value}</span>
+              <span className="statement block text-[4rem] text-ink sm:text-[5.5rem]">{value}</span>
               <span className="mt-4 block max-w-[14rem] text-[0.875rem] leading-snug text-ink-soft">{label}</span>
             </dd>
           </div>
@@ -775,7 +809,7 @@ function HowItWorks() {
               {/* Engraved numerals: outlined, filled on hover. */}
               <span
                 aria-hidden="true"
-                className="block font-brand text-[5rem] leading-none text-transparent [-webkit-text-stroke:1px_var(--color-brand)] transition-colors duration-500 group-hover:text-jade group-hover:[-webkit-text-stroke:1px_transparent] [font-variant-numeric:lining-nums]"
+                className="statement block text-[5rem] text-transparent [-webkit-text-stroke:1.5px_var(--color-brand)] transition-colors duration-500 group-hover:text-jade group-hover:[-webkit-text-stroke:1px_transparent] [font-variant-numeric:lining-nums]"
               >
                 {String(index + 1).padStart(2, '0')}
               </span>
@@ -920,7 +954,7 @@ function FinalCta() {
         </div>
         <div className={`grid items-center gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] ${WRAP} py-24 sm:py-32`}>
           <Reveal>
-            <h2 id="final-titre" className="max-w-[38rem] text-balance font-brand text-[2.75rem] font-normal leading-[1.02] tracking-[-0.025em] sm:text-[4rem]">
+            <h2 id="final-titre" className="statement max-w-[44rem] text-balance text-[clamp(2.3rem,5vw,4.75rem)]">
               {COPY.finalCta.title}
             </h2>
             <p className="mt-6 max-w-[30rem] text-[1.0625rem] leading-relaxed text-ink-soft">{COPY.finalCta.text}</p>
@@ -1016,7 +1050,7 @@ function SiteFooter() {
         </div>
       </div>
       {/* The house name, set across the foot of the page in a tone of the paper. */}
-      <p aria-hidden="true" className="-mb-[0.16em] select-none whitespace-nowrap text-center font-brand text-[13.6vw] leading-none tracking-[-0.05em] text-surface-sunken">
+      <p aria-hidden="true" className="statement -mb-[0.1em] select-none whitespace-nowrap text-center text-[10.2vw] text-surface-sunken">
         MalaikaEvents
       </p>
     </footer>
