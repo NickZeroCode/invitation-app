@@ -67,7 +67,7 @@ export function Modal({
         <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div className="min-w-0">
             {title ? (
-              <h2 className="text-base font-semibold tracking-tight text-ink">{title}</h2>
+              <h2 className="text-[1.125rem] font-normal text-ink">{title}</h2>
             ) : null}
             {description ? <p className="mt-0.5 text-[0.8125rem] text-ink-soft">{description}</p> : null}
           </div>

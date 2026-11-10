@@ -30,9 +30,9 @@ const TEXTAREA_SIZES: Record<ControlSize, string> = {
 function controlClasses(invalid: boolean | undefined, className: string): string {
   const border = invalid
     ? 'border-danger focus:border-danger focus:ring-danger/15'
-    : 'border-line-strong hover:border-ink-faint/50 focus:border-ink/60 focus:ring-ink/8'
+    : 'border-line-strong hover:border-ink-faint focus:border-ink focus:ring-ink/8'
   return (
-    'w-full min-w-0 rounded-md border bg-surface text-ink shadow-xs placeholder:text-ink-faint ' +
+    'w-full min-w-0 rounded-md border bg-surface text-ink placeholder:text-ink-faint ' +
     'transition-[border-color,box-shadow] duration-150 focus:outline-none focus:ring-4 ' +
     'disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-ink-faint ' +
     `${border} ${className}`
@@ -103,7 +103,7 @@ export function Select({
       )}
       style={{
         backgroundImage:
-          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238e887f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")",
+          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235a5a5a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")",
       }}
       {...props}
     >

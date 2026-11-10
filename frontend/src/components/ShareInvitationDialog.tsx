@@ -151,7 +151,8 @@ function ShareForm({
   const [channel, setChannel] = useState<Channel>('whatsapp')
   const [message, setMessage] = useState(context.default_message)
   const [country, setCountry] = useState(DEFAULT_COUNTRY)
-  const [phone, setPhone] = useState('')
+  // Starts from the guest's saved number, when there is one.
+  const [phone, setPhone] = useState(context.whatsapp_number ?? '')
   const [phoneTouched, setPhoneTouched] = useState(false)
   const [handedOff, setHandedOff] = useState(false)
   const [recipient, setRecipient] = useState('')

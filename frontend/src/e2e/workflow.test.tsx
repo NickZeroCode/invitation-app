@@ -482,6 +482,7 @@ function createBackend(initialFixtures: Record<string, PublicFixture> = {}): Bac
           guest_name: payload.guest_name,
           civility,
           table: null,
+          whatsapp_number: '',
           table_number: payload.table_number ?? '',
           table_text: payload.table_text ?? '',
           display_name: displayName,

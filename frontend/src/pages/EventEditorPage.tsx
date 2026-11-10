@@ -1194,7 +1194,7 @@ export function EventEditorPage() {
             <div className="w-full max-w-[28rem] overflow-hidden rounded-lg bg-surface shadow-canvas ring-1 ring-line-strong xl:max-w-[32rem] 2xl:max-w-[36rem]">
               <div
                 ref={previewCardRef}
-                className="flex w-full flex-col"
+                className="flex w-full flex-col font-sans"
                 style={fontScaleStyle(fontSize)}
               >
                 <template.Component draft={previewDraft} />

@@ -58,6 +58,16 @@ describe('ShareInvitationDialog', () => {
     expect(screen.getByText(/Appuyez sur « Envoyer » dans WhatsApp/)).toBeInTheDocument()
   })
 
+  it('starts from the guest’s saved WhatsApp number', async () => {
+    mockFetch([{ url: '/api/share/invitations/tok-1/', body: { ...CONTEXT, whatsapp_number: '+243812345678' } }])
+    renderDialog()
+
+    expect(await screen.findByLabelText('Numéro WhatsApp')).toHaveValue('+243812345678')
+    expect(screen.getByRole('link', { name: /Ouvrir dans WhatsApp/ }).getAttribute('href')).toBe(
+      `https://wa.me/243812345678?text=${encodeURIComponent(CONTEXT.default_message)}`,
+    )
+  })
+
   it('flags an invalid phone number instead of guessing', async () => {
     mockFetch([{ url: '/api/share/invitations/tok-1/', body: CONTEXT }])
     const user = userEvent.setup()

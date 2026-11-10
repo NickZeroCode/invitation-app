@@ -145,6 +145,8 @@ class ShareContextView(APIView):
                 "status": invitation.status,
                 "invitation_id": invitation.pk,
                 "display_name": invitation.display_name,
+                # Prefills the WhatsApp field (organizer-only endpoint).
+                "whatsapp_number": invitation.whatsapp_number,
                 "public_url": url,
                 "email_enabled": bool(getattr(settings, "INVITATION_EMAIL_ENABLED", False)),
                 "event": {

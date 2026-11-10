@@ -16,26 +16,25 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
  * (`whitespace-nowrap`); long labels shrink their container instead.
  */
 export const BUTTON_BASE =
-  'inline-flex shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ' +
+  'inline-flex shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium ' +
   'transition-[background-color,border-color,color,box-shadow] duration-150 ' +
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 focus-visible:ring-offset-2 focus-visible:ring-offset-paper ' +
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2 focus-visible:ring-offset-paper ' +
   'disabled:cursor-not-allowed disabled:opacity-50'
 
 export const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
-  // Ink is the product's confident primary; gold stays an accent.
-  primary: 'bg-ink text-white shadow-xs hover:bg-ink/88 active:bg-ink',
-  accent: 'bg-brand text-white shadow-xs hover:bg-brand-strong',
-  secondary:
-    'border border-line-strong bg-surface text-ink shadow-xs hover:border-ink-faint/60 hover:bg-surface-muted',
-  ghost: 'text-ink-soft hover:bg-surface-muted hover:text-ink',
-  danger: 'bg-danger text-white shadow-xs hover:bg-danger-strong',
+  // Near-black pills carry the action; outlined pills the alternatives.
+  primary: 'bg-ink text-white hover:bg-[#3c3c3c] active:bg-black',
+  accent: 'bg-ink text-white hover:bg-[#3c3c3c] active:bg-black',
+  secondary: 'border border-line-strong bg-surface text-ink hover:border-ink-faint hover:bg-surface-muted',
+  ghost: 'text-ink-soft hover:bg-surface-sunken hover:text-ink',
+  danger: 'bg-danger text-white hover:bg-danger-strong',
   'danger-ghost': 'text-danger hover:bg-danger-soft',
 }
 
 export const BUTTON_SIZES: Record<ButtonSize, string> = {
-  sm: 'h-8 px-3 text-[0.8125rem]',
-  md: 'h-10 px-4 text-sm',
-  lg: 'h-11 px-5 text-[0.9375rem]',
+  sm: 'h-8 px-3.5 text-[0.8125rem]',
+  md: 'h-10 px-5 text-sm',
+  lg: 'h-11 px-6 text-[0.9375rem]',
 }
 
 /** Class string for links styled as buttons (keeps one source of truth). */

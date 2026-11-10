@@ -187,6 +187,53 @@ describe('GuestsPage', () => {
     expect(await screen.findByText('Invitation créée.')).toBeInTheDocument()
     const [call] = mock.callsTo('/api/events/7/invitations/', 'POST')
     expect(call.body).toMatchObject({ guest_name: 'Sarah Kabamba', civility: 'mme', expires_at: null })
+    expect(call.body).not.toHaveProperty('whatsapp_number')
+  })
+
+  it('saves the guest’s WhatsApp number in international form', async () => {
+    const user = userEvent.setup()
+    const mock = renderGuests([
+      { url: '/api/auth/me/', body: ORGANIZER },
+      { url: '/api/events/7/invitations/', body: PAGE },
+      { url: '/api/events/7/', body: EVENT },
+      CSRF_ROUTE,
+      {
+        url: '/api/events/7/invitations/',
+        method: 'POST',
+        status: 201,
+        body: invitation({ id: 43, guest_name: 'Awa Mbuyi', whatsapp_number: '+243812345678' }),
+      },
+    ])
+
+    await user.click(await screen.findByRole('button', { name: 'Ajouter un invité' }))
+    await screen.findByRole('button', { name: "Créer l'invitation" })
+    await user.type(byId('guest-name'), 'Awa Mbuyi')
+    await user.type(byId('guest-whatsapp'), '081 234 5678')
+    expect(screen.getByText('Sera enregistré comme +243812345678')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: "Créer l'invitation" }))
+
+    expect(await screen.findByText('Invitation créée.')).toBeInTheDocument()
+    const [call] = mock.callsTo('/api/events/7/invitations/', 'POST')
+    expect(call.body).toMatchObject({ guest_name: 'Awa Mbuyi', whatsapp_number: '+243812345678' })
+  })
+
+  it('refuses a malformed WhatsApp number before sending', async () => {
+    const user = userEvent.setup()
+    const mock = renderGuests([
+      { url: '/api/auth/me/', body: ORGANIZER },
+      { url: '/api/events/7/invitations/', body: PAGE },
+      { url: '/api/events/7/', body: EVENT },
+      CSRF_ROUTE,
+    ])
+
+    await user.click(await screen.findByRole('button', { name: 'Ajouter un invité' }))
+    await screen.findByRole('button', { name: "Créer l'invitation" })
+    await user.type(byId('guest-name'), 'Awa Mbuyi')
+    await user.type(byId('guest-whatsapp'), '12')
+    await user.click(screen.getByRole('button', { name: "Créer l'invitation" }))
+
+    expect(await screen.findByText('Ce numéro est trop court.')).toBeInTheDocument()
+    expect(mock.callsTo('/api/events/7/invitations/', 'POST')).toHaveLength(0)
   })
 
   it('generates a batch of invitations from the guest list', async () => {

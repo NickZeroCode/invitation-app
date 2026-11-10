@@ -395,17 +395,9 @@ function Hero({ qrDataUrl, rich }: { qrDataUrl: string; rich: boolean }) {
         </div>
 
         <div className="mx-auto w-full max-w-[86rem] px-5 pb-6 pt-24 sm:px-10 sm:pt-28 lg:px-14">
-          {/* The object, flanked by its pronunciation notes. */}
-          <div className="grid grid-cols-2 items-start gap-x-6 gap-y-6 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-            <p aria-hidden="true" className="mark-label landing-rise order-2 max-w-[13rem] text-ink-soft sm:order-none sm:pt-[14%]" style={{ ['--rise-delay' as string]: '500ms' }}>
-              {COPY.hero.pronounceName}
-            </p>
-            <div className="landing-rise order-1 col-span-2 mx-auto w-[min(62vw,17rem)] sm:order-none sm:col-span-1 lg:w-[19rem]" style={{ ['--rise-delay' as string]: '150ms' }}>
-              <InvitationScene animate={rich} label={COPY.hero.stageLabel} card={<TemplatePreview templateKey="floraison" />} chips={chips} />
-            </div>
-            <p aria-hidden="true" className="mark-label landing-rise order-3 max-w-[13rem] justify-self-end text-right text-ink-soft sm:order-none sm:pt-[14%]" style={{ ['--rise-delay' as string]: '500ms' }}>
-              {COPY.hero.pronounceEvents}
-            </p>
+          {/* The object. */}
+          <div className="landing-rise mx-auto w-[min(62vw,17rem)] lg:w-[19rem]" style={{ ['--rise-delay' as string]: '150ms' }}>
+            <InvitationScene animate={rich} label={COPY.hero.stageLabel} card={<TemplatePreview templateKey="floraison" />} chips={chips} />
           </div>
 
           {/* The statement: one block, its second breath stepping in. */}

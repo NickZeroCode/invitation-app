@@ -63,6 +63,13 @@ import type {
 } from '../lib/types.ts'
 import { GuestListExportDialog } from '../components/GuestListExportDialog.tsx'
 import { ShareInvitationDialog } from '../components/ShareInvitationDialog.tsx'
+import {
+  emptyWhatsapp,
+  whatsappFromStored,
+  WhatsappNumberField,
+  whatsappPayload,
+  type WhatsappValue,
+} from '../components/WhatsappNumberField.tsx'
 import { fr } from '../locales/fr.ts'
 import { emptyDraft } from '../templates/registry.tsx'
 
@@ -192,10 +199,11 @@ interface BulkRow {
   table: string // registry id as string, '' = none, TABLE_CUSTOM = manual
   table_number: string
   table_text: string
+  whatsapp: WhatsappValue
 }
 
 function emptyBulkRow(): BulkRow {
-  return { guest_name: '', civility: 'none', table: '', table_number: '', table_text: '' }
+  return { guest_name: '', civility: 'none', table: '', table_number: '', table_text: '', whatsapp: emptyWhatsapp() }
 }
 
 /** Truthful progress of one PDF export batch (single or bulk). */
@@ -351,11 +359,15 @@ function AddGuestForm({
   const [tableChoice, setTableChoice] = useState('')
   const [tableNumber, setTableNumber] = useState('')
   const [tableText, setTableText] = useState('')
+  const [whatsapp, setWhatsapp] = useState<WhatsappValue>(emptyWhatsapp)
+  const [showWhatsappErrors, setShowWhatsappErrors] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const queryClient = useQueryClient()
 
   function reset() {
+    setWhatsapp(emptyWhatsapp())
+    setShowWhatsappErrors(false)
     setName('')
     setCivility('none')
     setExpiry('')
@@ -396,12 +408,19 @@ function AddGuestForm({
       setError(fr.common.requiredField)
       return
     }
+    const whatsappNumber = whatsappPayload(whatsapp)
+    if (whatsappNumber === null) {
+      setShowWhatsappErrors(true)
+      setError(fr.guests.whatsappInvalid)
+      return
+    }
     setError(null)
     const payload: InvitationPayload = {
       guest_name: trimmed,
       civility,
       expires_at: expiryPayload(expiry),
     }
+    if (whatsappNumber) payload.whatsapp_number = whatsappNumber
     if (tableChoice === TABLE_CUSTOM) {
       payload.table_number = tableNumber.trim()
       payload.table_text = tableText.trim()
@@ -438,6 +457,13 @@ function AddGuestForm({
             ))}
           </Select>
         </Field>
+        <WhatsappNumberField
+          id="guest-whatsapp"
+          value={whatsapp}
+          onChange={setWhatsapp}
+          showErrors={showWhatsappErrors}
+          className="sm:col-span-2"
+        />
         <Field id="guest-expiry" label={fr.guests.addExpiryLabel} hint={fr.guests.addExpiryHint}>
           <Input
             id="guest-expiry"
@@ -574,11 +600,18 @@ function BulkAddForm({
       setError(fr.guests.bulkEmpty)
       return
     }
+    const badNumber = rows.findIndex((row) => whatsappPayload(row.whatsapp) === null)
+    if (badNumber >= 0) {
+      setError(fr.guests.whatsappInvalidLine.replace('{line}', String(badNumber + 1)))
+      return
+    }
     setError(null)
     mutation.mutate(
       rows.map((row) => {
         const payload: InvitationPayload = { guest_name: row.guest_name.trim() }
         if (row.civility !== 'none') payload.civility = row.civility
+        const whatsappNumber = whatsappPayload(row.whatsapp)
+        if (whatsappNumber) payload.whatsapp_number = whatsappNumber
         if (row.table === TABLE_CUSTOM) {
           if (row.table_number.trim()) payload.table_number = row.table_number.trim()
           if (row.table_text.trim()) payload.table_text = row.table_text.trim()
@@ -670,6 +703,13 @@ function BulkAddForm({
                       onClick={() => removeRow(index)}
                     />
                   </div>
+                  <WhatsappNumberField
+                    compact
+                    id={`bulk-row-${index}-whatsapp`}
+                    value={row.whatsapp}
+                    onChange={(whatsapp) => updateRow(index, { whatsapp })}
+                    className="sm:col-span-2"
+                  />
                   {row.table === TABLE_CUSTOM ? (
                     <div className="grid grid-cols-1 gap-2 sm:col-span-4 sm:grid-cols-2">
                       <Field id={`bulk-row-${index}-table-number`} label={fr.guests.tableNumberLabel}>
@@ -783,6 +823,8 @@ function GuestRow({
   const [tableNumber, setTableNumber] = useState(invitation.table_number)
   const [tableText, setTableText] = useState(invitation.table_text)
   const [tableId, setTableId] = useState<number | null>(invitation.table)
+  const [whatsapp, setWhatsapp] = useState<WhatsappValue>(() => whatsappFromStored(invitation.whatsapp_number ?? ''))
+  const [showWhatsappErrors, setShowWhatsappErrors] = useState(false)
   // Explicit select state ('' none / registry id / TABLE_CUSTOM) — NOT derived
   // from tableNumber, so clearing the manual number input can't flip the mode.
   const [tableMode, setTableMode] = useState<string>(() =>
@@ -873,6 +915,12 @@ function GuestRow({
       setError(fr.common.requiredField)
       return
     }
+    const whatsappNumber = whatsappPayload(whatsapp)
+    if (whatsappNumber === null) {
+      setShowWhatsappErrors(true)
+      setError(fr.guests.whatsappInvalid)
+      return
+    }
     // PATCH partial: only send the date when it was edited — re-sending an
     // untouched (possibly already past) value would be re-validated and
     // rejected by the server even for an unrelated guest-name fix.
@@ -881,6 +929,7 @@ function GuestRow({
       civility,
       table_number: tableNumber.trim(),
       table_text: tableText.trim(),
+      whatsapp_number: whatsappNumber,
     }
     // The table picker is authoritative for the link: a registry id copies
     // that table's values server-side; `null` clears the link; leaving the
@@ -1067,6 +1116,13 @@ function GuestRow({
               onChange={(event) => setExpiry(event.target.value)}
             />
           </Field>
+          <WhatsappNumberField
+            id={`guest-${invitation.id}-whatsapp`}
+            value={whatsapp}
+            onChange={setWhatsapp}
+            showErrors={showWhatsappErrors}
+            className="sm:col-span-2"
+          />
           <Field
             id={`guest-${invitation.id}-table-select`}
             label={fr.guests.tableSelectLabel}

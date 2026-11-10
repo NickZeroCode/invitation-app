@@ -24,7 +24,7 @@ function TemplatePreview({ template }: { template: InvitationTemplate }) {
   const definition = getTemplate(template.key)
   return (
     <div
-      className="pointer-events-none aspect-[3/4] w-full overflow-hidden bg-surface-muted"
+      className="pointer-events-none aspect-[3/4] w-full overflow-hidden bg-surface-muted font-sans"
       aria-label={fr.templates.previewLabel}
     >
       {definition ? (

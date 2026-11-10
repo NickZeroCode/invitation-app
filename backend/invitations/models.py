@@ -59,6 +59,11 @@ class Invitation(models.Model):
         verbose_name="table",
     )
 
+    # The guest's WhatsApp number in international form (« +243812345678 »).
+    # Optional; it prefills the WhatsApp field of the send dialog. Visible to
+    # the organizer only, never on the public invitation.
+    whatsapp_number = models.CharField("numéro WhatsApp", max_length=20, blank=True, default="")
+
     token = models.CharField(
         "jeton public", max_length=64, unique=True, default=generate_invitation_token, editable=False
     )

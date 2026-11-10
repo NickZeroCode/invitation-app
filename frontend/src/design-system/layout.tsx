@@ -20,13 +20,27 @@ export interface PageHeaderProps {
 }
 
 export function PageHeader({ title, description, eyebrow, back, actions }: PageHeaderProps) {
+  // Top-level pages open on a cream introduction card; sub-pages (with a
+  // back link) keep a plain header so the content stays close.
+  if (!back) {
+    return (
+      <header className="rounded-lg bg-cream px-6 py-7 sm:px-9 sm:py-9">
+        {eyebrow ? <p className="mb-2 truncate text-[0.8125rem] text-ink-soft">{eyebrow}</p> : null}
+        <h1 className="text-[2rem] font-normal leading-tight tracking-[-0.01em] text-ink sm:text-[2.25rem]">{title}</h1>
+        {description ? (
+          <p className="mt-2 max-w-2xl text-[0.9375rem] font-light leading-relaxed text-ink-soft">{description}</p>
+        ) : null}
+        {actions ? <div className="mt-6 flex flex-wrap items-center gap-2">{actions}</div> : null}
+      </header>
+    )
+  }
   return (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
         {back ? (
           <Link
             to={back.to}
-            className="mb-3 inline-flex items-center gap-1 rounded-md text-[0.8125rem] font-medium text-ink-soft transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35"
+            className="mb-3 inline-flex items-center gap-1 rounded-full text-[0.8125rem] text-ink-soft transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
           >
             <IconChevronLeft className="h-4 w-4" />
             {back.label}
@@ -35,7 +49,7 @@ export function PageHeader({ title, description, eyebrow, back, actions }: PageH
         {eyebrow ? (
           <p className="mb-1.5 truncate text-[0.8125rem] font-medium text-ink-faint">{eyebrow}</p>
         ) : null}
-        <h1 className="text-[1.625rem] font-semibold leading-tight tracking-[-0.02em] text-ink sm:text-[1.75rem]">
+        <h1 className="text-[1.75rem] font-normal leading-tight tracking-[-0.01em] text-ink sm:text-[2rem]">
           {title}
         </h1>
         {description ? (
@@ -60,7 +74,7 @@ export function SectionTitle({
 }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <Tag className="text-[0.8125rem] font-semibold uppercase tracking-[0.08em] text-ink-faint">
+      <Tag className="text-[1.125rem] font-normal text-ink">
         {children}
       </Tag>
       {action}
@@ -72,7 +86,7 @@ export function SectionTitle({
 export function Toolbar({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <div
-      className={`flex flex-col gap-2 rounded-lg border border-line bg-surface p-2 shadow-card sm:flex-row sm:items-center ${className}`}
+      className={`flex flex-col gap-2 rounded-lg border border-line bg-surface p-2 sm:flex-row sm:items-center ${className}`}
     >
       {children}
     </div>
@@ -100,7 +114,7 @@ export function Pagination({
   pageLabel: string
 }) {
   const base =
-    'inline-flex h-8 items-center whitespace-nowrap rounded-md border border-line-strong bg-surface px-3 text-[0.8125rem] font-medium text-ink shadow-xs transition-colors hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-45'
+    'inline-flex h-9 items-center whitespace-nowrap rounded-full border border-line-strong bg-surface px-4 text-[0.8125rem] font-medium text-ink transition-colors hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-45'
   return (
     <nav className="flex items-center justify-between gap-3 pt-2" aria-label="Pagination">
       <button type="button" className={base} disabled={page <= 1} onClick={onPrev}>

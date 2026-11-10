@@ -240,6 +240,8 @@ export interface Invitation {
   table_text: string
   /** Seating-registry table id this invitation was assigned from (null = none). */
   table: number | null
+  /** Guest's WhatsApp number in international form (« +243… »), or ''. */
+  whatsapp_number: string
   display_name: string
   token: string
   issued_at: string
@@ -264,6 +266,8 @@ export interface InvitationPayload {
   /** Seating-registry table id to copy onto this invitation (null = clear link). */
   table?: number | null
   expires_at?: string | null
+  /** International form (« +243… ») or '' to clear. */
+  whatsapp_number?: string
 }
 
 /** One named table in an event's seating registry ("ajouter une table"). */
@@ -519,6 +523,8 @@ export type ShareContext =
       status: InvitationState
       invitation_id: number
       display_name: string
+      /** The guest's saved WhatsApp number (« +243… ») or '', to prefill. */
+      whatsapp_number?: string
       /** Absolute guest-facing URL built by the server. */
       public_url: string
       /** True only when the server has an e-mail provider configured. */

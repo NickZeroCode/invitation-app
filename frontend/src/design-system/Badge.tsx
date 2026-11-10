@@ -31,7 +31,7 @@ const DOTS: Record<BadgeTone, string> = {
 export function Badge({ tone = 'neutral', dot = false, children }: BadgeProps) {
   return (
     <span
-      className={`inline-flex max-w-full shrink-0 items-center gap-1.5 whitespace-nowrap rounded-pill px-2 py-0.5 text-xs font-medium leading-5 ring-1 ring-inset ${TONES[tone]}`}
+      className={`inline-flex max-w-full shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm px-2 py-0.5 text-xs font-medium leading-5 ring-1 ring-inset ${TONES[tone]}`}
     >
       {dot ? <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-pill ${DOTS[tone]}`} /> : null}
       <span className="truncate">{children}</span>

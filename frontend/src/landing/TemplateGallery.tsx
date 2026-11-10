@@ -226,7 +226,7 @@ export function TemplateGallery({
         <ul aria-label={trackLabel} className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
           {items.map((item, index) => (
             <li key={item.key}>
-              {cardButton(item, index, 'transition-transform duration-300 hover:-translate-y-1')}
+              {cardButton(item, index, 'transition-transform duration-300 hover:scale-[1.02]')}
               <p className="mt-4 font-brand text-[1.125rem] leading-tight text-ink">{item.name}</p>
               <p className="mt-1 font-label text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-ink-faint">{item.categoryLabel}</p>
             </li>

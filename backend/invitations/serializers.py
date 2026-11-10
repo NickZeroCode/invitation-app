@@ -13,6 +13,8 @@ plain field writes: `state` is read-only everywhere else.
 """
 from __future__ import annotations
 
+import re
+
 from django.db.models import Exists, OuterRef
 from django.utils.timezone import now as timezone_now
 from rest_framework import serializers
@@ -89,6 +91,13 @@ class InvitationSerializer(serializers.ModelSerializer):
         allow_null=True,
         error_messages={"invalid": "Format de date invalide."},
     )
+    # Optional WhatsApp number, stored in international form (« +243… »).
+    whatsapp_number = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=32,
+        error_messages={"max_length": "Le numéro WhatsApp est trop long."},
+    )
 
     class Meta:
         model = Invitation
@@ -101,6 +110,7 @@ class InvitationSerializer(serializers.ModelSerializer):
             "table_number",
             "table_text",
             "table",
+            "whatsapp_number",
             "display_name",
             "token",
             "issued_at",
@@ -144,6 +154,19 @@ class InvitationSerializer(serializers.ModelSerializer):
         return GuestResponse.objects.filter(invitation=obj).exists()
 
     # --- Validation ----------------------------------------------------
+
+    def validate_whatsapp_number(self, value: str) -> str:
+        """Formatting is ignored; the number must be international (+ and 8 to 15 digits)."""
+        compact = re.sub(r"[\s().-]", "", value.strip())
+        if not compact:
+            return ""
+        if compact.startswith("00"):
+            compact = "+" + compact[2:]
+        if not re.fullmatch(r"\+\d{8,15}", compact):
+            raise serializers.ValidationError(
+                "Indiquez le numéro WhatsApp au format international, par exemple +243 812 345 678."
+            )
+        return compact
 
     def validate_guest_name(self, value: str) -> str:
         value = value.strip()

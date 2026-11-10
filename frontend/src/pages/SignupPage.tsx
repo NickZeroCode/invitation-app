@@ -2,13 +2,12 @@ import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../auth/AuthContext.tsx'
-import { Alert, BrandLockup, Button, Field, Input, LogoMark, PasswordInput } from '../design-system/index.ts'
-import { LegalLinks } from '../components/LegalLinks.tsx'
+import { Alert, Button, Field, Input, PasswordInput } from '../design-system/index.ts'
+import { AuthLayout } from '../layout/AuthLayout.tsx'
 import { ApiError } from '../lib/api.ts'
 import { fr } from '../locales/fr.ts'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const CURRENT_YEAR = new Date().getFullYear()
 const MIN_PASSWORD_LENGTH = 8
 
 export function SignupPage() {
@@ -101,185 +100,144 @@ export function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-svh bg-paper">
-      {/* Brand panel */}
-      <aside className="hidden w-[42%] max-w-xl flex-col justify-between bg-malachite px-12 py-10 text-paper-on-dark lg:flex">
-        <div className="flex justify-center">
-          <LogoMark plate={false} className="h-28 w-28 xl:h-32 xl:w-32" />
+    <AuthLayout title={fr.signup.title} subtitle={fr.signup.subtitle}>
+      <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        {formError ? <Alert tone="danger">{formError}</Alert> : null}
+
+        <div className="grid grid-cols-2 gap-4">
+          <Field
+            id="signup-first-name"
+            label={fr.signup.firstName}
+            required
+            error={fieldErrors.first_name}
+          >
+            <Input
+              id="signup-first-name"
+              autoComplete="given-name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              invalid={Boolean(fieldErrors.first_name)}
+              aria-describedby={fieldErrors.first_name ? 'signup-first-name-error' : undefined}
+            />
+          </Field>
+
+          <Field
+            id="signup-last-name"
+            label={fr.signup.lastName}
+            required
+            error={fieldErrors.last_name}
+          >
+            <Input
+              id="signup-last-name"
+              autoComplete="family-name"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              invalid={Boolean(fieldErrors.last_name)}
+              aria-describedby={fieldErrors.last_name ? 'signup-last-name-error' : undefined}
+            />
+          </Field>
         </div>
-        <div>
-          <h1 className="font-brand text-[2.75rem] font-semibold leading-[1.05] tracking-[-0.01em]">{fr.login.heroTitle}</h1>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-white/70">{fr.login.heroText}</p>
-          <ul className="mt-8 space-y-2.5">
-            {[fr.login.heroPoint1, fr.login.heroPoint2, fr.login.heroPoint3].map((point) => (
-              <li key={point} className="flex items-start gap-2.5 text-sm text-white/85">
-                <span className="mt-2 h-1 w-1 shrink-0 rounded-pill bg-white/60" aria-hidden="true" />
-                {point}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <p className="text-xs text-white/50">
-          © {CURRENT_YEAR} {fr.appName}
-        </p>
-      </aside>
 
-      {/* Form panel */}
-      <main className="flex flex-1 items-center justify-center px-4 py-12 sm:px-8">
-        <div className="w-full max-w-sm">
-          <div className="flex justify-center lg:hidden">
-            <BrandLockup />
-          </div>
+        <Field id="signup-email" label={fr.signup.email} required error={fieldErrors.email}>
+          <Input
+            id="signup-email"
+            type="email"
+            autoComplete="email"
+            placeholder="nom@exemple.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? 'signup-email-error' : undefined}
+          />
+        </Field>
 
-          <h2 className="mt-8 font-brand text-[2.25rem] font-semibold leading-tight text-ink lg:mt-0">
-            {fr.signup.title}
-          </h2>
-          <p className="mt-1.5 text-sm text-ink-soft">{fr.signup.subtitle}</p>
+        <Field id="signup-password" label={fr.signup.password} required error={fieldErrors.password}>
+          <PasswordInput
+            id="signup-password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            invalid={Boolean(fieldErrors.password)}
+            aria-describedby={fieldErrors.password ? 'signup-password-error' : undefined}
+          />
+        </Field>
 
-          <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-5">
-            {formError ? <Alert tone="danger">{formError}</Alert> : null}
+        <Field
+          id="signup-confirm-password"
+          label={fr.signup.confirmPassword}
+          required
+          error={fieldErrors.confirm_password}
+        >
+          <PasswordInput
+            id="signup-confirm-password"
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            invalid={Boolean(fieldErrors.confirm_password)}
+            aria-describedby={
+              fieldErrors.confirm_password ? 'signup-confirm-password-error' : undefined
+            }
+          />
+        </Field>
 
-            <div className="grid grid-cols-2 gap-4">
-              <Field
-                id="signup-first-name"
-                label={fr.signup.firstName}
-                required
-                error={fieldErrors.first_name}
-              >
-                <Input
-                  id="signup-first-name"
-                  autoComplete="given-name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  invalid={Boolean(fieldErrors.first_name)}
-                  aria-describedby={fieldErrors.first_name ? 'signup-first-name-error' : undefined}
-                />
-              </Field>
-
-              <Field
-                id="signup-last-name"
-                label={fr.signup.lastName}
-                required
-                error={fieldErrors.last_name}
-              >
-                <Input
-                  id="signup-last-name"
-                  autoComplete="family-name"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  invalid={Boolean(fieldErrors.last_name)}
-                  aria-describedby={fieldErrors.last_name ? 'signup-last-name-error' : undefined}
-                />
-              </Field>
-            </div>
-
-            <Field id="signup-email" label={fr.signup.email} required error={fieldErrors.email}>
-              <Input
-                id="signup-email"
-                type="email"
-                autoComplete="email"
-                placeholder="nom@exemple.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                invalid={Boolean(fieldErrors.email)}
-                aria-describedby={fieldErrors.email ? 'signup-email-error' : undefined}
-              />
-            </Field>
-
-            <Field id="signup-password" label={fr.signup.password} required error={fieldErrors.password}>
-              <PasswordInput
-                id="signup-password"
-                autoComplete="new-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                invalid={Boolean(fieldErrors.password)}
-                aria-describedby={fieldErrors.password ? 'signup-password-error' : undefined}
-              />
-            </Field>
-
-            <Field
-              id="signup-confirm-password"
-              label={fr.signup.confirmPassword}
-              required
-              error={fieldErrors.confirm_password}
-            >
-              <PasswordInput
-                id="signup-confirm-password"
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                invalid={Boolean(fieldErrors.confirm_password)}
-                aria-describedby={
-                  fieldErrors.confirm_password ? 'signup-confirm-password-error' : undefined
+        <div className="space-y-1.5">
+          <div className="flex items-start gap-2.5">
+            <input
+              id="signup-consent"
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-line-strong accent-ink"
+              checked={accepted}
+              onChange={(event) => {
+                setAccepted(event.target.checked)
+                if (event.target.checked) {
+                  setFieldErrors((current) => {
+                    if (!current.accepted) return current
+                    const next = { ...current }
+                    delete next.accepted
+                    return next
+                  })
                 }
-              />
-            </Field>
-
-            <div className="space-y-1.5">
-              <div className="flex items-start gap-2.5">
-                <input
-                  id="signup-consent"
-                  type="checkbox"
-                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-line-strong accent-ink"
-                  checked={accepted}
-                  onChange={(event) => {
-                    setAccepted(event.target.checked)
-                    if (event.target.checked) {
-                      setFieldErrors((current) => {
-                        if (!current.accepted) return current
-                        const next = { ...current }
-                        delete next.accepted
-                        return next
-                      })
-                    }
-                  }}
-                  aria-describedby={fieldErrors.accepted ? 'signup-consent-error' : undefined}
-                />
-                <label htmlFor="signup-consent" className="text-[0.8125rem] leading-relaxed text-ink">
-                  {fr.signup.consent.prefix}
-                  <Link
-                    to="/cgu"
-                    onClick={(event) => event.stopPropagation()}
-                    className="font-medium text-ink underline decoration-line-strong underline-offset-4 transition-colors hover:text-brand"
-                  >
-                    {fr.signup.consent.cgu}
-                  </Link>
-                  {fr.signup.consent.middle}
-                  <Link
-                    to="/politique-de-confidentialite"
-                    onClick={(event) => event.stopPropagation()}
-                    className="font-medium text-ink underline decoration-line-strong underline-offset-4 transition-colors hover:text-brand"
-                  >
-                    {fr.signup.consent.privacy}
-                  </Link>
-                  {fr.signup.consent.suffix}
-                </label>
-              </div>
-              {fieldErrors.accepted ? (
-                <p id="signup-consent-error" role="alert" className="text-xs text-danger">
-                  {fieldErrors.accepted}
-                </p>
-              ) : null}
-            </div>
-
-            <Button type="submit" className="w-full" loading={submitting}>
-              {submitting ? fr.signup.submitting : fr.signup.submit}
-            </Button>
-          </form>
-
-          <p className="mt-6 text-sm text-ink-soft">
-            {fr.signup.haveAccount}{' '}
-            <Link
-              to="/connexion"
-              className="font-semibold text-ink underline decoration-line-strong underline-offset-4 transition-colors hover:text-brand"
-            >
-              {fr.signup.signIn}
-            </Link>
-          </p>
-
-          <LegalLinks className="mt-4" />
+              }}
+              aria-describedby={fieldErrors.accepted ? 'signup-consent-error' : undefined}
+            />
+            <label htmlFor="signup-consent" className="text-[0.8125rem] leading-relaxed text-ink">
+              {fr.signup.consent.prefix}
+              <Link
+                to="/cgu"
+                onClick={(event) => event.stopPropagation()}
+                className="font-medium text-ink underline decoration-line-strong underline-offset-4 transition-colors hover:text-brand"
+              >
+                {fr.signup.consent.cgu}
+              </Link>
+              {fr.signup.consent.middle}
+              <Link
+                to="/politique-de-confidentialite"
+                onClick={(event) => event.stopPropagation()}
+                className="font-medium text-ink underline decoration-line-strong underline-offset-4 transition-colors hover:text-brand"
+              >
+                {fr.signup.consent.privacy}
+              </Link>
+              {fr.signup.consent.suffix}
+            </label>
+          </div>
+          {fieldErrors.accepted ? (
+            <p id="signup-consent-error" role="alert" className="text-xs text-danger">
+              {fieldErrors.accepted}
+            </p>
+          ) : null}
         </div>
-      </main>
-    </div>
+
+        <Button type="submit" className="w-full" loading={submitting}>
+          {submitting ? fr.signup.submitting : fr.signup.submit}
+        </Button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-ink-soft">
+        {fr.signup.haveAccount}{' '}
+        <Link to="/connexion" className="text-ink underline decoration-line-strong underline-offset-4 transition-colors hover:decoration-ink">
+          {fr.signup.signIn}
+        </Link>
+      </p>
+    </AuthLayout>
   )
 }
