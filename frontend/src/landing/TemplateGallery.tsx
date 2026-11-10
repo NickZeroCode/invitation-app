@@ -262,7 +262,7 @@ export function TemplateGallery({
         <p
           ref={wordRef}
           aria-hidden="true"
-          className="pointer-events-none absolute left-[4%] top-1/2 -translate-y-1/2 statement whitespace-nowrap text-[clamp(6rem,21vw,20rem)] text-[#10241B]"
+          className="pointer-events-none absolute left-[4%] top-1/2 -translate-y-1/2 statement whitespace-nowrap text-[clamp(6rem,21vw,20rem)] text-[#111318]"
         >
           {backdropWord}
         </p>
@@ -282,11 +282,11 @@ export function TemplateGallery({
           </ul>
         </div>
 
-        {/* A vermilion disc names the action under the pointer: open this card. */}
+        {/* A lime disc names the action under the pointer: open this card. */}
         <span
           ref={cursorRef}
           aria-hidden="true"
-          className="pointer-events-none absolute left-0 top-0 z-20 flex h-20 w-20 items-center justify-center rounded-full bg-seal mark-label text-white transition-transform duration-300 ease-out"
+          className="pointer-events-none absolute left-0 top-0 z-20 flex h-20 w-20 items-center justify-center rounded-full bg-brand mark-label text-paper transition-transform duration-300 ease-out"
           style={{ transform: 'scale(0)' }}
         >
           {cursorLabel}
@@ -317,9 +317,9 @@ export function TemplateGallery({
               <button
                 type="button"
                 onClick={() => onOpen(front)}
-                className="inline-flex h-11 items-center gap-2.5 rounded-full border border-jade/50 bg-malachite px-5 text-[0.8125rem] font-medium text-ink transition-colors hover:border-jade hover:bg-jade hover:text-malachite focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade"
+                className="btn-outline"
               >
-                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-seal" />
+                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-brand" />
                 {detailLabel}
               </button>
               <span aria-hidden="true" className="hidden h-px w-40 overflow-hidden bg-line sm:block">

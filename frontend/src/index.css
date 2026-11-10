@@ -1,5 +1,22 @@
 @import 'tailwindcss';
 
+/* Overused Grotesk — SIL Open Font License 1.1 (see the OFL.txt beside the
+   files). Latin subset, woff2, regular and medium. */
+@font-face {
+  font-family: 'Overused Grotesk';
+  src: url('./assets/fonts/overused-grotesk/OverusedGrotesk-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Overused Grotesk';
+  src: url('./assets/fonts/overused-grotesk/OverusedGrotesk-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 /*
  * MalaikaEvents design tokens — « Malachite ». Flat colour, no gradients:
  * warm paper, green-black ink, the banded green of Katanga malachite as the
@@ -354,32 +371,27 @@ html[data-intro='on'] .word-rise {
   animation-delay: calc(var(--word-delay, 0ms) + 1150ms);
 }
 
-/* Statement type: Archivo black, a touch wide, capitals, set tight. */
+@layer components {
+/* Statement type: large regular grotesk, set close. */
 .statement {
   font-family: var(--font-grotesk);
-  font-weight: 860;
-  font-stretch: 112%;
-  text-transform: uppercase;
-  letter-spacing: -0.012em;
-  line-height: 0.92;
-}
-/* Names inside a statement: Bodoni capitals, light and wide, underlined. */
-.statement-name {
-  font-family: var(--font-brand);
   font-weight: 400;
-  font-stretch: normal;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+/* Names inside a statement: the accent colour, finely underlined. */
+.statement-name {
+  color: var(--color-brand);
   text-decoration: underline;
-  text-decoration-thickness: 0.035em;
+  text-decoration-thickness: 0.04em;
   text-underline-offset: 0.12em;
 }
 /* Tiny margin labels, like printer's marks. */
 .mark-label {
-  font-family: var(--font-grotesk);
-  font-size: 0.625rem;
-  font-weight: 600;
-  font-stretch: 105%;
-  letter-spacing: 0.08em;
+  font-family: var(--font-label);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   line-height: 1.5;
   text-transform: uppercase;
 }
@@ -391,4 +403,153 @@ html[data-intro='on'] .word-rise {
   vertical-align: top;
   padding-block: 0.16em 0.04em;
   margin-block: -0.16em -0.04em;
+}
+}
+
+/*
+ * The website ground — blue-black, pale blue-grey type, one lime accent.
+ * Re-points the system tokens for the public site, and its typography:
+ * Geist for reading and interface, Overused Grotesk for titles.
+ */
+.theme-site {
+  --color-paper: #08090d;
+  --color-surface: #17191e;
+  --color-surface-muted: #1d2026;
+  --color-surface-sunken: #111318;
+  --color-ink: #cfdee5;
+  --color-ink-soft: #a7b3ba;
+  --color-ink-faint: #6c7479;
+  --color-line: #cfdee526;
+  --color-line-strong: #cfdee550;
+  --color-brand: #ecff3e;
+  --color-brand-strong: #d1e800;
+  --color-brand-soft: rgb(236 255 62 / 0.1);
+  --color-success: #00c13d;
+  --color-success-soft: rgb(0 193 61 / 0.14);
+  --color-malachite: #08090d;
+  --color-malachite-deep: #08090d;
+  --color-jade: #ecff3e;
+  --color-paper-on-dark: #cfdee5;
+  --font-brand: 'Overused Grotesk', 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-grotesk: 'Overused Grotesk', 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-label: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+@layer components {
+/* Buttons of the site. */
+.btn-primary {
+  display: inline-flex;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  border-radius: 1rem;
+  padding-inline: 1.25rem;
+  background-color: #ecff3e;
+  color: #08090d;
+  font-family: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  transition: background-color 150ms ease;
+}
+.btn-primary:hover {
+  background-color: #d1e800;
+}
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgb(236 255 62 / 0.35);
+}
+
+/* Dark glass with a 1px border that catches the light along its diagonal. */
+.btn-outline {
+  position: relative;
+  display: inline-flex;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  border-radius: 1rem;
+  padding-inline: 1.25rem;
+  background-image: linear-gradient(to top, #08090d40, #08090d80);
+  backdrop-filter: blur(4px);
+  color: #cfdee5;
+  font-family: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  transition: color 300ms ease-out;
+}
+.btn-outline::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1.1px;
+  border-radius: inherit;
+  background: linear-gradient(to right top, rgb(207 222 229 / 0) 0%, rgb(207 222 229 / 0.5) 25%, rgb(207 222 229 / 0) 50%, rgb(207 222 229 / 0.5) 75%, rgb(207 222 229 / 0) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+.btn-outline:hover {
+  color: #a7b3ba;
+}
+.btn-outline:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(207 222 229 / 0.3);
+}
+.btn-icon {
+  width: 2.75rem;
+  padding-inline: 0;
+}
+
+/* Round bordered tags (filters). */
+.tag {
+  display: inline-flex;
+  height: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: 9999px;
+  border: 1px solid #cfdee526;
+  padding-inline: 0.75rem;
+  backdrop-filter: blur(12px);
+  color: #cfdee5;
+  font-family: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+.tag:hover {
+  border-color: #cfdee550;
+}
+.tag[aria-pressed='true'] {
+  border-color: #cfdee5;
+  background-color: #cfdee5;
+  color: #08090d;
+}
+.tag:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(207 222 229 / 0.3);
+}
+
+/* Quiet text links that light up on hover. */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  padding: 0.75rem;
+  color: #cfdee5;
+  transition: background-color 150ms ease;
+}
+.btn-ghost:hover {
+  background-color: rgb(207 222 229 / 0.1);
+}
 }

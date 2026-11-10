@@ -1,5 +1,6 @@
 import '@fontsource-variable/inter'
 import '@fontsource-variable/archivo/wdth.css'
+import '@fontsource-variable/geist'
 import '@fontsource/playfair-display/400.css'
 import '@fontsource/playfair-display/500.css'
 import '@fontsource/playfair-display/600.css'

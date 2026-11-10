@@ -134,7 +134,7 @@ export function TemplateViewer({
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      className="theme-seal fixed inset-0 z-50 overflow-y-auto bg-paper text-ink animate-fade-up"
+      className="theme-site fixed inset-0 z-50 overflow-y-auto bg-surface text-ink animate-fade-up"
       onKeyDown={(event) => {
         if (event.key === 'Escape') {
           event.stopPropagation()
@@ -165,7 +165,7 @@ export function TemplateViewer({
           type="button"
           onClick={onClose}
           aria-label={labels.close}
-          className="fixed right-4 top-4 z-10 flex h-12 w-12 items-center justify-center rounded-full border border-line-strong bg-paper text-ink transition-colors hover:border-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink sm:right-6 sm:top-6"
+          className="btn-outline btn-icon fixed right-4 top-4 z-10 sm:right-6 sm:top-6"
         >
           <span aria-hidden="true" className="relative block h-4 w-4">
             <span className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 rotate-45 bg-current" />
@@ -255,27 +255,17 @@ export function TemplateViewer({
             <span className="font-label text-[0.6875rem] font-semibold tracking-[0.2em] text-ink-faint">/ {String(count).padStart(2, '0')}</span>
           </p>
           <p className="mark-label mt-6 text-ink-soft">{item.categoryLabel}</p>
-          <h2 id={titleId} className="mt-3 font-brand text-[2.75rem] uppercase leading-[0.98] tracking-[0.005em] text-ink sm:text-[3.75rem]">
+          <h2 id={titleId} className="statement mt-3 text-[2.75rem] text-ink sm:text-[3.75rem]">
             {item.name}
           </h2>
           <p className="sr-only">{labels.dialog}</p>
           <p className="mt-5 text-[1rem] leading-relaxed text-ink-soft">{item.description}</p>
 
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            <Link
-              to="/inscription"
-              className="group inline-flex h-[3.25rem] items-center gap-3 rounded-full bg-malachite pl-6 pr-2 text-[0.9375rem] font-semibold text-jade transition-colors hover:bg-malachite-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
-            >
+            <Link to="/inscription" className="btn-primary">
               {labels.customize}
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-jade text-malachite transition-transform group-hover:translate-x-0.5">
-                <span aria-hidden="true">→</span>
-              </span>
             </Link>
-            <button
-              type="button"
-              onClick={flip}
-              className="inline-flex h-[3.25rem] items-center rounded-full border border-line-strong px-5 text-[0.875rem] font-medium text-ink transition-colors hover:border-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
-            >
+            <button type="button" onClick={flip} className="btn-outline">
               {labels.flip}
             </button>
           </div>
@@ -288,7 +278,7 @@ export function TemplateViewer({
                 onClick={() => go(-1)}
                 disabled={count <= 1}
                 aria-label={labels.previous}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-line-strong text-ink transition-colors hover:border-ink disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                className="btn-outline btn-icon disabled:opacity-30"
               >
                 <span aria-hidden="true">←</span>
               </button>
@@ -297,7 +287,7 @@ export function TemplateViewer({
                 onClick={() => go(1)}
                 disabled={count <= 1}
                 aria-label={labels.next}
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-malachite text-jade transition-colors hover:bg-malachite-deep disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                className="btn-primary btn-icon disabled:opacity-30"
               >
                 <span aria-hidden="true">→</span>
               </button>
