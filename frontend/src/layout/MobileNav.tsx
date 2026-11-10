@@ -10,7 +10,7 @@ import { BrandLockup, IconLogout, IconSettings } from '../design-system/index.ts
 import { fr } from '../locales/fr.ts'
 import { NAV_ITEMS, initials } from './nav.ts'
 
-export function AccountMenu() {
+export function AccountMenu({ placement = 'down' }: { placement?: 'down' | 'up' }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -43,7 +43,7 @@ export function AccountMenu() {
         {initials(user?.full_name ?? '')}
       </button>
       {open ? (
-        <div className="absolute right-0 top-12 z-50 w-64 rounded-md border border-line bg-surface p-1.5 shadow-pop">
+        <div className={`absolute z-50 w-64 rounded-md border border-line bg-surface p-1.5 shadow-pop ${placement === 'up' ? 'bottom-12 left-0' : 'right-0 top-12'}`}>
           <div className="px-2.5 py-2">
             <p className="truncate text-sm font-medium text-ink">{user?.full_name}</p>
             <p className="truncate text-xs text-ink-faint">{user?.email}</p>

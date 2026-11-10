@@ -9,14 +9,18 @@ import { Link, NavLink } from 'react-router-dom'
 
 import { BrandLockup, IconMenu, IconPlus } from '../design-system/index.ts'
 import { fr } from '../locales/fr.ts'
+import { AccountMenu } from './MobileNav.tsx'
 import { NAV_ITEMS } from './nav.ts'
 
 export function Sidebar({
   collapsed,
   onToggle,
+  showAccount = false,
 }: {
   collapsed: boolean
   onToggle: () => void
+  /** The account menu, for pages without the top bar (the editor). */
+  showAccount?: boolean
 }) {
   const focus = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30'
   return (
@@ -81,6 +85,12 @@ export function Sidebar({
           </NavLink>
         ))}
       </nav>
+
+      {showAccount ? (
+        <div className="px-3.5 pb-4">
+          <AccountMenu placement="up" />
+        </div>
+      ) : null}
     </aside>
   )
 }

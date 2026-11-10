@@ -35,12 +35,12 @@ export function PageHeader({ title, description, eyebrow, back, actions }: PageH
     )
   }
   return (
-    <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <header className="flex flex-col gap-5">
       <div className="min-w-0">
         {back ? (
           <Link
             to={back.to}
-            className="mb-3 inline-flex items-center gap-1 rounded-full text-[0.8125rem] text-ink-soft transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
+            className="mb-3 inline-flex items-center gap-1 whitespace-nowrap rounded-full text-[0.8125rem] text-ink-soft transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30"
           >
             <IconChevronLeft className="h-4 w-4" />
             {back.label}

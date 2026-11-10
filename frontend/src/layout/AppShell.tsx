@@ -63,7 +63,7 @@ export function AppShell() {
   if (isDesktop) {
     return (
       <div className="app-ui min-h-svh bg-paper">
-        <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((value) => !value)} />
+        <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((value) => !value)} showAccount={workspace} />
         <div
           className={`min-w-0 transition-[padding] duration-200 ease-out ${collapsed ? 'pl-[4.5rem]' : 'pl-60'}`}
         >

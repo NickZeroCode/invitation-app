@@ -63,13 +63,8 @@ import type {
 } from '../lib/types.ts'
 import { GuestListExportDialog } from '../components/GuestListExportDialog.tsx'
 import { ShareInvitationDialog } from '../components/ShareInvitationDialog.tsx'
-import {
-  emptyWhatsapp,
-  whatsappFromStored,
-  WhatsappNumberField,
-  whatsappPayload,
-  type WhatsappValue,
-} from '../components/WhatsappNumberField.tsx'
+import { WhatsappNumberField } from '../components/WhatsappNumberField.tsx'
+import { emptyWhatsapp, whatsappFromStored, whatsappPayload, type WhatsappValue } from '../lib/whatsapp.ts'
 import { fr } from '../locales/fr.ts'
 import { emptyDraft } from '../templates/registry.tsx'
 

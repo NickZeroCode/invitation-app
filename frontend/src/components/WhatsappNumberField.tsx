@@ -9,29 +9,9 @@ import { useState } from 'react'
 
 import { Field } from '../design-system/Field.tsx'
 import { Input, Select } from '../design-system/Input.tsx'
-import { COUNTRY_DIAL_CODES, DEFAULT_COUNTRY, normalizePhone } from '../lib/share.ts'
+import { COUNTRY_DIAL_CODES, normalizePhone } from '../lib/share.ts'
+import type { WhatsappValue } from '../lib/whatsapp.ts'
 import { fr } from '../locales/fr.ts'
-
-export interface WhatsappValue {
-  country: string
-  number: string
-}
-
-export function emptyWhatsapp(): WhatsappValue {
-  return { country: DEFAULT_COUNTRY, number: '' }
-}
-
-/** A stored number (« +243… ») shown back as typed; international, so the country is moot. */
-export function whatsappFromStored(stored: string): WhatsappValue {
-  return { country: DEFAULT_COUNTRY, number: stored }
-}
-
-/** `''` when empty, `+digits` when valid, `null` when it cannot be a number. */
-export function whatsappPayload(value: WhatsappValue): string | null {
-  const result = normalizePhone(value.number, value.country)
-  if (result.ok) return `+${result.digits}`
-  return result.reason === 'empty' ? '' : null
-}
 
 const ERRORS: Record<string, string> = {
   invalid_chars: fr.guests.whatsappInvalidChars,
