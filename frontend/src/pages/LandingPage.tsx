@@ -1,22 +1,32 @@
 /**
  * Public marketing homepage (`/`).
  *
- * Art direction: an editorial stationery studio. Warm paper, ink, one gold
- * accent; Playfair for display, Inter for reading. Every invitation shown is
- * the real template component rendered from `sampleDraft`, and the small UI
- * pieces (reply card, access card, send dialog) mirror the actual product —
- * no stock imagery, no invented customers, prices or statistics. The figures
- * in the facts band are read from the template registry.
+ * Art direction: an immersive stationery house. The hero is a dark, framed
+ * stage — flowing ink-and-gold silk (a tiny WebGL shader), a giant
+ * « Malaika » wordmark and the real invitation suite in 3D (envelope, card,
+ * wax seal) that tilts with the pointer and rises as you scroll. The
+ * collection is a 3D orbit of the real templates. Below, an editorial rhythm:
+ * « • label » rails, two-tone serif headlines, big numerals, sections easing
+ * in as they enter. Every invitation shown is the real template component
+ * rendered from `sampleDraft`; no stock imagery, no invented customers,
+ * prices or statistics (the facts band reads the template registry).
  *
- * Deliberately API-free for a fast first paint. Motion is limited to a short
- * hero entrance and hover states, and is disabled for reduced-motion users.
+ * Deliberately API-free and dependency-free (no 3D library) for a fast first
+ * paint on mobile data. Rich motion runs only when the visitor allows it and
+ * the device can afford it (see landing/motion); every effect has a finished
+ * still state.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import QRCode from 'qrcode'
 
 import { LegalLinks } from '../components/LegalLinks.tsx'
+import { InvitationScene } from '../landing/InvitationScene.tsx'
+import { useRichMotion } from '../landing/motion.ts'
+import { Reveal } from '../landing/Reveal.tsx'
+import { SilkCanvas } from '../landing/SilkCanvas.tsx'
+import { TemplateOrbit } from '../landing/TemplateOrbit.tsx'
 import {
   BrandLockup,
   buttonClasses,
@@ -47,7 +57,6 @@ const WRAP = 'mx-auto w-full max-w-[76rem] px-5 sm:px-8 lg:px-10'
 const SECTION_Y = 'py-20 sm:py-24 lg:py-32'
 const H2 = 'text-balance font-brand text-[2.375rem] font-semibold leading-[1.02] tracking-[-0.01em] text-ink sm:text-[3rem] lg:text-[3.5rem]'
 const LEAD = 'text-[1.0625rem] leading-relaxed text-ink-soft'
-const EYEBROW = 'font-label text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-brand'
 
 /** The curated first view of the collection (covers every event type). */
 const FEATURED_KEYS = [
@@ -86,37 +95,65 @@ function TemplatePreview({ templateKey, className = '' }: { templateKey: string;
   )
 }
 
+/**
+ * Splits a headline into an ink lead and a muted continuation — the
+ * two-tone editorial voice (« L’élégance du papier, » / « sans ses
+ * contraintes. »). Falls back to a single tone when there is no natural break.
+ */
+function twoTone(title: string): [string, string] {
+  const match = title.match(/^(.{8,}?[,:;])\s+(.+)$/)
+  return match ? [match[1], match[2]] : [title, '']
+}
+
 function SectionHeader({
   id,
   eyebrow,
   title,
   lead,
+  wide = false,
   className = '',
 }: {
   id: string
   eyebrow?: string
   title: string
   lead?: string
+  /** Full-width sections set the label in a left rail, as an editorial page. */
+  wide?: boolean
   className?: string
 }) {
-  return (
-    <div className={`max-w-[38rem] ${className}`}>
-      {eyebrow ? <p className={EYEBROW}>{eyebrow}</p> : null}
-      <h2 id={id} className={`${H2} ${eyebrow ? 'mt-4' : ''}`}>
-        {title}
+  const [head, tail] = twoTone(title)
+  const label = eyebrow ? (
+    <p className="flex items-center gap-2.5 text-[0.8125rem] font-medium text-ink-soft">
+      <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-ink" />
+      {eyebrow}
+    </p>
+  ) : null
+  const body = (
+    <>
+      <h2 id={id} className={H2}>
+        {head}
+        {tail ? (
+          <>
+            {' '}
+            <span className="text-ink-faint">{tail}</span>
+          </>
+        ) : null}
       </h2>
-      {lead ? <p className={`mt-5 ${LEAD}`}>{lead}</p> : null}
-    </div>
+      {lead ? <p className={`mt-5 max-w-[38rem] ${LEAD}`}>{lead}</p> : null}
+    </>
   )
-}
-
-/** Small product card used in the hero composition. */
-function FloatingCard({ className = '', children }: { className?: string; children: ReactNode }) {
+  if (wide) {
+    return (
+      <div className={`grid gap-5 lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-10 ${className}`}>
+        <div className="lg:pt-3">{label}</div>
+        <div className="max-w-[48rem]">{body}</div>
+      </div>
+    )
+  }
   return (
-    <div
-      className={`rounded-md border border-line bg-surface px-4 py-3.5 shadow-[0_1px_2px_rgba(26,24,21,0.06),0_18px_40px_-18px_rgba(26,24,21,0.35)] ${className}`}
-    >
-      {children}
+    <div className={`max-w-[40rem] ${className}`}>
+      {label}
+      <div className={label ? 'mt-5' : ''}>{body}</div>
     </div>
   )
 }
@@ -153,141 +190,244 @@ function SiteHeader() {
     return () => document.removeEventListener('keydown', onKey)
   }, [open])
 
+  // A floating glass pill, legible over the dark hero and the paper below.
   return (
-    <header className="sticky top-0 z-30 border-b border-line/70 bg-paper/90 backdrop-blur-md">
-      <div className={`flex h-16 items-center justify-between gap-6 ${WRAP}`}>
-        <Link to="/" aria-label={fr.appName} className="shrink-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40">
-          <BrandLockup />
-        </Link>
+    <header className="pointer-events-none fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-5 sm:pt-5">
+      <div className="pointer-events-auto mx-auto max-w-[64rem] rounded-[22px] border border-white/10 bg-[#120F0C]/72 shadow-[0_20px_50px_-24px_rgba(0,0,0,0.7)] backdrop-blur-xl">
+        <div className="flex h-14 items-center justify-between gap-6 pl-4 pr-2 sm:pl-5">
+          <Link to="/" aria-label={fr.appName} className="shrink-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60">
+            <BrandLockup dark />
+          </Link>
 
-        <nav aria-label={COPY.nav.ariaLabel} className="hidden items-center gap-9 lg:flex">
-          {NAV_LINKS.map(([href, label]) => (
-            <a
-              key={href}
-              href={`#${href}`}
-              className="relative text-[0.875rem] text-ink-soft transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-ink after:transition-transform hover:text-ink hover:after:scale-x-100"
-            >
-              {label}
-            </a>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-2">
-          {/* Wrapped: buttonClasses sets its own display, which would win over `hidden`. */}
-          <span className="hidden items-center gap-2 sm:flex">
-            <Link to="/connexion" className={buttonClasses('ghost', 'sm', 'text-ink-soft')}>
-              {COPY.nav.login}
-            </Link>
-            <Link to="/inscription" className={buttonClasses('primary', 'sm')}>
-              {COPY.nav.signup}
-            </Link>
-          </span>
-          <button
-            type="button"
-            className="-mr-2 flex h-10 w-10 items-center justify-center rounded-md text-ink transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 lg:hidden"
-            aria-expanded={open}
-            aria-controls="menu-mobile"
-            aria-label={open ? COPY.nav.closeMenu : COPY.nav.openMenu}
-            onClick={() => setOpen((value) => !value)}
-          >
-            {open ? <IconClose className="h-5 w-5" /> : <IconMenu className="h-5 w-5" />}
-          </button>
-        </div>
-      </div>
-
-      {open ? (
-        <div id="menu-mobile" className="border-t border-line bg-paper lg:hidden">
-          <nav aria-label={COPY.nav.ariaLabel} className={`flex flex-col py-3 ${WRAP}`}>
+          <nav aria-label={COPY.nav.ariaLabel} className="hidden items-center gap-7 whitespace-nowrap xl:flex">
             {NAV_LINKS.map(([href, label]) => (
               <a
                 key={href}
                 href={`#${href}`}
-                onClick={() => setOpen(false)}
-                className="border-b border-line/70 py-3.5 font-brand text-[1.625rem] font-semibold text-ink"
+                className="text-[0.875rem] text-white/65 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
               >
                 {label}
               </a>
             ))}
-            <div className="mt-5 grid grid-cols-2 gap-3 pb-3">
-              <Link to="/connexion" className={buttonClasses('secondary', 'md', 'w-full justify-center')}>
+          </nav>
+
+          <div className="flex items-center gap-1.5">
+            {/* Wrapped: buttonClasses sets its own display, which would win over `hidden`. */}
+            <span className="hidden items-center gap-1.5 whitespace-nowrap sm:flex">
+              <Link
+                to="/connexion"
+                className="inline-flex h-10 items-center rounded-[14px] px-4 text-[0.875rem] font-medium text-white/80 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+              >
                 {COPY.nav.login}
               </Link>
-              <Link to="/inscription" className={buttonClasses('primary', 'md', 'w-full justify-center')}>
+              <Link
+                to="/inscription"
+                className="inline-flex h-10 items-center rounded-[14px] bg-[#F4EAD8] px-4 text-[0.875rem] font-semibold text-ink transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+              >
                 {COPY.nav.signup}
               </Link>
-            </div>
-          </nav>
+            </span>
+            <button
+              type="button"
+              className="flex h-10 w-10 items-center justify-center rounded-[14px] text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 xl:hidden"
+              aria-expanded={open}
+              aria-controls="menu-mobile"
+              aria-label={open ? COPY.nav.closeMenu : COPY.nav.openMenu}
+              onClick={() => setOpen((value) => !value)}
+            >
+              {open ? <IconClose className="h-5 w-5" /> : <IconMenu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
-      ) : null}
+
+        {open ? (
+          <div id="menu-mobile" className="border-t border-white/10 xl:hidden">
+            <nav aria-label={COPY.nav.ariaLabel} className="flex flex-col px-5 py-3">
+              {NAV_LINKS.map(([href, label]) => (
+                <a
+                  key={href}
+                  href={`#${href}`}
+                  onClick={() => setOpen(false)}
+                  className="border-b border-white/10 py-3.5 font-brand text-[1.625rem] font-semibold text-white"
+                >
+                  {label}
+                </a>
+              ))}
+              <div className="mt-5 grid grid-cols-2 gap-3 pb-3">
+                <Link to="/connexion" className="inline-flex h-11 items-center justify-center rounded-[14px] border border-white/20 text-[0.9375rem] font-medium text-white">
+                  {COPY.nav.login}
+                </Link>
+                <Link to="/inscription" className="inline-flex h-11 items-center justify-center rounded-[14px] bg-[#F4EAD8] text-[0.9375rem] font-semibold text-ink">
+                  {COPY.nav.signup}
+                </Link>
+              </div>
+            </nav>
+          </div>
+        ) : null}
+      </div>
     </header>
   )
 }
 
 /* -------------------------------------------------------------------- hero */
 
-function Hero({ qrDataUrl }: { qrDataUrl: string }) {
+/** Ivory product chip floating in the hero's 3D suite. */
+function SuiteChip({ className = '', children }: { className?: string; children: ReactNode }) {
   return (
-    <section aria-labelledby="hero-titre" className="relative overflow-hidden border-b border-line">
-      <div className={`grid items-center gap-14 pb-20 pt-14 sm:pt-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-10 lg:pb-28 lg:pt-24 ${WRAP}`}>
-        <div className="landing-rise max-w-[36rem]">
-          <p className={EYEBROW}>{COPY.hero.eyebrow}</p>
-          <h1
-            id="hero-titre"
-            className="mt-5 font-brand text-[3rem] font-semibold leading-[0.98] tracking-[-0.015em] text-ink sm:text-[4rem] lg:text-[4.625rem]"
-          >
-            {COPY.hero.title}
-          </h1>
-          <p className={`mt-6 max-w-[32rem] ${LEAD}`}>{COPY.hero.text}</p>
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link to="/inscription" className={buttonClasses('primary', 'lg', 'justify-center gap-2')}>
-              {COPY.hero.signupCta}
-              <IconArrowRight className="h-4 w-4" />
-            </Link>
-            <a href="#modeles" className={buttonClasses('secondary', 'lg', 'justify-center')}>
-              {COPY.hero.secondaryCta}
+    <div className={`rounded-[14px] bg-[#FBF7F0] px-4 py-3.5 text-ink max-sm:[zoom:0.8] shadow-[0_2px_4px_rgba(0,0,0,0.2),0_30px_50px_-20px_rgba(0,0,0,0.75)] ${className}`}>
+      {children}
+    </div>
+  )
+}
+
+/** Headline words rising one after another out of their own line. */
+function RisingWords({ text, startMs, className = '' }: { text: string; startMs: number; className?: string }) {
+  return (
+    <>
+      {text.split(' ').map((word, index, words) => (
+        <Fragment key={`${word}-${index}`}>
+          <span className="word-mask">
+            <span className={`word-rise ${className}`} style={{ ['--word-delay' as string]: `${startMs + index * 70}ms` }}>
+              {word}
+            </span>
+          </span>
+          {index < words.length - 1 ? ' ' : null}
+        </Fragment>
+      ))}
+    </>
+  )
+}
+
+function Hero({ qrDataUrl }: { qrDataUrl: string }) {
+  const rich = useRichMotion()
+  const [lead, rest] = useMemo(() => {
+    const words = COPY.hero.title.split(' ')
+    return [words.slice(0, 3).join(' '), words.slice(3).join(' ')]
+  }, [])
+  const chips = [
+    {
+      key: 'rsvp',
+      depth: 90,
+      style: { left: '-6%', top: '30%', width: '46%' },
+      content: (
+        <SuiteChip>
+          <p className="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-brand sm:text-[0.625rem]">{COPY.hero.rsvpTitle}</p>
+          <p className="mt-1.5 text-[0.8125rem] font-medium">{COPY.hero.rsvpGuest}</p>
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-[8px] bg-success-soft px-2 py-1 text-[0.6875rem] font-medium text-success sm:text-[0.75rem]">
+            <IconCheck className="h-3.5 w-3.5" />
+            {COPY.hero.rsvpStatus}
+          </p>
+        </SuiteChip>
+      ),
+    },
+    {
+      key: 'access',
+      depth: 120,
+      style: { right: '-5%', top: '10%', width: '30%' },
+      content: (
+        <SuiteChip className="flex flex-col items-center px-3 text-center">
+          <p className="whitespace-nowrap text-[0.5625rem] font-semibold uppercase tracking-[0.14em] text-brand sm:text-[0.625rem]">{COPY.hero.accessTitle}</p>
+          {qrDataUrl ? (
+            <img src={qrDataUrl} alt="" className="mt-2 aspect-square w-full max-w-[5.5rem]" />
+          ) : (
+            <span className="mt-2 block aspect-square w-full max-w-[5.5rem] bg-surface-muted" aria-hidden="true" />
+          )}
+          <p className="mt-1.5 inline-flex items-center gap-1.5 text-[0.6875rem] font-medium sm:text-[0.75rem]">
+            <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
+            {COPY.hero.accessStatus}
+          </p>
+        </SuiteChip>
+      ),
+    },
+    {
+      key: 'sent',
+      depth: 60,
+      style: { right: '2%', bottom: '6%' },
+      content: (
+        <SuiteChip className="flex items-center gap-2 whitespace-nowrap py-2.5">
+          <IconChat className="h-4 w-4 text-success" />
+          <span className="text-[0.75rem] font-medium">{COPY.hero.sentLabel}</span>
+        </SuiteChip>
+      ),
+    },
+  ]
+
+  return (
+    <section aria-labelledby="hero-titre" className="relative px-2.5 pt-2.5 sm:px-3 sm:pt-3">
+      <div className="relative isolate overflow-hidden rounded-[22px] bg-[#0B0907] text-white sm:rounded-[30px]">
+        {/* Living backdrop, with a finished gradient underneath. */}
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(120%_80%_at_75%_20%,#3A2A17_0%,#140F0A_45%,#0B0907_100%)]">
+          <SilkCanvas animate={rich} />
+        </div>
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(11,9,7,0.15)_0%,transparent_30%,transparent_65%,rgba(11,9,7,0.75)_100%)]" />
+
+        <div className="mx-auto w-full max-w-[84rem] px-5 pb-10 pt-24 sm:px-10 sm:pt-28 lg:px-14 lg:pb-14">
+          {/* The giant wordmark, set like a magazine masthead. */}
+          <p aria-hidden="true" className="landing-rise relative select-none font-brand font-semibold leading-[0.78] tracking-[-0.035em] text-[#F4EAD8] text-[clamp(4.4rem,17.5vw,15.5rem)]">
+            Malaika
+            <span className="absolute -bottom-[0.18em] right-[0.02em] font-label text-[clamp(0.75rem,1.6vw,1.15rem)] font-semibold tracking-[0.42em] text-gold sm:right-[0.06em]">
+              EVENTS
+            </span>
+          </p>
+
+          <div className="mt-12 grid items-end gap-14 lg:mt-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] lg:gap-10">
+            <div className="max-w-[34rem] pb-2">
+              <p className="landing-rise flex items-center gap-2.5 text-[0.8125rem] font-medium text-white/65" style={{ ['--rise-delay' as string]: '200ms' }}>
+                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-gold" />
+                {COPY.hero.eyebrow}
+              </p>
+              <h1 id="hero-titre" className="mt-5 font-brand text-[2.6rem] font-semibold leading-[1.02] tracking-[-0.015em] sm:text-[3.4rem] lg:text-[3.75rem]">
+                <span className="sr-only">{COPY.hero.title}</span>
+                <span aria-hidden="true">
+                  <RisingWords text={lead} startMs={260} className="text-[#F8F1E4]" />{' '}
+                  <RisingWords text={rest} startMs={470} className="text-[#C9A867]" />
+                </span>
+              </h1>
+              <p className="landing-rise mt-6 max-w-[30rem] text-[1.0625rem] leading-relaxed text-white/70" style={{ ['--rise-delay' as string]: '700ms' }}>
+                {COPY.hero.text}
+              </p>
+              <div className="landing-rise mt-9 flex flex-col gap-3 sm:flex-row sm:items-center" style={{ ['--rise-delay' as string]: '820ms' }}>
+                <Link
+                  to="/inscription"
+                  className="group inline-flex h-[3.25rem] items-center justify-center gap-3 rounded-[16px] bg-[#F4EAD8] pl-6 pr-2 text-[0.9375rem] font-semibold text-ink transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+                >
+                  {COPY.hero.signupCta}
+                  <span className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-ink text-white transition-transform group-hover:translate-x-0.5">
+                    <IconArrowRight className="h-4 w-4" />
+                  </span>
+                </Link>
+                <a
+                  href="#modeles"
+                  className="inline-flex h-[3.25rem] items-center justify-center rounded-[16px] border border-white/20 px-6 text-[0.9375rem] font-medium text-white transition-colors hover:border-white/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+                >
+                  {COPY.hero.secondaryCta}
+                </a>
+              </div>
+              <p className="landing-rise mt-6 text-[0.875rem] text-white/55" style={{ ['--rise-delay' as string]: '900ms' }}>
+                {COPY.hero.loginPrompt}{' '}
+                <Link to="/connexion" className="font-medium text-white underline decoration-white/30 underline-offset-4 hover:decoration-white">
+                  {COPY.hero.primaryCta}
+                </Link>
+              </p>
+            </div>
+
+            <div className="landing-rise relative mx-auto w-[86%] max-w-[29rem] lg:mr-6 lg:w-full" style={{ ['--rise-delay' as string]: '300ms' }}>
+              <InvitationScene
+                animate={rich}
+                label={COPY.hero.stageLabel}
+                card={<TemplatePreview templateKey="floraison" />}
+                chips={chips}
+              />
+            </div>
+          </div>
+
+          <div className="mt-10 flex items-center justify-between border-t border-white/10 pt-5 text-[0.75rem] text-white/45">
+            <span>{COPY.hero.footnote}</span>
+            <a href="#modeles" className="inline-flex items-center gap-2 text-white/60 transition-colors hover:text-white">
+              <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse rounded-full bg-gold motion-reduce:animate-none" />
+              {COPY.hero.scroll}
             </a>
           </div>
-          <p className="mt-6 text-[0.875rem] text-ink-soft">
-            {COPY.hero.loginPrompt}{' '}
-            <Link to="/connexion" className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink">
-              {COPY.hero.primaryCta}
-            </Link>
-          </p>
-        </div>
-
-        {/* Product stage: a real invitation, the guest's reply and access card. */}
-        <div className="landing-rise relative mx-auto w-full max-w-[30rem] lg:mr-0" style={{ ['--rise-delay' as string]: '120ms' }} role="group" aria-label={COPY.hero.stageLabel}>
-          <div className="canvas-grid absolute -inset-x-6 -inset-y-8 rounded-xl border border-line sm:-inset-x-10" aria-hidden="true" />
-          <div className="relative mx-auto w-[74%] rotate-[-1.5deg] shadow-[0_2px_4px_rgba(26,24,21,0.08),0_30px_60px_-24px_rgba(26,24,21,0.45)]">
-            <TemplatePreview templateKey="floraison" />
-          </div>
-
-          <FloatingCard className="absolute -left-1 bottom-[14%] w-[12.75rem] sm:-left-6 sm:w-[15.5rem]">
-            <p className="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-brand sm:text-[0.625rem] sm:tracking-[0.2em]">{COPY.hero.rsvpTitle}</p>
-            <p className="mt-2 text-[0.8125rem] font-medium text-ink">{COPY.hero.rsvpGuest}</p>
-            <p className="mt-2 inline-flex items-center gap-1.5 rounded-sm bg-success-soft px-2 py-1 text-[0.75rem] font-medium text-success">
-              <IconCheck className="h-3.5 w-3.5" />
-              {COPY.hero.rsvpStatus}
-            </p>
-          </FloatingCard>
-
-          <FloatingCard className="absolute -right-1 top-[8%] flex w-[7.25rem] flex-col items-center px-3 text-center sm:-right-6 sm:w-[9.5rem] sm:px-4">
-            <p className="whitespace-nowrap text-[0.5625rem] font-semibold uppercase tracking-[0.12em] text-brand sm:text-[0.625rem] sm:tracking-[0.2em]">{COPY.hero.accessTitle}</p>
-            {qrDataUrl ? (
-              <img src={qrDataUrl} alt="" className="mt-2.5 h-16 w-16 sm:h-[5.5rem] sm:w-[5.5rem]" />
-            ) : (
-              <span className="mt-2.5 block h-16 w-16 bg-surface-muted sm:h-[5.5rem] sm:w-[5.5rem]" aria-hidden="true" />
-            )}
-            <p className="mt-2 inline-flex items-center gap-1.5 text-[0.75rem] font-medium text-ink">
-              <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
-              {COPY.hero.accessStatus}
-            </p>
-          </FloatingCard>
-
-          <FloatingCard className="absolute -bottom-5 right-[8%] flex items-center gap-2 py-2.5">
-            <IconChat className="h-4 w-4 text-success" />
-            <span className="text-[0.75rem] font-medium text-ink">{COPY.hero.sentLabel}</span>
-          </FloatingCard>
         </div>
       </div>
     </section>
@@ -305,7 +445,7 @@ function FactsBand() {
     ['0', COPY.facts.app],
   ]
   return (
-    <section aria-label={COPY.facts.ariaLabel} className="border-b border-line bg-surface">
+    <section aria-label={COPY.facts.ariaLabel} className="border-b border-line">
       <dl className={`grid grid-cols-2 lg:grid-cols-4 ${WRAP}`}>
         {facts.map(([value, label], index) => (
           <div
@@ -314,7 +454,7 @@ function FactsBand() {
           >
             <dt className="sr-only">{label}</dt>
             <dd>
-              <span className="block font-brand text-[2.75rem] font-semibold leading-none text-ink [font-variant-numeric:lining-nums] sm:text-[3.25rem]">{value}</span>
+              <span className="block font-brand text-[3.5rem] font-semibold leading-none tracking-[-0.02em] text-ink [font-variant-numeric:lining-nums] sm:text-[4.5rem]">{value}</span>
               <span className="mt-3 block max-w-[14rem] text-[0.875rem] leading-snug text-ink-soft">{label}</span>
             </dd>
           </div>
@@ -330,7 +470,9 @@ function ProblemSolution() {
   return (
     <section aria-labelledby="pourquoi-titre" className="border-b border-line">
       <div className={`${WRAP} ${SECTION_Y}`}>
-        <SectionHeader id="pourquoi-titre" eyebrow={COPY.problem.eyebrow} title={COPY.problem.title} />
+        <Reveal>
+          <SectionHeader wide id="pourquoi-titre" eyebrow={COPY.problem.eyebrow} title={COPY.problem.title} />
+        </Reveal>
         <div className="mt-14 grid gap-px overflow-hidden rounded-lg border border-line bg-line md:grid-cols-2">
           <div className="bg-paper p-7 sm:p-10">
             <h3 className="font-label text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-ink-faint">{COPY.problem.beforeTitle}</h3>
@@ -404,7 +546,9 @@ function GuestJourney({ qrDataUrl }: { qrDataUrl: string }) {
   return (
     <section aria-labelledby="invite-titre" className="border-b border-line bg-surface">
       <div className={`${WRAP} ${SECTION_Y}`}>
-        <SectionHeader id="invite-titre" eyebrow={COPY.guest.eyebrow} title={COPY.guest.title} lead={COPY.guest.subtitle} />
+        <Reveal>
+          <SectionHeader wide id="invite-titre" eyebrow={COPY.guest.eyebrow} title={COPY.guest.title} lead={COPY.guest.subtitle} />
+        </Reveal>
         <ol className="-mx-5 mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-5 px-5 pb-4 [scrollbar-width:thin] sm:mx-0 sm:mt-14 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
           {COPY.guest.steps.map((step, index) => (
             <li key={step.title} className="w-[80%] shrink-0 snap-start sm:w-auto">
@@ -497,7 +641,9 @@ function HowItWorks() {
   return (
     <section id="fonctionnement" aria-labelledby="fonctionnement-titre" className="scroll-mt-16 border-b border-line bg-surface">
       <div className={`${WRAP} ${SECTION_Y}`}>
-        <SectionHeader id="fonctionnement-titre" title={COPY.howItWorks.title} lead={COPY.howItWorks.subtitle} />
+        <Reveal>
+          <SectionHeader wide id="fonctionnement-titre" eyebrow={COPY.howItWorks.eyebrow} title={COPY.howItWorks.title} lead={COPY.howItWorks.subtitle} />
+        </Reveal>
         <ol className="relative mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           {/* The timeline rule behind the step markers (desktop). */}
           <span aria-hidden="true" className="absolute left-0 right-0 top-[0.6875rem] hidden h-px bg-line-strong lg:block" />
@@ -528,6 +674,7 @@ function HowItWorks() {
 /* -------------------------------------------------------------- showcase */
 
 function Showcase() {
+  const rich = useRichMotion()
   const categories = useMemo(() => {
     const seen = new Map<string, string>()
     for (const template of TEMPLATES) if (!seen.has(template.category)) seen.set(template.category, template.categoryLabel)
@@ -541,96 +688,56 @@ function Showcase() {
     return [...featured, ...TEMPLATES.filter((template) => !FEATURED_KEYS.includes(template.key))]
   }, [])
   const [category, setCategory] = useState<string | null>(null)
-  const shown = category ? ordered.filter((template) => template.category === category) : ordered
-
-  const trackRef = useRef<HTMLUListElement>(null)
-  const [edges, setEdges] = useState({ start: true, end: false })
-  const updateEdges = useCallback(() => {
-    const track = trackRef.current
-    if (!track) return
-    const max = track.scrollWidth - track.clientWidth
-    setEdges({ start: track.scrollLeft <= 4, end: track.scrollLeft >= max - 4 })
-  }, [])
-  useEffect(() => {
-    const track = trackRef.current
-    if (!track) return undefined
-    track.scrollLeft = 0
-    updateEdges()
-    if (typeof ResizeObserver === 'undefined') return undefined
-    const observer = new ResizeObserver(updateEdges)
-    observer.observe(track)
-    return () => observer.disconnect()
-  }, [category, updateEdges])
-
-  /** Page by what is visible, snapping lands each card cleanly. */
-  const page = (direction: 1 | -1) => {
-    const track = trackRef.current
-    if (!track) return
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    track.scrollBy({ left: direction * track.clientWidth * 0.9, behavior: reduce ? 'auto' : 'smooth' })
-  }
+  const shown = useMemo(
+    () =>
+      (category ? ordered.filter((template) => template.category === category) : ordered).map((template) => ({
+        key: template.key,
+        name: template.name,
+        categoryLabel: template.categoryLabel,
+        description: template.description,
+      })),
+    [category, ordered],
+  )
 
   const chip = (selected: boolean) =>
-    `shrink-0 rounded-sm border px-3.5 py-2 text-[0.8125rem] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${
+    `shrink-0 rounded-full border px-4 py-2 text-[0.8125rem] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${
       selected ? 'border-ink bg-ink text-white' : 'border-line bg-surface text-ink-soft hover:border-line-strong hover:text-ink'
     }`
-  const arrow =
-    'flex h-11 w-11 items-center justify-center rounded-full border border-line-strong bg-surface text-ink transition-colors hover:border-ink disabled:cursor-default disabled:opacity-35 disabled:hover:border-line-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40'
 
   return (
-    <section id="modeles" aria-labelledby="modeles-titre" className="scroll-mt-16 overflow-hidden border-b border-line">
+    <section id="modeles" aria-labelledby="modeles-titre" className="scroll-mt-24 overflow-hidden border-b border-line">
       <div className={`${WRAP} ${SECTION_Y}`}>
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <SectionHeader id="modeles-titre" eyebrow={COPY.showcase.eyebrow} title={COPY.showcase.title} lead={COPY.showcase.subtitle} />
-          <div className="hidden shrink-0 items-center gap-3 sm:flex">
-            <button type="button" className={arrow} onClick={() => page(-1)} disabled={edges.start} aria-label={COPY.showcase.previous}>
-              <IconArrowRight className="h-4 w-4 rotate-180" />
+        <Reveal>
+          <SectionHeader wide id="modeles-titre" eyebrow={COPY.showcase.eyebrow} title={COPY.showcase.title} lead={COPY.showcase.subtitle} />
+        </Reveal>
+
+        <Reveal delay={100}>
+          <div role="group" aria-label={COPY.showcase.filterLabel} className="-mx-5 mt-10 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 lg:ml-[14.5rem]">
+            <button type="button" aria-pressed={category === null} className={chip(category === null)} onClick={() => setCategory(null)}>
+              {COPY.showcase.all}
             </button>
-            <button type="button" className={arrow} onClick={() => page(1)} disabled={edges.end} aria-label={COPY.showcase.next}>
-              <IconArrowRight className="h-4 w-4" />
-            </button>
+            {categories.map(([key, label]) => (
+              <button key={key} type="button" aria-pressed={category === key} className={chip(category === key)} onClick={() => setCategory(key)}>
+                {label}
+              </button>
+            ))}
           </div>
-        </div>
+        </Reveal>
 
-        <div role="group" aria-label={COPY.showcase.filterLabel} className="-mx-5 mt-10 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0">
-          <button type="button" aria-pressed={category === null} className={chip(category === null)} onClick={() => setCategory(null)}>
-            {COPY.showcase.all}
-          </button>
-          {categories.map(([key, label]) => (
-            <button key={key} type="button" aria-pressed={category === key} className={chip(category === key)} onClick={() => setCategory(key)}>
-              {label}
-            </button>
-          ))}
-        </div>
+        {/* The collection as a 3D orbit: drag, swipe, arrows or keyboard. */}
+        <Reveal delay={160} className="mt-6">
+          <TemplateOrbit
+            items={shown}
+            animate={rich}
+            renderCard={(key) => <TemplatePreview templateKey={key} />}
+            trackLabel={COPY.showcase.trackLabel}
+            previousLabel={COPY.showcase.previous}
+            nextLabel={COPY.showcase.next}
+          />
+          <p className="mt-3 text-[0.8125rem] text-ink-faint">{COPY.showcase.hint}</p>
+        </Reveal>
 
-        {/* Horizontal collection: swipe on phones, arrows or keyboard on
-            desktop. The track bleeds to the screen edge so the next card
-            always peeks in, signalling there is more to see. */}
-        <ul
-          ref={trackRef}
-          onScroll={updateEdges}
-          tabIndex={0}
-          aria-label={COPY.showcase.trackLabel}
-          className="-mx-5 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-5 px-5 pb-6 [scrollbar-width:thin] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30 sm:-mx-8 sm:gap-7 sm:scroll-px-8 sm:px-8 lg:-mx-10 lg:scroll-px-10 lg:px-10"
-        >
-          {shown.map((template) => (
-            <li
-              key={template.key}
-              className="group w-[78%] shrink-0 snap-start [contain-intrinsic-size:auto_34rem] [content-visibility:auto] sm:w-[42%] lg:w-[29%] xl:w-[27%]"
-            >
-              <div className="overflow-hidden rounded-sm border border-line shadow-[0_1px_2px_rgba(26,24,21,0.05)] transition-shadow duration-300 group-hover:shadow-[0_24px_48px_-24px_rgba(26,24,21,0.35)]">
-                <TemplatePreview templateKey={template.key} />
-              </div>
-              <div className="mt-5 flex items-baseline justify-between gap-3">
-                <h3 className="font-brand text-[1.625rem] font-semibold leading-tight text-ink">{template.name}</h3>
-                <span className="shrink-0 text-[0.6875rem] uppercase tracking-[0.12em] text-ink-faint">{template.categoryLabel}</span>
-              </div>
-              <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-soft">{template.description}</p>
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-8 flex flex-col items-start gap-5 border-t border-line pt-10 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 flex flex-col items-start gap-5 border-t border-line pt-10 sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-[30rem] text-[0.9375rem] text-ink-soft">
             {COPY.showcase.more.replace('{count}', String(TEMPLATES.length))}
           </p>
@@ -650,7 +757,9 @@ function Occasions() {
   return (
     <section id="occasions" aria-labelledby="occasions-titre" className="scroll-mt-16 border-b border-line bg-surface">
       <div className={`grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-20 ${WRAP} ${SECTION_Y}`}>
-        <SectionHeader id="occasions-titre" title={COPY.categories.title} lead={COPY.categories.subtitle} />
+        <Reveal>
+          <SectionHeader id="occasions-titre" eyebrow={COPY.categories.eyebrow} title={COPY.categories.title} lead={COPY.categories.subtitle} />
+        </Reveal>
         <ul className="grid border-t border-line sm:grid-cols-2 sm:gap-x-10">
           {COPY.categories.items.map((category) => (
             <li key={category.name} className="border-b border-line py-5">
@@ -756,27 +865,38 @@ function Faq() {
 
 function FinalCta() {
   return (
-    <section aria-labelledby="final-titre" className="bg-ink">
-      <div className={`grid items-center gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] ${WRAP} py-20 sm:py-24`}>
-        <div>
-          <h2 id="final-titre" className="max-w-[34rem] text-balance font-brand text-[2.375rem] font-semibold leading-[1.02] tracking-[-0.01em] text-white sm:text-[3rem]">
-            {COPY.finalCta.title}
-          </h2>
-          <p className="mt-5 max-w-[30rem] text-[1.0625rem] leading-relaxed text-white/70">{COPY.finalCta.text}</p>
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link to="/inscription" className={buttonClasses('secondary', 'lg', 'justify-center gap-2')}>
-              {COPY.finalCta.button}
-              <IconArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              to="/connexion"
-              className="inline-flex h-12 items-center justify-center rounded-md border border-white/25 px-6 text-[0.9375rem] font-medium text-white transition-colors hover:border-white/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-            >
-              {COPY.finalCta.secondary}
-            </Link>
-          </div>
+    <section aria-labelledby="final-titre" className="px-2.5 pb-2.5 sm:px-3 sm:pb-3">
+      <div className="relative isolate overflow-hidden rounded-[22px] bg-[#0B0907] sm:rounded-[30px]">
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(120%_90%_at_20%_80%,#3A2A17_0%,#140F0A_50%,#0B0907_100%)]">
+          {/* One still frame of the same silk: the page closes as it opened. */}
+          <SilkCanvas animate={false} />
         </div>
-        <LogoArtwork className="mx-auto w-[min(70vw,20rem)] opacity-95 lg:mr-0" />
+        <div className={`grid items-center gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] ${WRAP} py-20 sm:py-28`}>
+          <Reveal>
+            <h2 id="final-titre" className="max-w-[36rem] text-balance font-brand text-[2.6rem] font-semibold leading-[1.02] tracking-[-0.015em] text-[#F8F1E4] sm:text-[3.5rem]">
+              {COPY.finalCta.title}
+            </h2>
+            <p className="mt-5 max-w-[30rem] text-[1.0625rem] leading-relaxed text-white/70">{COPY.finalCta.text}</p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <Link
+                to="/inscription"
+                className="group inline-flex h-[3.25rem] items-center justify-center gap-3 rounded-[16px] bg-[#F4EAD8] pl-6 pr-2 text-[0.9375rem] font-semibold text-ink transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+              >
+                {COPY.finalCta.button}
+                <span className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-ink text-white transition-transform group-hover:translate-x-0.5">
+                  <IconArrowRight className="h-4 w-4" />
+                </span>
+              </Link>
+              <Link
+                to="/connexion"
+                className="inline-flex h-[3.25rem] items-center justify-center rounded-[16px] border border-white/20 px-6 text-[0.9375rem] font-medium text-white transition-colors hover:border-white/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+              >
+                {COPY.finalCta.secondary}
+              </Link>
+            </div>
+          </Reveal>
+          <LogoArtwork className="mx-auto w-[min(70vw,20rem)] opacity-95 lg:mr-0" />
+        </div>
       </div>
     </section>
   )
@@ -874,7 +994,7 @@ export function LandingPage() {
         {COPY.nav.skipToContent}
       </a>
       <SiteHeader />
-      <main id="contenu">
+      <main id="contenu" className="scroll-smooth">
         <Hero qrDataUrl={qrDataUrl} />
         <FactsBand />
         <ProblemSolution />

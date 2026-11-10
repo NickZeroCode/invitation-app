@@ -91,7 +91,7 @@ describe('LandingPage', { timeout: 30_000 }, () => {
     const user = userEvent.setup()
     renderLanding()
 
-    const track = screen.getByRole('list', { name: 'Modèles d’invitation, défilement horizontal' })
+    const track = screen.getByRole('list', { name: 'Modèles d’invitation, galerie en 3D' })
     expect(within(track).getAllByRole('listitem').length).toBeGreaterThan(9)
 
     await user.click(screen.getByRole('button', { name: 'Hommage' }))

@@ -586,6 +586,8 @@ export const fr = {
       accessTitle: 'Carte d’accès',
       accessStatus: 'Valide',
       sentLabel: 'Envoyée par WhatsApp',
+      footnote: 'Conçu à Kinshasa, pour les célébrations du Congo et d’ailleurs.',
+      scroll: 'Découvrir la collection',
     },
     facts: {
       ariaLabel: 'MalaikaEvents en bref',
@@ -681,6 +683,7 @@ export const fr = {
       ],
     },
     howItWorks: {
+      eyebrow: 'La méthode',
       title: 'Comment ça fonctionne',
       subtitle: 'De la page blanche au jour J, en quatre étapes.',
       steps: [
@@ -708,13 +711,15 @@ export const fr = {
       subtitle: 'Des modèles originaux, composés comme des pièces de papeterie. Ce que vous voyez ici est le rendu réel de l’application.',
       filterLabel: 'Filtrer les modèles par occasion',
       all: 'Tous',
-      trackLabel: 'Modèles d’invitation, défilement horizontal',
+      trackLabel: 'Modèles d’invitation, galerie en 3D',
+      hint: 'Faites glisser, ou utilisez les flèches, pour parcourir la collection.',
       previous: 'Modèles précédents',
       next: 'Modèles suivants',
       cta: 'Créer un compte pour personnaliser un modèle',
       more: 'Les {count} modèles sont disponibles dans votre espace, prêts à personnaliser.',
     },
     categories: {
+      eyebrow: 'Les occasions',
       title: 'Pour chaque célébration',
       subtitle: 'Des intimités familiales aux grandes réceptions, un ton juste pour chaque moment.',
       items: [
