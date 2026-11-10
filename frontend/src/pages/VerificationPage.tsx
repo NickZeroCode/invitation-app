@@ -123,7 +123,7 @@ export function VerificationPage() {
   })()
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(212,162,75,0.18),_transparent_38%),linear-gradient(135deg,#f7f4ee_0%,#f1efe8_32%,#f7f5f1_100%)] px-2 py-6 text-ink sm:px-4 sm:py-10">
+    <div className="min-h-screen bg-paper px-2 py-6 text-ink sm:px-4 sm:py-10">
       <div className="mx-auto max-w-xl">
         <header className="mb-6 px-1">
           <p className="flex items-center gap-2.5 text-xs font-medium uppercase tracking-[0.35em] text-ink-faint">

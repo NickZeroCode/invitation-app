@@ -2,8 +2,8 @@
  * A template, held in the hand. The invitation opens over a dark room as a
  * physical card in 3D: drag it (mouse or finger) to turn it, let go and it
  * settles on its face or on its back — an ivory verso sealed with the house
- * monogram. Left alone it breathes slightly; a light sweep follows the angle
- * like foil catching a lamp. Arrows and the keyboard move through the
+ * monogram. Left alone it breathes slightly. Flat colour, no sheen: the
+ * depth is the card's own turn and shadow. Arrows and the keyboard move through the
  * collection; Escape closes.
  *
  * A modal dialog: focus moves in, stays in, and returns to the card that
@@ -52,7 +52,6 @@ export function TemplateViewer({
   const dialogRef = useRef<HTMLDivElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
-  const sheenRef = useRef<HTMLDivElement>(null)
   const shadowRef = useRef<HTMLDivElement>(null)
   const spin = useRef({ ry: 0, rx: 0, velocity: 0, dragging: false, lastX: 0, lastY: 0, target: 0 as number | null })
   const item = items[index]
@@ -90,7 +89,6 @@ export function TemplateViewer({
       const rx = s.rx + (animate && !s.dragging ? Math.sin(time / 1900) * 2 : 0)
       card.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`
       const facing = Math.abs(Math.cos((ry * Math.PI) / 180))
-      if (sheenRef.current) sheenRef.current.style.backgroundPosition = `${(50 - ((ry % 360) / 360) * 160).toFixed(1)}% 50%`
       if (shadowRef.current) shadowRef.current.style.transform = `scaleX(${(0.35 + 0.65 * facing).toFixed(3)})`
     }
     let frame = 0
@@ -136,7 +134,7 @@ export function TemplateViewer({
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      className="theme-nuit fixed inset-0 z-50 overflow-y-auto bg-nuit/95 text-ink backdrop-blur-xl animate-fade-up"
+      className="theme-malachite fixed inset-0 z-50 overflow-y-auto bg-malachite text-ink animate-fade-up"
       onKeyDown={(event) => {
         if (event.key === 'Escape') {
           event.stopPropagation()
@@ -160,7 +158,6 @@ export function TemplateViewer({
         }
       }}
     >
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 bg-[radial-gradient(50%_60%_at_35%_50%,rgba(200,169,106,0.14),transparent_70%)]" />
 
       <div className="relative mx-auto grid min-h-full w-full max-w-[84rem] items-center gap-8 px-5 pb-10 pt-20 sm:px-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-14 lg:px-14 lg:py-16">
         <button
@@ -168,7 +165,7 @@ export function TemplateViewer({
           type="button"
           onClick={onClose}
           aria-label={labels.close}
-          className="fixed right-4 top-4 z-10 flex h-12 w-12 items-center justify-center rounded-full border border-line-strong bg-nuit/60 text-ink backdrop-blur-md transition-colors hover:border-champagne hover:text-champagne focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-champagne sm:right-6 sm:top-6"
+          className="fixed right-4 top-4 z-10 flex h-12 w-12 items-center justify-center rounded-full border border-line-strong bg-malachite text-ink transition-colors hover:border-jade hover:text-jade focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade sm:right-6 sm:top-6"
         >
           <span aria-hidden="true" className="relative block h-4 w-4">
             <span className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 rotate-45 bg-current" />
@@ -224,39 +221,29 @@ export function TemplateViewer({
             {/* Recto: the real invitation. */}
             <div className="absolute inset-0 overflow-hidden rounded-[4px] shadow-[0_2px_8px_rgba(0,0,0,0.4),0_60px_100px_-40px_rgba(0,0,0,0.95)] [backface-visibility:hidden]">
               {renderCard(item.key)}
-              <div
-                ref={sheenRef}
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 mix-blend-soft-light"
-                style={{
-                  backgroundImage: 'linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.55) 50%, transparent 65%)',
-                  backgroundSize: '300% 100%',
-                }}
-              />
             </div>
             {/* Verso: ivory stock, the house seal. */}
             <div
               aria-hidden="true"
               className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-[4px] [backface-visibility:hidden] [transform:rotateY(180deg)]"
               style={{
-                background:
-                  'repeating-linear-gradient(0deg, rgba(120,95,60,0.035) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(120,95,60,0.03) 0 1px, transparent 1px 4px), linear-gradient(160deg, #F3ECDF 0%, #E6DAC4 100%)',
+                background: '#F3EFE7',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.4), 0 60px 100px -40px rgba(0,0,0,0.95)',
               }}
             >
-              <span className="absolute inset-[5%] rounded-[2px] border border-[#B08A45]/40" />
+              <span className="absolute inset-[5%] rounded-[2px] border border-[#0E5A43]/30" />
               <span
                 className="flex h-[22%] w-[29%] items-center justify-center rounded-full"
                 style={{
-                  background: 'radial-gradient(circle at 35% 30%, #B4434F, #7A2331 55%, #4E0F19)',
-                  boxShadow: '0 6px 14px rgba(40,5,10,0.45), inset 0 2px 3px rgba(255,255,255,0.25), inset 0 -3px 6px rgba(0,0,0,0.35)',
+                  background: '#C8432B',
+                  boxShadow: '0 8px 16px -4px rgba(60,12,4,0.45), inset 0 0 0 5px #A9351F',
                 }}
               >
-                <span className="font-didone text-[clamp(1.75rem,5vw,3rem)] leading-none text-[#F3D9A4] [text-shadow:0_1px_1px_rgba(0,0,0,0.45)]">M</span>
+                <span className="font-brand text-[clamp(1.75rem,5vw,3rem)] leading-none text-[#F5F2EC]">M</span>
               </span>
-              <span className="mt-[8%] font-label text-[clamp(0.5rem,1.2vw,0.6875rem)] font-semibold uppercase tracking-[0.4em] text-[#7A5A1C]">{brand}</span>
-              <span className="mt-2 font-brand text-[clamp(1rem,2.4vw,1.5rem)] italic text-[#3A2E20]">{item.name}</span>
-              <span className="absolute bottom-[8%] font-label text-[clamp(0.5rem,1vw,0.625rem)] uppercase tracking-[0.3em] text-[#8A7A60]">{labels.verso}</span>
+              <span className="mt-[8%] font-label text-[clamp(0.5rem,1.2vw,0.6875rem)] font-semibold uppercase tracking-[0.4em] text-[#0E5A43]">{brand}</span>
+              <span className="mt-2 font-brand text-[clamp(1rem,2.4vw,1.5rem)] text-[#0F1714]">{item.name}</span>
+              <span className="absolute bottom-[8%] font-label text-[clamp(0.5rem,1vw,0.625rem)] uppercase tracking-[0.3em] text-[#848C87]">{labels.verso}</span>
             </div>
           </div>
         </div>
@@ -264,11 +251,11 @@ export function TemplateViewer({
         {/* The label beside the piece. */}
         <div className="relative max-w-[30rem]">
           <p className="flex items-baseline gap-3">
-            <span className="foil-text font-didone text-[3.5rem] leading-none sm:text-[4.5rem]">{String(index + 1).padStart(2, '0')}</span>
+            <span className="text-jade font-brand text-[3.5rem] leading-none sm:text-[4.5rem]">{String(index + 1).padStart(2, '0')}</span>
             <span className="font-label text-[0.6875rem] font-semibold tracking-[0.2em] text-ink-faint">/ {String(count).padStart(2, '0')}</span>
           </p>
-          <p className="mt-6 font-label text-[0.6875rem] font-semibold uppercase tracking-[0.24em] text-champagne">{item.categoryLabel}</p>
-          <h2 id={titleId} className="mt-3 font-didone text-[2.5rem] leading-[1.02] tracking-[-0.02em] text-ink sm:text-[3.5rem]">
+          <p className="mt-6 font-label text-[0.6875rem] font-semibold uppercase tracking-[0.24em] text-jade">{item.categoryLabel}</p>
+          <h2 id={titleId} className="mt-3 font-brand text-[2.5rem] leading-[1.02] tracking-[-0.02em] text-ink sm:text-[3.5rem]">
             {item.name}
           </h2>
           <p className="sr-only">{labels.dialog}</p>
@@ -277,17 +264,17 @@ export function TemplateViewer({
           <div className="mt-9 flex flex-wrap items-center gap-3">
             <Link
               to="/inscription"
-              className="group inline-flex h-[3.25rem] items-center gap-3 rounded-full bg-bone pl-6 pr-2 text-[0.9375rem] font-semibold text-nuit transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-champagne"
+              className="group inline-flex h-[3.25rem] items-center gap-3 rounded-full bg-paper-on-dark pl-6 pr-2 text-[0.9375rem] font-semibold text-malachite transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade"
             >
               {labels.customize}
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-nuit text-bone transition-transform group-hover:translate-x-0.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-malachite text-paper-on-dark transition-transform group-hover:translate-x-0.5">
                 <span aria-hidden="true">→</span>
               </span>
             </Link>
             <button
               type="button"
               onClick={flip}
-              className="inline-flex h-[3.25rem] items-center rounded-full border border-line-strong px-5 text-[0.875rem] font-medium text-ink transition-colors hover:border-champagne focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-champagne"
+              className="inline-flex h-[3.25rem] items-center rounded-full border border-line-strong px-5 text-[0.875rem] font-medium text-ink transition-colors hover:border-jade focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade"
             >
               {labels.flip}
             </button>
@@ -301,7 +288,7 @@ export function TemplateViewer({
                 onClick={() => go(-1)}
                 disabled={count <= 1}
                 aria-label={labels.previous}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-line-strong text-ink transition-colors hover:border-champagne disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-champagne"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-line-strong text-ink transition-colors hover:border-jade disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade"
               >
                 <span aria-hidden="true">←</span>
               </button>
@@ -310,7 +297,7 @@ export function TemplateViewer({
                 onClick={() => go(1)}
                 disabled={count <= 1}
                 aria-label={labels.next}
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-bone text-nuit transition-colors hover:bg-white disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-champagne"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-paper-on-dark text-malachite transition-colors hover:bg-white disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade"
               >
                 <span aria-hidden="true">→</span>
               </button>

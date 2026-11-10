@@ -179,9 +179,8 @@ export function QrScanner({ onResult, verifying = false }: QrScannerProps) {
                 <div
                   className="absolute left-[4%] right-[4%] h-[2px] rounded-full animate-scan-sweep motion-reduce:animate-none"
                   style={{
-                    backgroundImage:
-                      'linear-gradient(90deg, rgba(212, 162, 75, 0) 0%, rgba(212, 162, 75, 0.95) 50%, rgba(212, 162, 75, 0) 100%)',
-                    boxShadow: '0 0 14px rgba(212, 162, 75, 0.75)',
+                    backgroundColor: '#8fcbad',
+                    boxShadow: '0 0 10px rgba(143, 203, 173, 0.6)',
                   }}
                 />
               ) : null}
@@ -189,7 +188,7 @@ export function QrScanner({ onResult, verifying = false }: QrScannerProps) {
             {/* Identity chip — this is a QR scanner, not a photo camera. */}
             <div className="absolute inset-x-0 top-0 flex items-center gap-2 bg-gradient-to-b from-black/55 via-black/20 to-transparent px-4 pb-7 pt-3.5">
               <span className="inline-flex items-center gap-2 rounded-pill bg-black/45 px-3 py-1.5 text-[0.78rem] font-medium text-white/95 backdrop-blur-sm">
-                <IconQr className="h-4 w-4 text-gold" />
+                <IconQr className="h-4 w-4 text-jade" />
                 {fr.verify.scanner.chip}
               </span>
             </div>

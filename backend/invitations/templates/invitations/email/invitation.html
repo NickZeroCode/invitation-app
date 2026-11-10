@@ -6,34 +6,34 @@
 <meta name="color-scheme" content="light">
 <title>{{ subject }}</title>
 </head>
-<body style="margin:0;padding:0;background-color:#EFEAE1;">
+<body style="margin:0;padding:0;background-color:#F2EFE9;">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;">{{ event_title }} — {{ event_when }}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#EFEAE1;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F2EFE9;">
   <tr>
     <td align="center" style="padding:36px 14px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background-color:#FBF7F0;border:1px solid #E3D6BE;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background-color:#FFFFFF;border:1px solid #DED9CF;">
         <tr>
           <td style="padding:6px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E9DDC6;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E6E2D9;">
               <tr>
                 <td align="center" style="padding:40px 36px 8px;font-family:Georgia,'Times New Roman',serif;">
-                  <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#9A7536;">Invitation</p>
-                  <p style="margin:18px 0 0;font-size:15px;font-style:italic;color:#7A6A50;">Pour {{ guest_name }}</p>
-                  <h1 style="margin:14px 0 0;font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:30px;line-height:1.2;color:#2B2620;">{{ event_title }}</h1>
+                  <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#0E5A43;">Invitation</p>
+                  <p style="margin:18px 0 0;font-size:15px;color:#5E6863;">Pour {{ guest_name }}</p>
+                  <h1 style="margin:14px 0 0;font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:30px;line-height:1.2;color:#0F1714;">{{ event_title }}</h1>
                   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:22px auto 0;">
                     <tr>
-                      <td style="width:48px;border-top:1px solid #C9A86A;font-size:0;line-height:0;">&nbsp;</td>
-                      <td style="padding:0 10px;font-size:10px;color:#B08A45;line-height:1;">&#9670;</td>
-                      <td style="width:48px;border-top:1px solid #C9A86A;font-size:0;line-height:0;">&nbsp;</td>
+                      <td style="width:48px;border-top:1px solid #8FCBAD;font-size:0;line-height:0;">&nbsp;</td>
+                      <td style="padding:0 10px;font-size:10px;color:#0E5A43;line-height:1;">&#9670;</td>
+                      <td style="width:48px;border-top:1px solid #8FCBAD;font-size:0;line-height:0;">&nbsp;</td>
                     </tr>
                   </table>
-                  <p style="margin:20px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#2B2620;">{{ event_when }}</p>
-                  {% if venue_name %}<p style="margin:8px 0 0;font-size:16px;color:#2B2620;">{{ venue_name }}</p>{% endif %}
-                  {% if venue_address %}<p style="margin:4px 0 0;font-size:14px;color:#7A6A50;">{{ venue_address }}</p>{% endif %}
+                  <p style="margin:20px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#0F1714;">{{ event_when }}</p>
+                  {% if venue_name %}<p style="margin:8px 0 0;font-size:16px;color:#0F1714;">{{ venue_name }}</p>{% endif %}
+                  {% if venue_address %}<p style="margin:4px 0 0;font-size:14px;color:#5E6863;">{{ venue_address }}</p>{% endif %}
                 </td>
               </tr>
               <tr>
-                <td style="padding:26px 40px 6px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#3B342B;">
+                <td style="padding:26px 40px 6px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#2A332F;">
                   {% for paragraph in paragraphs %}<p style="margin:0 0 14px;">{{ paragraph|linebreaksbr|urlize }}</p>{% endfor %}
                 </td>
               </tr>
@@ -41,13 +41,13 @@
                 <td align="center" style="padding:10px 36px 40px;">
                   <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                     <tr>
-                      <td align="center" bgcolor="#2B2620" style="background-color:#2B2620;">
-                        <a href="{{ url }}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:Arial,Helvetica,sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#FBF7F0;text-decoration:none;">Ouvrir mon invitation</a>
+                      <td align="center" bgcolor="#0E5A43" style="background-color:#0E5A43;">
+                        <a href="{{ url }}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:Arial,Helvetica,sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#FFFFFF;text-decoration:none;">Ouvrir mon invitation</a>
                       </td>
                     </tr>
                   </table>
-                  {% if has_pdf %}<p style="margin:16px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#5C4A2E;">&#128206;&nbsp; Votre invitation est également jointe à cet e-mail en PDF.</p>{% endif %}
-                  <p style="margin:12px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#8E8170;">Ou copiez ce lien&nbsp;: <a href="{{ url }}" style="color:#8E6A2E;word-break:break-all;">{{ url }}</a></p>
+                  {% if has_pdf %}<p style="margin:16px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#3E4944;">&#128206;&nbsp; Votre invitation est également jointe à cet e-mail en PDF.</p>{% endif %}
+                  <p style="margin:12px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#7C857F;">Ou copiez ce lien&nbsp;: <a href="{{ url }}" style="color:#0E5A43;word-break:break-all;">{{ url }}</a></p>
                 </td>
               </tr>
             </table>
@@ -60,14 +60,14 @@
           <td align="center" style="padding:0 20px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
               <tr>
-                <td style="width:36px;border-top:1px solid #D9C9A8;font-size:0;line-height:0;">&nbsp;</td>
-                <td style="padding:0 12px;font-family:Georgia,'Times New Roman',serif;font-size:15px;letter-spacing:1px;color:#5C4A2E;white-space:nowrap;">Malaika<span style="color:#B08A45;">Events</span></td>
-                <td style="width:36px;border-top:1px solid #D9C9A8;font-size:0;line-height:0;">&nbsp;</td>
+                <td style="width:36px;border-top:1px solid #D6DDD8;font-size:0;line-height:0;">&nbsp;</td>
+                <td style="padding:0 12px;font-family:Georgia,'Times New Roman',serif;font-size:15px;letter-spacing:1px;color:#3E4944;white-space:nowrap;">Malaika<span style="color:#0E5A43;">Events</span></td>
+                <td style="width:36px;border-top:1px solid #D6DDD8;font-size:0;line-height:0;">&nbsp;</td>
               </tr>
             </table>
-            <p style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#9A8B73;">Invitations d’exception pour vos grands moments</p>
-            <p style="margin:10px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;"><a href="{{ site_url }}" target="_blank" style="color:#8E6A2E;text-decoration:none;font-weight:bold;letter-spacing:0.5px;">{{ site_label }}</a></p>
-            <p style="margin:12px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.6;color:#9A8B73;">Cette invitation vous a été envoyée par l’organisateur de l’événement via MalaikaEvents.<br>Répondez simplement à cet e-mail pour lui écrire.</p>
+            <p style="margin:8px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#848C87;">Invitations d’exception pour vos grands moments</p>
+            <p style="margin:10px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;"><a href="{{ site_url }}" target="_blank" style="color:#0E5A43;text-decoration:none;font-weight:bold;letter-spacing:0.5px;">{{ site_label }}</a></p>
+            <p style="margin:12px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.6;color:#848C87;">Cette invitation vous a été envoyée par l’organisateur de l’événement via MalaikaEvents.<br>Répondez simplement à cet e-mail pour lui écrire.</p>
           </td>
         </tr>
       </table>

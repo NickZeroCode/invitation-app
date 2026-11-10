@@ -76,7 +76,7 @@ export function LoginPage() {
   return (
     <div className="flex min-h-svh bg-paper">
       {/* Brand panel */}
-      <aside className="hidden w-[42%] max-w-xl flex-col justify-between bg-ink px-12 py-10 text-white lg:flex">
+      <aside className="hidden w-[42%] max-w-xl flex-col justify-between bg-malachite px-12 py-10 text-paper-on-dark lg:flex">
         <div className="flex justify-center">
           <LogoMark plate={false} className="h-28 w-28 xl:h-32 xl:w-32" />
         </div>

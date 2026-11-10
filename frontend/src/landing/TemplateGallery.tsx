@@ -45,6 +45,7 @@ export function TemplateGallery({
   detailLabel,
   scrollHint,
   backdropWord,
+  cursorLabel,
   filters,
   onOpen,
 }: {
@@ -57,6 +58,8 @@ export function TemplateGallery({
   detailLabel: string
   scrollHint: string
   backdropWord: string
+  /** Shown beside the pointer over the card facing the viewer (desktop). */
+  cursorLabel: string
   filters?: ReactNode
   onOpen: (index: number) => void
 }) {
@@ -66,6 +69,7 @@ export function TemplateGallery({
   const worldRef = useRef<HTMLUListElement>(null)
   const progressRef = useRef<HTMLSpanElement>(null)
   const wordRef = useRef<HTMLParagraphElement>(null)
+  const cursorRef = useRef<HTMLSpanElement>(null)
   const [front, setFront] = useState(0)
   const frontRef = useRef(0)
 
@@ -206,7 +210,7 @@ export function TemplateGallery({
         const top = scrollTopFor(index)
         if (top !== null && Math.abs(window.scrollY - top) > 4) window.scrollTo({ top })
       }}
-      className={`group block w-full rounded-[4px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-champagne focus-visible:ring-offset-4 focus-visible:ring-offset-nuit ${className}`}
+      className={`group block w-full rounded-[4px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade focus-visible:ring-offset-4 focus-visible:ring-offset-malachite ${className}`}
     >
       <span className="corridor-face block overflow-hidden rounded-[3px] shadow-[0_2px_6px_rgba(0,0,0,0.35),0_50px_80px_-30px_rgba(0,0,0,0.9)]">
         {renderCard(item.key)}
@@ -223,7 +227,7 @@ export function TemplateGallery({
           {items.map((item, index) => (
             <li key={item.key}>
               {cardButton(item, index, 'transition-transform duration-300 hover:-translate-y-1')}
-              <p className="mt-4 font-didone text-[1.125rem] leading-tight text-ink">{item.name}</p>
+              <p className="mt-4 font-brand text-[1.125rem] leading-tight text-ink">{item.name}</p>
               <p className="mt-1 font-label text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-ink-faint">{item.categoryLabel}</p>
             </li>
           ))}
@@ -240,31 +244,53 @@ export function TemplateGallery({
       className="relative"
       style={{ height: `calc(100svh + ${Math.max(0, count - 1) * SCROLL_PER_CARD}svh)` }}
     >
-      <div className="sticky top-0 h-[100svh] overflow-hidden">
-        {/* Night air: a pool of champagne light and the collection's name, far behind. */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_55%_at_50%_48%,rgba(200,169,106,0.16),transparent_70%)]" />
+      <div
+        className="sticky top-0 h-[100svh] overflow-hidden"
+        onPointerMove={(event) => {
+          const cursor = cursorRef.current
+          if (!cursor || event.pointerType !== 'mouse') return
+          const card = (event.target as Element).closest('.corridor-card') as HTMLElement | null
+          const over = Boolean(card && card.style.pointerEvents === 'auto')
+          const rect = event.currentTarget.getBoundingClientRect()
+          cursor.style.transform = `translate3d(${event.clientX - rect.left}px, ${event.clientY - rect.top}px, 0) translate(-50%, -50%) scale(${over ? 1 : 0})`
+        }}
+        onPointerLeave={() => {
+          if (cursorRef.current) cursorRef.current.style.transform += ' scale(0)'
+        }}
+      >
+        {/* The collection's name, set far behind in a tone of the ground itself. */}
         <p
           ref={wordRef}
           aria-hidden="true"
-          className="pointer-events-none absolute left-[4%] top-1/2 -translate-y-1/2 whitespace-nowrap font-didone text-[clamp(7rem,24vw,22rem)] italic leading-none text-transparent [-webkit-text-stroke:1px_rgba(200,169,106,0.16)]"
+          className="pointer-events-none absolute left-[4%] top-1/2 -translate-y-1/2 whitespace-nowrap font-brand text-[clamp(7rem,24vw,22rem)] leading-none tracking-[-0.04em] text-[#0F3D2E]"
         >
           {backdropWord}
         </p>
 
-        <div ref={stageRef} className="absolute inset-0 [perspective:1100px] [perspective-origin:50%_50%]">
-          <ul ref={worldRef} aria-label={trackLabel} className="absolute left-1/2 top-[51%] [transform-style:preserve-3d]">
+        <div ref={stageRef} className="absolute inset-0 [perspective:1100px] [perspective-origin:50%_44%]">
+          <ul ref={worldRef} aria-label={trackLabel} className="absolute left-1/2 top-[44%] [transform-style:preserve-3d]">
             {items.map((item, index) => (
               <li
                 key={item.key}
                 data-far={index < 6 ? 'false' : 'true'}
-                className="corridor-card absolute left-0 top-0 w-[min(58vw,calc(48svh*0.75),16rem)] sm:w-[min(26vw,calc(50svh*0.75),23rem)] [backface-visibility:hidden] will-change-transform"
+                className="corridor-card absolute left-0 top-0 w-[min(58vw,calc(44svh*0.75),16rem)] sm:w-[min(26vw,calc(46svh*0.75),23rem)] [backface-visibility:hidden] will-change-transform"
               >
-                {cardButton(item, index, '')}
-                <p className="corridor-name mt-4 text-center font-didone text-[1rem] text-ink-soft sm:text-[1.0625rem]">{item.name}</p>
+                {cardButton(item, index, '[@media(pointer:fine)]:cursor-none')}
+                <p className="corridor-name mt-4 text-center font-brand text-[1rem] text-ink-soft sm:text-[1.0625rem]">{item.name}</p>
               </li>
             ))}
           </ul>
         </div>
+
+        {/* A jade disc names the action under the pointer: open this card. */}
+        <span
+          ref={cursorRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute left-0 top-0 z-20 flex h-20 w-20 items-center justify-center rounded-full bg-jade font-label text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-malachite transition-transform duration-300 ease-out"
+          style={{ transform: 'scale(0)' }}
+        >
+          {cursorLabel}
+        </span>
 
         {/* Filters ride along at the top of the stage. */}
         {filters ? (
@@ -274,16 +300,16 @@ export function TemplateGallery({
         ) : null}
 
         {/* The card facing you, named like a museum label. */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[linear-gradient(0deg,rgba(12,10,8,0.92)_0%,rgba(12,10,8,0.6)_55%,transparent_100%)] pt-16">
-          <div className="mx-auto flex w-full max-w-[84rem] items-end justify-between gap-6 px-5 pb-6 sm:px-10 sm:pb-9 lg:px-14">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10">
+          <div className="mx-auto flex w-full max-w-[84rem] items-end justify-between gap-6 px-5 pb-5 pt-5 sm:px-10 sm:pb-7 sm:pt-6 lg:px-14">
             {current ? (
               <div className="min-w-0">
                 <p className="flex items-baseline gap-3">
-                  <span className="foil-text font-didone text-[3rem] leading-none sm:text-[4.5rem]">{pad(front + 1)}</span>
+                  <span className="text-jade font-brand text-[3rem] leading-none sm:text-[4.5rem]">{pad(front + 1)}</span>
                   <span className="font-label text-[0.6875rem] font-semibold tracking-[0.2em] text-ink-faint">/ {pad(count)}</span>
                 </p>
-                <p className="mt-2 truncate font-didone text-[1.5rem] leading-tight text-ink sm:text-[2rem]">{current.name}</p>
-                <p className="mt-1.5 font-label text-[0.625rem] font-semibold uppercase tracking-[0.22em] text-champagne">{current.categoryLabel}</p>
+                <p className="mt-2 truncate font-brand text-[1.5rem] leading-tight text-ink sm:text-[2rem]">{current.name}</p>
+                <p className="mt-1.5 font-label text-[0.625rem] font-semibold uppercase tracking-[0.22em] text-jade">{current.categoryLabel}</p>
                 <p className="mt-2 hidden max-w-[30rem] text-[0.875rem] leading-relaxed text-ink-soft sm:block">{current.description}</p>
               </div>
             ) : null}
@@ -291,13 +317,13 @@ export function TemplateGallery({
               <button
                 type="button"
                 onClick={() => onOpen(front)}
-                className="inline-flex h-11 items-center gap-2.5 rounded-full border border-champagne/50 bg-nuit/40 px-5 text-[0.8125rem] font-medium text-ink backdrop-blur-md transition-colors hover:border-champagne hover:bg-champagne hover:text-nuit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-champagne"
+                className="inline-flex h-11 items-center gap-2.5 rounded-full border border-jade/50 bg-malachite px-5 text-[0.8125rem] font-medium text-ink transition-colors hover:border-jade hover:bg-jade hover:text-malachite focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade"
               >
-                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-champagne" />
+                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-jade" />
                 {detailLabel}
               </button>
               <span aria-hidden="true" className="hidden h-px w-40 overflow-hidden bg-line sm:block">
-                <span ref={progressRef} className="block h-full w-full origin-left bg-champagne" style={{ transform: 'scaleX(0)' }} />
+                <span ref={progressRef} className="block h-full w-full origin-left bg-jade" style={{ transform: 'scaleX(0)' }} />
               </span>
               <span className="hidden text-[0.75rem] text-ink-faint sm:block">{scrollHint}</span>
             </div>

@@ -716,6 +716,7 @@ export const fr = {
       detail: 'Voir en détail',
       scrollHint: 'Faites défiler pour traverser la collection',
       backdrop: 'Collection',
+      cursor: 'Ouvrir',
       viewer: {
         dialog: 'Aperçu du modèle en 3D',
         close: 'Fermer l’aperçu',

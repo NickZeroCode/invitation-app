@@ -40,23 +40,23 @@ function useDialogBehaviour(open: boolean, onClose: () => void) {
 const VERDICT: Record<VerificationScanResultCode, { icon: typeof IconCheck; hero: string }> = {
   valid: {
     icon: IconCheck,
-    hero: 'radial-gradient(120% 130% at 50% -12%, rgba(212, 162, 75, 0.34) 0%, rgba(212, 162, 75, 0) 48%), linear-gradient(163deg, #0a8f57 0%, #067647 44%, #04412a 100%)',
+    hero: '#0e5a43',
   },
   expired: {
     icon: IconClock,
-    hero: 'radial-gradient(120% 130% at 50% -12%, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 48%), linear-gradient(163deg, #d97706 0%, #b54708 46%, #7c2d05 100%)',
+    hero: '#b54708',
   },
   revoked: {
     icon: IconBan,
-    hero: 'radial-gradient(120% 130% at 50% -12%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 48%), linear-gradient(163deg, #d1402f 0%, #b42318 46%, #71130c 100%)',
+    hero: '#b42318',
   },
   invalid: {
     icon: IconBan,
-    hero: 'radial-gradient(120% 130% at 50% -12%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 48%), linear-gradient(163deg, #d1402f 0%, #b42318 46%, #71130c 100%)',
+    hero: '#b42318',
   },
   wrong_event: {
     icon: IconAlert,
-    hero: 'radial-gradient(120% 130% at 50% -12%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 48%), linear-gradient(163deg, #d1402f 0%, #b42318 46%, #71130c 100%)',
+    hero: '#b42318',
   },
 }
 

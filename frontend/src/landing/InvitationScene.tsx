@@ -1,7 +1,9 @@
 /**
- * The hero's invitation suite in 3D: an ivory envelope with a gold-foil
- * liner and a wax seal, the real invitation card rising out of it, and the
- * guest's reply and access card floating at their own depths.
+ * The hero's invitation suite in 3D: a paper envelope with a malachite
+ * liner and a vermilion wax seal, the real invitation card rising out of it,
+ * and the guest's reply and access card floating at their own depths. Flat
+ * colour throughout (paper craft, not render): depth comes from geometry,
+ * perspective and shadow alone.
  *
  * Built with CSS 3D (perspective + preserve-3d) so the invitation stays the
  * real, crisp template component. One requestAnimationFrame loop writes
@@ -42,7 +44,6 @@ export function InvitationScene({
   const stageRef = useRef<HTMLDivElement>(null)
   const suiteRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
-  const sheenRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const stage = stageRef.current
@@ -57,9 +58,6 @@ export function InvitationScene({
       suite.style.transform = `rotateX(${pose.rx.toFixed(2)}deg) rotateY(${pose.ry.toFixed(2)}deg)`
       const offset = CARD_TUCKED + (CARD_LIFTED - CARD_TUCKED) * pose.lift
       cardNode.style.transform = `translate3d(-50%, ${offset.toFixed(2)}%, 14px) rotateX(${(-4 * pose.lift).toFixed(2)}deg)`
-      if (sheenRef.current) {
-        sheenRef.current.style.backgroundPosition = `${(50 + pose.ry * 2.4).toFixed(1)}% 50%`
-      }
     }
 
     if (!animate) {
@@ -142,15 +140,15 @@ export function InvitationScene({
           aria-hidden="true"
           className="absolute left-[5%] top-[46%] h-[50%] w-[90%] rounded-[6px] [transform:translateZ(0px)]"
           style={{
-            background: 'linear-gradient(160deg, #EDE3D1 0%, #E1D3BA 100%)',
+            background: '#E6E0D4',
             boxShadow: '0 30px 60px -20px rgba(0,0,0,0.6)',
           }}
         >
           <div
             className="absolute inset-[5%] rounded-[3px]"
             style={{
-              backgroundImage:
-                'repeating-linear-gradient(45deg, rgba(176,138,69,0.22) 0 2px, transparent 2px 9px), linear-gradient(135deg, #3A1D22, #5E2A33 55%, #3A1D22)',
+              // Printed liner: flat malachite stripes, hard-edged.
+              backgroundImage: 'repeating-linear-gradient(45deg, #0E5A43 0 7px, #0B4A37 7px 14px)',
             }}
           />
         </div>
@@ -160,7 +158,7 @@ export function InvitationScene({
           className="absolute left-[5%] top-[22%] h-[24.5%] w-[90%] origin-bottom [transform:translateZ(-2px)_rotateX(-14deg)]"
           style={{
             clipPath: 'polygon(0 100%, 50% 4%, 100% 100%)',
-            background: 'linear-gradient(180deg, #E3D6BF, #EFE6D6)',
+            background: '#DDD6C8',
           }}
         />
 
@@ -181,18 +179,9 @@ export function InvitationScene({
           className="absolute left-[5%] top-[46%] h-[50%] w-[90%] [transform:translateZ(26px)]"
           style={{ clipPath: 'polygon(0 0, 50% 46%, 100% 0, 100% 100%, 0 100%)' }}
         >
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(170deg, #F4ECDD 0%, #E8DCC6 60%, #DCCDB2 100%)' }} />
-          <div
-            ref={sheenRef}
-            className="absolute inset-0 mix-blend-soft-light"
-            style={{
-              backgroundImage: 'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.7) 50%, transparent 70%)',
-              backgroundSize: '260% 100%',
-              backgroundPosition: '50% 50%',
-            }}
-          />
+          <div className="absolute inset-0" style={{ background: '#F1ECE3' }} />
           {/* Folded seams from the corners to the point of the V. */}
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top right, transparent 49.6%, rgba(120,95,60,0.18) 50%, transparent 50.4%), linear-gradient(to top left, transparent 49.6%, rgba(120,95,60,0.18) 50%, transparent 50.4%)' }} />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top right, transparent 49.6%, rgba(60,70,64,0.16) 50%, transparent 50.4%), linear-gradient(to top left, transparent 49.6%, rgba(60,70,64,0.16) 50%, transparent 50.4%)' }} />
         </div>
 
         {/* Wax seal at the point of the V. */}
@@ -200,11 +189,11 @@ export function InvitationScene({
           aria-hidden="true"
           className="absolute left-1/2 top-[66%] flex h-[13%] w-[13%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full [transform:translateZ(32px)]"
           style={{
-            background: 'radial-gradient(circle at 35% 30%, #B4434F, #7A1F2B 55%, #4E0F19)',
-            boxShadow: '0 6px 14px rgba(40,5,10,0.55), inset 0 2px 3px rgba(255,255,255,0.25), inset 0 -3px 6px rgba(0,0,0,0.35)',
+            background: '#C8432B',
+            boxShadow: '0 8px 16px -4px rgba(60,12,4,0.55), inset 0 0 0 4px #A9351F',
           }}
         >
-          <span className="font-brand text-[clamp(1rem,3.4vw,1.6rem)] font-semibold leading-none text-[#F3D9A4] [text-shadow:0_1px_1px_rgba(0,0,0,0.45)]">
+          <span className="font-brand text-[clamp(1rem,3.4vw,1.6rem)] font-medium leading-none text-[#F5F2EC]">
             M
           </span>
         </div>

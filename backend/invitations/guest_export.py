@@ -54,12 +54,12 @@ logger = logging.getLogger(__name__)
 
 XLSX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-INK = "2B2620"
-GOLD = "B08A45"
-HEADER_FILL = PatternFill("solid", fgColor="2B2620")
-BAND_FILL = PatternFill("solid", fgColor="F7F1E6")
+INK = "0F1714"
+GOLD = "0E5A43"  # malachite, the brand colour
+HEADER_FILL = PatternFill("solid", fgColor="0E5A43")
+BAND_FILL = PatternFill("solid", fgColor="F2EFE9")
 CONFIRMED_FILL = PatternFill("solid", fgColor="E8F3EC")
-THIN = Side(style="thin", color="E3D6BE")
+THIN = Side(style="thin", color="DED9CF")
 
 STATUS_LABELS = {
     Invitation.State.ACTIVE: "Active",
@@ -149,13 +149,13 @@ def _title_block(sheet: Worksheet, event: EventModel, title: str, exported_at: d
     when = " à ".join(filter(None, [french_date(event.event_date), french_time(event.event_time)]))
     place = " — ".join(filter(None, [event.venue_name, event.venue_address]))
     _put(sheet, 2, 1, event.title, font=Font(bold=True, size=12, color=GOLD))
-    _put(sheet, 3, 1, " · ".join(filter(None, [when, place])), font=Font(italic=True, color="7A6A50"))
+    _put(sheet, 3, 1, " · ".join(filter(None, [when, place])), font=Font(italic=True, color="5E6863"))
     _put(
         sheet,
         4,
         1,
         f"Exporté le {exported_at.strftime('%d/%m/%Y à %H:%M')} depuis MalaikaEvents",
-        font=Font(size=9, color="9A8B73"),
+        font=Font(size=9, color="848C87"),
     )
     return 6
 
@@ -228,7 +228,7 @@ def build_guest_workbook(event: EventModel) -> bytes:
     if invitations:
         sheet.auto_filter.ref = f"A{header_row}:{get_column_letter(len(labels))}{row}"
     else:
-        _put(sheet, header_row + 1, 1, "Aucun invité pour le moment.", font=Font(italic=True, color="7A6A50"))
+        _put(sheet, header_row + 1, 1, "Aucun invité pour le moment.", font=Font(italic=True, color="5E6863"))
     sheet.freeze_panes = sheet.cell(row=header_row + 1, column=3)
     _fit_columns(sheet, {1: 6}, first_row=header_row)
     sheet.print_title_rows = f"{header_row}:{header_row}"
@@ -269,9 +269,9 @@ def build_guest_workbook(event: EventModel) -> bytes:
                 alignment=Alignment(vertical="top", wrap_text=column == 5),
             )
         if number == NO_TABLE:
-            tables.cell(row=row, column=1).font = Font(italic=True, color="7A6A50")
+            tables.cell(row=row, column=1).font = Font(italic=True, color="5E6863")
     if not ordered:
-        _put(tables, table_header + 1, 1, "Aucune table pour le moment.", font=Font(italic=True, color="7A6A50"))
+        _put(tables, table_header + 1, 1, "Aucune table pour le moment.", font=Font(italic=True, color="5E6863"))
     tables.freeze_panes = tables.cell(row=table_header + 1, column=1)
     _fit_columns(tables, {5: 48}, first_row=table_header)
 

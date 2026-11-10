@@ -1,20 +1,23 @@
 /**
  * Public marketing homepage (`/`).
  *
- * Brand: « Nuit & Champagne » — a night stationery house. Near-black lacquer,
- * bone-white type, champagne foil, an oxblood wax accent; Bodoni Moda for the
- * voice, Cormorant italic for the second breath of a headline, Montserrat
- * small caps for labels. The page reads as numbered chapters.
+ * Brand: « Malachite ». Named for the banded green stone of the Katanga
+ * copper belt: warm paper, green-black ink, flat malachite, pale jade on the
+ * dark stages and a single vermilion wax-seal accent. Flat colour only — no
+ * gradients, no glass, no italics; depth comes from geometry, perspective
+ * and shadow. Bodoni Moda (roman) carries the voice, Montserrat small caps
+ * the labels. The page reads as numbered chapters on paper, between three
+ * malachite stages:
  *
- *  - Hero: a framed night stage — flowing ink-and-gold silk (a tiny WebGL
- *    shader), the giant « Malaika » masthead and the real invitation suite in
+ *  - The opening: a curtain counts in (once per visit), then the hero — a
+ *    living slab of malachite (a tiny WebGL shader drawing the stone's flat
+ *    bands), the « MalaikaEvents » masthead and the real invitation suite in
  *    3D (envelope, card, wax seal) that tilts with the pointer and rises as
  *    you scroll.
- *  - The collection: a flight through space — the camera travels down a
- *    corridor of the real templates as you scroll; any card opens in a 3D
- *    viewer where it can be turned over in the hand.
- *  - One bone-paper chapter (the guest's experience) and the product
- *    miniatures are light objects set in the night.
+ *  - The collection: the camera travels down a corridor of the real
+ *    templates as you scroll; any card opens in a 3D viewer where it can be
+ *    turned over in the hand.
+ *  - The close: the same stone, still, with the signature.
  *
  * Every invitation shown is the real template component rendered from
  * `sampleDraft`; no stock imagery, no invented customers, prices or
@@ -23,20 +26,17 @@
  * runs only when the visitor allows it and the device can afford it (see
  * landing/motion), and every effect has a finished still state.
  */
-import '@fontsource/bodoni-moda/400.css'
-import '@fontsource/bodoni-moda/400-italic.css'
-import '@fontsource/bodoni-moda/500.css'
-
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import QRCode from 'qrcode'
 
 import { LegalLinks } from '../components/LegalLinks.tsx'
+import { IntroCurtain } from '../landing/IntroCurtain.tsx'
 import { InvitationScene } from '../landing/InvitationScene.tsx'
+import { MalachiteCanvas } from '../landing/MalachiteCanvas.tsx'
 import { useRichMotion } from '../landing/motion.ts'
 import { Reveal } from '../landing/Reveal.tsx'
-import { SilkCanvas } from '../landing/SilkCanvas.tsx'
 import { TemplateGallery } from '../landing/TemplateGallery.tsx'
 import { TemplateViewer } from '../landing/TemplateViewer.tsx'
 import {
@@ -66,9 +66,9 @@ const COPY = fr.landing
 /** One measure and one padding scale for the whole page. */
 const WRAP = 'mx-auto w-full max-w-[80rem] px-5 sm:px-8 lg:px-12'
 const SECTION_Y = 'py-24 sm:py-28 lg:py-36'
-const H2 = 'text-balance font-didone text-[2.5rem] font-normal leading-[1.02] tracking-[-0.025em] text-ink sm:text-[3.25rem] lg:text-[4.25rem]'
+const H2 = 'text-balance font-brand text-[2.5rem] font-normal leading-[1.02] tracking-[-0.025em] text-ink sm:text-[3.25rem] lg:text-[4.25rem]'
 const LEAD = 'text-[1.0625rem] leading-relaxed text-ink-soft'
-const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-champagne focus-visible:ring-offset-2 focus-visible:ring-offset-nuit'
+const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-paper'
 
 /** The curated first view of the collection (covers every event type). */
 const FEATURED_KEYS = [
@@ -98,7 +98,7 @@ function TemplatePreview({ templateKey, className = '' }: { templateKey: string;
   const definition = getTemplate(templateKey)
   return (
     <div
-      className={`aspect-[3/4] w-full overflow-hidden bg-[#F3EEE6] ${className}`}
+      className={`aspect-[3/4] w-full overflow-hidden bg-[#F3EFE7] ${className}`}
       role="img"
       aria-label={definition ? `${fr.templates.previewLabel} : ${definition.name}` : fr.templates.previewLabel}
     >
@@ -107,38 +107,50 @@ function TemplatePreview({ templateKey, className = '' }: { templateKey: string;
   )
 }
 
-/** The house call to action: a bone pill with an ink arrow tile. */
-function PrimaryCta({ to, children, className = '' }: { to: string; children: ReactNode; className?: string }) {
+/** A label that rolls to a second copy of itself on hover (see `.roll`). */
+function Roll({ children }: { children: string }) {
+  return (
+    <span className="roll">
+      <span>{children}</span>
+      <span aria-hidden="true">{children}</span>
+    </span>
+  )
+}
+
+/** The house call to action: a solid pill with an arrow tile. */
+function PrimaryCta({ to, children, onDark = false, className = '' }: { to: string; children: string; onDark?: boolean; className?: string }) {
+  const tone = onDark ? 'bg-paper-on-dark text-malachite hover:bg-white' : 'bg-brand text-white hover:bg-brand-strong'
+  const tile = onDark ? 'bg-malachite text-paper-on-dark' : 'bg-white text-brand'
   return (
     <Link
       to={to}
-      className={`group inline-flex min-h-[3.25rem] items-center justify-center gap-3 rounded-full bg-bone py-1.5 pl-6 pr-1.5 text-center text-[0.9375rem] font-semibold leading-snug text-nuit transition-colors hover:bg-white ${FOCUS} ${className}`}
+      className={`group inline-flex min-h-[3.25rem] items-center justify-center gap-3 rounded-full py-1.5 pl-6 pr-1.5 text-center text-[0.9375rem] font-semibold leading-snug transition-colors ${tone} ${FOCUS} ${className}`}
     >
-      {children}
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-nuit text-bone transition-transform duration-300 group-hover:translate-x-0.5">
+      <Roll>{children}</Roll>
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-transform duration-300 group-hover:translate-x-0.5 ${tile}`}>
         <IconArrowRight className="h-4 w-4" />
       </span>
     </Link>
   )
 }
 
-function GhostCta({ to, href, children }: { to?: string; href?: string; children: ReactNode }) {
-  const className = `inline-flex h-[3.25rem] items-center justify-center rounded-full border border-bone/25 px-6 text-[0.9375rem] font-medium text-bone transition-colors hover:border-champagne hover:text-champagne ${FOCUS}`
+function GhostCta({ to, href, children }: { to?: string; href?: string; children: string }) {
+  const className = `inline-flex h-[3.25rem] items-center justify-center rounded-full border border-line-strong px-6 text-[0.9375rem] font-medium text-ink transition-colors hover:border-ink ${FOCUS}`
   return to ? (
     <Link to={to} className={className}>
-      {children}
+      <Roll>{children}</Roll>
     </Link>
   ) : (
     <a href={href} className={className}>
-      {children}
+      <Roll>{children}</Roll>
     </a>
   )
 }
 
 /**
- * Splits a headline into its first breath and the rest — set in Bodoni, then
- * in champagne Cormorant italic (« L’élégance du papier, » / « sans ses
- * contraintes. »). Falls back to a single voice without a natural break.
+ * Splits a headline into its first breath and the rest, set in two tones of
+ * the same roman (« L’élégance du papier, » ink / « sans ses contraintes. »
+ * malachite). Falls back to a single tone without a natural break.
  */
 function twoTone(title: string): [string, string] {
   const match = title.match(/^(.{8,}?[,:;])\s+(.+)$/)
@@ -167,7 +179,7 @@ function SectionHeader({
   const [head, tail] = twoTone(title)
   const label = eyebrow ? (
     <p className="flex items-center gap-3 font-label text-[0.6875rem] font-semibold uppercase tracking-[0.24em] text-ink-faint">
-      {chapter ? <span className="text-champagne">{String(chapter).padStart(2, '0')}</span> : null}
+      {chapter ? <span className="text-brand">{String(chapter).padStart(2, '0')}</span> : null}
       <span aria-hidden="true" className="h-px w-6 bg-line-strong" />
       {eyebrow}
     </p>
@@ -179,7 +191,7 @@ function SectionHeader({
         {tail ? (
           <>
             {' '}
-            <em className="font-brand text-[1.08em] font-medium italic tracking-[-0.01em] text-champagne">{tail}</em>
+            <span className="text-brand">{tail}</span>
           </>
         ) : null}
       </h2>
@@ -206,7 +218,7 @@ function useQrDataUrl(text: string): string {
   const [url, setUrl] = useState('')
   useEffect(() => {
     let cancelled = false
-    QRCode.toDataURL(text, { width: 340, margin: 1, color: { dark: '#15120e', light: '#ffffff' } })
+    QRCode.toDataURL(text, { width: 340, margin: 1, color: { dark: '#0f1714', light: '#ffffff' } })
       .then((value) => {
         if (!cancelled) setUrl(value)
       })
@@ -234,35 +246,36 @@ function SiteHeader() {
     return () => document.removeEventListener('keydown', onKey)
   }, [open])
 
-  // A floating lacquer pill, legible over the night and the bone chapter.
+  const focus = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade'
+  // A floating malachite pill: solid, legible over the stone and the paper.
   return (
     <header className="pointer-events-none fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-5 sm:pt-5">
-      <div className="pointer-events-auto mx-auto max-w-[64rem] rounded-full border border-bone/10 bg-nuit/70 shadow-[0_20px_50px_-24px_rgba(0,0,0,0.8)] backdrop-blur-xl max-xl:rounded-[26px]">
+      <div className="pointer-events-auto mx-auto max-w-[64rem] rounded-[28px] bg-malachite text-paper-on-dark shadow-[0_18px_40px_-22px_rgba(7,32,25,0.7)]">
         <div className="flex h-14 items-center justify-between gap-6 pl-5 pr-2">
-          <Link to="/" aria-label={fr.appName} className={`shrink-0 rounded-sm ${FOCUS}`}>
+          <Link to="/" aria-label={fr.appName} className={`shrink-0 rounded-sm ${focus}`}>
             <BrandLockup dark />
           </Link>
 
           <nav aria-label={COPY.nav.ariaLabel} className="hidden items-center gap-7 whitespace-nowrap xl:flex">
             {NAV_LINKS.map(([href, label]) => (
-              <a key={href} href={`#${href}`} className={`text-[0.875rem] text-bone/60 transition-colors hover:text-bone ${FOCUS}`}>
-                {label}
+              <a key={href} href={`#${href}`} className={`text-[0.875rem] text-paper-on-dark/70 transition-colors hover:text-paper-on-dark ${focus}`}>
+                <Roll>{label}</Roll>
               </a>
             ))}
           </nav>
 
           <div className="flex items-center gap-1.5">
             <span className="hidden items-center gap-1.5 whitespace-nowrap sm:flex">
-              <Link to="/connexion" className={`inline-flex h-10 items-center rounded-full px-4 text-[0.875rem] font-medium text-bone/80 transition-colors hover:text-bone ${FOCUS}`}>
-                {COPY.nav.login}
+              <Link to="/connexion" className={`inline-flex h-10 items-center rounded-full px-4 text-[0.875rem] font-medium text-paper-on-dark/85 transition-colors hover:text-paper-on-dark ${focus}`}>
+                <Roll>{COPY.nav.login}</Roll>
               </Link>
-              <Link to="/inscription" className={`inline-flex h-10 items-center rounded-full bg-bone px-5 text-[0.875rem] font-semibold text-nuit transition-colors hover:bg-white ${FOCUS}`}>
-                {COPY.nav.signup}
+              <Link to="/inscription" className={`inline-flex h-10 items-center rounded-full bg-paper-on-dark px-5 text-[0.875rem] font-semibold text-malachite transition-colors hover:bg-white ${focus}`}>
+                <Roll>{COPY.nav.signup}</Roll>
               </Link>
             </span>
             <button
               type="button"
-              className={`flex h-10 w-10 items-center justify-center rounded-full text-bone transition-colors hover:bg-bone/10 xl:hidden ${FOCUS}`}
+              className={`flex h-10 w-10 items-center justify-center rounded-full text-paper-on-dark transition-colors hover:bg-paper-on-dark/10 xl:hidden ${focus}`}
               aria-expanded={open}
               aria-controls="menu-mobile"
               aria-label={open ? COPY.nav.closeMenu : COPY.nav.openMenu}
@@ -274,18 +287,19 @@ function SiteHeader() {
         </div>
 
         {open ? (
-          <div id="menu-mobile" className="border-t border-bone/10 xl:hidden">
+          <div id="menu-mobile" className="border-t border-paper-on-dark/10 xl:hidden">
             <nav aria-label={COPY.nav.ariaLabel} className="flex flex-col px-5 py-3">
-              {NAV_LINKS.map(([href, label]) => (
-                <a key={href} href={`#${href}`} onClick={() => setOpen(false)} className="border-b border-bone/10 py-3.5 font-didone text-[1.625rem] text-bone">
+              {NAV_LINKS.map(([href, label], index) => (
+                <a key={href} href={`#${href}`} onClick={() => setOpen(false)} className="flex items-baseline gap-4 border-b border-paper-on-dark/10 py-3.5 font-brand text-[1.625rem]">
+                  <span className="font-label text-[0.625rem] font-semibold tracking-[0.2em] text-jade">{String(index + 1).padStart(2, '0')}</span>
                   {label}
                 </a>
               ))}
               <div className="mt-5 grid grid-cols-2 gap-3 pb-3">
-                <Link to="/connexion" className="inline-flex h-11 items-center justify-center rounded-full border border-bone/20 text-[0.9375rem] font-medium text-bone">
+                <Link to="/connexion" className="inline-flex h-11 items-center justify-center rounded-full border border-paper-on-dark/25 text-[0.9375rem] font-medium">
                   {COPY.nav.login}
                 </Link>
-                <Link to="/inscription" className="inline-flex h-11 items-center justify-center rounded-full bg-bone text-[0.9375rem] font-semibold text-nuit">
+                <Link to="/inscription" className="inline-flex h-11 items-center justify-center rounded-full bg-paper-on-dark text-[0.9375rem] font-semibold text-malachite">
                   {COPY.nav.signup}
                 </Link>
               </div>
@@ -299,10 +313,10 @@ function SiteHeader() {
 
 /* -------------------------------------------------------------------- hero */
 
-/** Ivory product chip floating in the hero's 3D suite. */
+/** Paper product chip floating in the hero's 3D suite. */
 function SuiteChip({ className = '', children }: { className?: string; children: ReactNode }) {
   return (
-    <div className={`theme-bone rounded-[14px] bg-[#FBF7F0] px-4 py-3.5 text-ink max-sm:[zoom:0.8] shadow-[0_2px_4px_rgba(0,0,0,0.2),0_30px_50px_-20px_rgba(0,0,0,0.75)] ${className}`}>
+    <div className={`theme-paper rounded-[14px] bg-surface px-4 py-3.5 text-ink max-sm:[zoom:0.8] shadow-[0_2px_4px_rgba(0,0,0,0.18),0_30px_50px_-20px_rgba(4,20,15,0.8)] ${className}`}>
       {children}
     </div>
   )
@@ -326,8 +340,7 @@ function RisingWords({ text, startMs, className = '' }: { text: string; startMs:
   )
 }
 
-function Hero({ qrDataUrl }: { qrDataUrl: string }) {
-  const rich = useRichMotion()
+function Hero({ qrDataUrl, rich }: { qrDataUrl: string; rich: boolean }) {
   const [lead, rest] = useMemo(() => {
     const words = COPY.hero.title.split(' ')
     return [words.slice(0, 3).join(' '), words.slice(3).join(' ')]
@@ -341,7 +354,7 @@ function Hero({ qrDataUrl }: { qrDataUrl: string }) {
         <SuiteChip>
           <p className="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-brand sm:text-[0.625rem]">{COPY.hero.rsvpTitle}</p>
           <p className="mt-1.5 text-[0.8125rem] font-medium">{COPY.hero.rsvpGuest}</p>
-          <p className="mt-2 inline-flex items-center gap-1.5 rounded-[8px] bg-success-soft px-2 py-1 text-[0.6875rem] font-medium text-success sm:text-[0.75rem]">
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-[8px] bg-brand-soft px-2 py-1 text-[0.6875rem] font-medium text-brand sm:text-[0.75rem]">
             <IconCheck className="h-3.5 w-3.5" />
             {COPY.hero.rsvpStatus}
           </p>
@@ -361,7 +374,7 @@ function Hero({ qrDataUrl }: { qrDataUrl: string }) {
             <span className="mt-2 block aspect-square w-full max-w-[5.5rem] bg-surface-muted" aria-hidden="true" />
           )}
           <p className="mt-1.5 inline-flex items-center gap-1.5 text-[0.6875rem] font-medium sm:text-[0.75rem]">
-            <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
+            <span className="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />
             {COPY.hero.accessStatus}
           </p>
         </SuiteChip>
@@ -373,7 +386,7 @@ function Hero({ qrDataUrl }: { qrDataUrl: string }) {
       style: { right: '2%', bottom: '6%' },
       content: (
         <SuiteChip className="flex items-center gap-2 whitespace-nowrap py-2.5">
-          <IconChat className="h-4 w-4 text-success" />
+          <IconChat className="h-4 w-4 text-brand" />
           <span className="text-[0.75rem] font-medium">{COPY.hero.sentLabel}</span>
         </SuiteChip>
       ),
@@ -382,45 +395,43 @@ function Hero({ qrDataUrl }: { qrDataUrl: string }) {
 
   return (
     <section aria-labelledby="hero-titre" className="relative px-2.5 pt-2.5 sm:px-3 sm:pt-3">
-      <div className="grain relative isolate overflow-hidden rounded-[24px] bg-[#0B0907] text-bone ring-1 ring-bone/5 sm:rounded-[32px]">
-        {/* Living backdrop, with a finished gradient underneath. */}
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(120%_80%_at_75%_20%,#3A2A17_0%,#140F0A_45%,#0B0907_100%)]">
-          <SilkCanvas animate={rich} />
+      <div className="theme-malachite relative isolate overflow-hidden rounded-[24px] bg-malachite-deep text-ink sm:rounded-[32px]">
+        {/* The living stone, with its flat colour underneath. */}
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-malachite-deep">
+          <MalachiteCanvas animate={rich} />
         </div>
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(11,9,7,0.2)_0%,transparent_30%,transparent_62%,rgba(11,9,7,0.8)_100%)]" />
 
         <div className="mx-auto w-full max-w-[84rem] px-5 pb-10 pt-24 sm:px-10 sm:pt-28 lg:px-14 lg:pb-14">
-          {/* The masthead. */}
-          <p aria-hidden="true" className="landing-rise relative select-none font-didone font-normal leading-[0.8] tracking-[-0.045em] text-bone text-[clamp(4.2rem,18vw,16rem)]">
-            Malaika
-            <span className="absolute -bottom-[0.2em] right-[0.02em] font-label text-[clamp(0.7rem,1.5vw,1.1rem)] font-semibold tracking-[0.5em] text-champagne sm:right-[0.06em]">
-              EVENTS
-            </span>
+          {/* The masthead: the full house name. */}
+          <p aria-hidden="true" className="landing-rise select-none whitespace-nowrap font-brand font-normal leading-[0.86] tracking-[-0.045em] text-[clamp(2.6rem,12.4vw,12.5rem)]">
+            Malaika<span className="text-jade">Events</span>
           </p>
 
-          <div className="mt-12 grid items-end gap-14 lg:mt-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] lg:gap-10">
+          <div className="mt-12 grid items-end gap-14 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] lg:gap-10">
             <div className="max-w-[35rem] pb-2">
-              <p className="landing-rise flex items-center gap-3 font-label text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-bone/60" style={{ ['--rise-delay' as string]: '200ms' }}>
-                <span aria-hidden="true" className="h-px w-6 bg-champagne" />
+              <p className="landing-rise flex items-center gap-3 font-label text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-ink-soft" style={{ ['--rise-delay' as string]: '200ms' }}>
+                <span aria-hidden="true" className="h-2 w-2 rounded-full bg-seal" />
                 {COPY.hero.eyebrow}
               </p>
-              <h1 id="hero-titre" className="mt-6 font-didone text-[2.5rem] font-normal leading-[1.04] tracking-[-0.02em] sm:text-[3.3rem] lg:text-[3.75rem]">
+              <h1 id="hero-titre" className="mt-6 font-brand text-[2.5rem] font-normal leading-[1.04] tracking-[-0.02em] sm:text-[3.3rem] lg:text-[3.75rem]">
                 <span className="sr-only">{COPY.hero.title}</span>
                 <span aria-hidden="true">
-                  <RisingWords text={lead} startMs={260} className="text-bone" />{' '}
-                  <RisingWords text={rest} startMs={470} className="font-brand text-[1.1em] font-medium italic text-champagne" />
+                  <RisingWords text={lead} startMs={260} />{' '}
+                  <RisingWords text={rest} startMs={470} className="text-jade" />
                 </span>
               </h1>
-              <p className="landing-rise mt-6 max-w-[30rem] text-[1.0625rem] leading-relaxed text-bone/70" style={{ ['--rise-delay' as string]: '700ms' }}>
+              <p className="landing-rise mt-6 max-w-[30rem] text-[1.0625rem] leading-relaxed text-ink-soft" style={{ ['--rise-delay' as string]: '700ms' }}>
                 {COPY.hero.text}
               </p>
               <div className="landing-rise mt-9 flex flex-col gap-3 sm:flex-row sm:items-center" style={{ ['--rise-delay' as string]: '820ms' }}>
-                <PrimaryCta to="/inscription">{COPY.hero.signupCta}</PrimaryCta>
+                <PrimaryCta to="/inscription" onDark>
+                  {COPY.hero.signupCta}
+                </PrimaryCta>
                 <GhostCta href="#modeles">{COPY.hero.secondaryCta}</GhostCta>
               </div>
-              <p className="landing-rise mt-6 text-[0.875rem] text-bone/55" style={{ ['--rise-delay' as string]: '900ms' }}>
+              <p className="landing-rise mt-6 text-[0.875rem] text-ink-faint" style={{ ['--rise-delay' as string]: '900ms' }}>
                 {COPY.hero.loginPrompt}{' '}
-                <Link to="/connexion" className="font-medium text-bone underline decoration-bone/30 underline-offset-4 hover:decoration-champagne">
+                <Link to="/connexion" className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-jade">
                   {COPY.hero.primaryCta}
                 </Link>
               </p>
@@ -431,11 +442,11 @@ function Hero({ qrDataUrl }: { qrDataUrl: string }) {
             </div>
           </div>
 
-          <div className="mt-10 flex items-center justify-between gap-6 border-t border-bone/10 pt-5 text-[0.75rem] text-bone/45">
+          <div className="mt-10 flex items-center justify-between gap-6 border-t border-line pt-5 text-[0.75rem] text-ink-faint">
             <span>{COPY.hero.footnote}</span>
-            <a href="#modeles" className="inline-flex shrink-0 items-center gap-2 text-bone/60 transition-colors hover:text-bone">
-              <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse rounded-full bg-champagne motion-reduce:animate-none" />
-              {COPY.hero.scroll}
+            <a href="#modeles" className="inline-flex shrink-0 items-center gap-2 text-ink-soft transition-colors hover:text-ink">
+              <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse rounded-full bg-jade motion-reduce:animate-none" />
+              <Roll>{COPY.hero.scroll}</Roll>
             </a>
           </div>
         </div>
@@ -464,7 +475,7 @@ function FactsBand() {
           >
             <dt className="sr-only">{label}</dt>
             <dd>
-              <span className="foil-text block font-didone text-[4rem] leading-none tracking-[-0.03em] [font-variant-numeric:lining-nums] sm:text-[5.5rem]">{value}</span>
+              <span className="block font-brand text-[4rem] leading-none tracking-[-0.03em] text-ink [font-variant-numeric:lining-nums] sm:text-[5.5rem]">{value}</span>
               <span className="mt-4 block max-w-[14rem] text-[0.875rem] leading-snug text-ink-soft">{label}</span>
             </dd>
           </div>
@@ -476,8 +487,7 @@ function FactsBand() {
 
 /* -------------------------------------------------------------- showcase */
 
-function Showcase() {
-  const rich = useRichMotion()
+function Showcase({ rich }: { rich: boolean }) {
   const categories = useMemo(() => {
     const seen = new Map<string, string>()
     for (const template of TEMPLATES) if (!seen.has(template.category)) seen.set(template.category, template.categoryLabel)
@@ -504,8 +514,8 @@ function Showcase() {
   )
 
   const chip = (selected: boolean) =>
-    `shrink-0 rounded-full border px-4 py-2 text-[0.8125rem] backdrop-blur-md transition-colors ${FOCUS} ${
-      selected ? 'border-bone bg-bone text-nuit' : 'border-bone/15 bg-nuit/40 text-bone/70 hover:border-bone/40 hover:text-bone'
+    `shrink-0 rounded-full border px-4 py-2 text-[0.8125rem] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jade ${
+      selected ? 'border-paper-on-dark bg-paper-on-dark text-malachite' : 'border-line-strong bg-malachite text-ink-soft hover:border-ink hover:text-ink'
     }`
 
   const filters = (
@@ -521,8 +531,9 @@ function Showcase() {
     </div>
   )
 
+  // A full-bleed malachite stage for the collection.
   return (
-    <section id="modeles" aria-labelledby="modeles-titre" className="relative scroll-mt-0">
+    <section id="modeles" aria-labelledby="modeles-titre" className="theme-malachite relative scroll-mt-0 bg-malachite text-ink">
       <div className={`${WRAP} pt-24 sm:pt-32 lg:pt-40`}>
         <Reveal>
           <SectionHeader wide chapter={1} id="modeles-titre" eyebrow={COPY.showcase.eyebrow} title={COPY.showcase.title} lead={COPY.showcase.subtitle} />
@@ -539,6 +550,7 @@ function Showcase() {
           detailLabel={COPY.showcase.detail}
           scrollHint={COPY.showcase.scrollHint}
           backdropWord={COPY.showcase.backdrop}
+          cursorLabel={COPY.showcase.cursor}
           filters={filters}
           onOpen={setViewing}
         />
@@ -549,7 +561,7 @@ function Showcase() {
           <p className="max-w-[30rem] text-[0.9375rem] text-ink-soft">
             {COPY.showcase.more.replace('{count}', String(TEMPLATES.length))}
           </p>
-          <PrimaryCta to="/inscription" className="w-full sm:w-auto">
+          <PrimaryCta to="/inscription" onDark className="w-full sm:w-auto">
             {COPY.showcase.cta}
           </PrimaryCta>
         </div>
@@ -575,7 +587,7 @@ function Showcase() {
 
 function ProblemSolution() {
   return (
-    <section aria-labelledby="pourquoi-titre" className="border-t border-line">
+    <section aria-labelledby="pourquoi-titre">
       <div className={`${WRAP} ${SECTION_Y}`}>
         <Reveal>
           <SectionHeader wide chapter={2} id="pourquoi-titre" eyebrow={COPY.problem.eyebrow} title={COPY.problem.title} />
@@ -592,12 +604,12 @@ function ProblemSolution() {
               ))}
             </ul>
           </Reveal>
-          <Reveal delay={120} className="relative overflow-hidden rounded-[22px] border border-champagne/30 bg-[linear-gradient(160deg,rgba(200,169,106,0.14),rgba(200,169,106,0.03)_60%)] p-7 sm:p-10">
-            <h3 className="font-label text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-champagne">{COPY.problem.afterTitle}</h3>
+          <Reveal delay={120} className="rounded-[22px] bg-brand p-7 text-white sm:p-10">
+            <h3 className="font-label text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-jade">{COPY.problem.afterTitle}</h3>
             <ul className="mt-7 space-y-5">
               {COPY.problem.after.map((item) => (
-                <li key={item} className="flex gap-3.5 text-[0.9375rem] leading-relaxed text-ink">
-                  <IconCheck className="mt-1 h-4 w-4 shrink-0 text-champagne" />
+                <li key={item} className="flex gap-3.5 text-[0.9375rem] leading-relaxed">
+                  <IconCheck className="mt-1 h-4 w-4 shrink-0 text-jade" />
                   {item}
                 </li>
               ))}
@@ -614,12 +626,12 @@ function ProblemSolution() {
 function MiniEnvelope() {
   return (
     <svg viewBox="0 0 160 110" className="h-auto w-[78%]" aria-hidden="true">
-      <rect x="4" y="8" width="152" height="96" rx="3" fill="#EDE3D0" />
-      <path d="M4 104 L80 58 L156 104 Z" fill="#E6DAC2" />
-      <path d="M4 8 L80 64 L156 8 Z" fill="#F2EADB" stroke="rgba(60,40,20,0.12)" />
-      <circle cx="80" cy="62" r="12" fill="#7A2331" />
-      <circle cx="80" cy="62" r="8.5" fill="none" stroke="#C8A96A" strokeWidth="1" />
-      <text x="80" y="66" textAnchor="middle" fontFamily="'Bodoni Moda', serif" fontSize="9" fontStyle="italic" fill="#F3D9A4">
+      <rect x="4" y="8" width="152" height="96" rx="3" fill="#E6E0D4" />
+      <path d="M4 104 L80 58 L156 104 Z" fill="#DDD6C8" />
+      <path d="M4 8 L80 64 L156 8 Z" fill="#F1ECE3" stroke="rgba(15,23,20,0.1)" />
+      <circle cx="80" cy="62" r="12" fill="#C8432B" />
+      <circle cx="80" cy="62" r="8.5" fill="none" stroke="#A9351F" strokeWidth="1.5" />
+      <text x="80" y="66" textAnchor="middle" fontFamily="'Bodoni Moda', serif" fontSize="9" fill="#F5F2EC">
         GE
       </text>
     </svg>
@@ -629,12 +641,12 @@ function MiniEnvelope() {
 function GuestJourney({ qrDataUrl }: { qrDataUrl: string }) {
   const visuals: ReactNode[] = [
     <MiniEnvelope key="envelope" />,
-    <div key="sheet" className="w-[62%] shadow-[0_14px_30px_-16px_rgba(26,24,21,0.45)]">
+    <div key="sheet" className="w-[62%] shadow-[0_14px_30px_-16px_rgba(15,23,20,0.45)]">
       <TemplatePreview templateKey="heritage-luxe" />
     </div>,
     <div key="rsvp" className="w-[82%] rounded-[12px] border border-line bg-surface px-4 py-4 text-left">
       <p className="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-brand">{COPY.hero.rsvpTitle}</p>
-      <div className="mt-3 rounded-full bg-ink px-3 py-2 text-center text-[0.75rem] font-medium text-bone">{COPY.hero.rsvpStatus}</div>
+      <div className="mt-3 rounded-full bg-brand px-3 py-2 text-center text-[0.75rem] font-medium text-white">{COPY.hero.rsvpStatus}</div>
       <div className="mt-2.5 space-y-1.5">
         <div className="h-1.5 w-4/5 rounded-full bg-line" />
         <div className="h-1.5 w-3/5 rounded-full bg-line" />
@@ -648,10 +660,10 @@ function GuestJourney({ qrDataUrl }: { qrDataUrl: string }) {
       </span>
     </div>,
   ]
-  // The one bone-paper chapter: the guest's side is held in the hand.
+  // The guest's side, set on a sheet of its own.
   return (
     <section aria-labelledby="invite-titre" className="px-2.5 sm:px-3">
-      <div className="theme-bone grain overflow-hidden rounded-[24px] bg-paper text-ink sm:rounded-[32px]">
+      <div className="overflow-hidden rounded-[24px] bg-surface-muted sm:rounded-[32px]">
         <div className={`${WRAP} ${SECTION_Y}`}>
           <Reveal>
             <SectionHeader wide chapter={3} id="invite-titre" eyebrow={COPY.guest.eyebrow} title={COPY.guest.title} lead={COPY.guest.subtitle} />
@@ -659,13 +671,11 @@ function GuestJourney({ qrDataUrl }: { qrDataUrl: string }) {
           <ol className="-mx-5 mt-14 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-5 px-5 pb-4 [scrollbar-width:thin] sm:mx-0 sm:mt-16 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-14 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
             {COPY.guest.steps.map((step, index) => (
               <Reveal as="li" key={step.title} delay={index * 90} className="w-[80%] shrink-0 snap-start sm:w-auto">
-                <div className="flex aspect-[4/3.4] items-center justify-center overflow-hidden rounded-[18px] bg-surface shadow-[0_1px_0_rgba(21,18,14,0.06),0_30px_60px_-40px_rgba(21,18,14,0.5)]">
-                  {visuals[index]}
-                </div>
-                <p className="mt-7 font-didone text-[1.75rem] leading-none text-brand [font-variant-numeric:lining-nums]" aria-hidden="true">
+                <div className="flex aspect-[4/3.4] items-center justify-center overflow-hidden rounded-[18px] bg-paper">{visuals[index]}</div>
+                <p className="mt-7 font-brand text-[1.75rem] leading-none text-brand [font-variant-numeric:lining-nums]" aria-hidden="true">
                   {String(index + 1).padStart(2, '0')}
                 </p>
-                <h3 className="mt-3 font-didone text-[1.375rem] leading-tight text-ink">{step.title}</h3>
+                <h3 className="mt-3 font-brand text-[1.375rem] leading-tight text-ink">{step.title}</h3>
                 <p className="mt-2 text-[0.9375rem] leading-relaxed text-ink-soft">{step.text}</p>
               </Reveal>
             ))}
@@ -681,7 +691,7 @@ function GuestJourney({ qrDataUrl }: { qrDataUrl: string }) {
 /** Miniature of the real « Envoyer l'invitation » dialog. */
 function SendDialogMiniature() {
   return (
-    <div className="theme-bone rounded-[18px] bg-surface p-5 text-ink shadow-[0_2px_6px_rgba(0,0,0,0.3),0_50px_80px_-30px_rgba(0,0,0,0.9)]" aria-hidden="true">
+    <div className="rounded-[18px] bg-surface p-5 text-ink shadow-[0_2px_6px_rgba(15,23,20,0.12),0_50px_80px_-30px_rgba(15,23,20,0.45)]" aria-hidden="true">
       <p className="text-[0.875rem] font-semibold">{COPY.illustration.dialogTitle}</p>
       <p className="text-[0.75rem] text-ink-soft">{COPY.illustration.dialogFor}</p>
       <div className="mt-4 grid grid-cols-3 gap-1 rounded-full bg-surface-muted p-1 text-[0.75rem]">
@@ -702,14 +712,14 @@ function SendDialogMiniature() {
           <div className="h-1.5 w-4/5 rounded-full bg-line" />
           <div className="h-1.5 w-2/3 rounded-full bg-line" />
         </div>
-        <div className="flex items-center gap-2 rounded-[10px] border border-line bg-surface-muted/60 px-3 py-2 text-[0.75rem]">
+        <div className="flex items-center gap-2 rounded-[10px] border border-line bg-surface-muted px-3 py-2 text-[0.75rem]">
           <span className="flex h-3.5 w-3.5 items-center justify-center rounded-[3px] bg-brand text-white">
             <IconCheck className="h-3 w-3" />
           </span>
           {COPY.illustration.attachPdf}
         </div>
       </div>
-      <div className="mt-4 rounded-full bg-ink py-2.5 text-center text-[0.75rem] font-medium text-bone">{COPY.illustration.sendEmail}</div>
+      <div className="mt-4 rounded-full bg-brand py-2.5 text-center text-[0.75rem] font-medium text-white">{COPY.illustration.sendEmail}</div>
     </div>
   )
 }
@@ -734,11 +744,11 @@ function Features() {
             const Icon = FEATURE_ICONS[index % FEATURE_ICONS.length]
             return (
               <Reveal as="li" key={item.title} className="group grid grid-cols-[3rem_1fr] gap-x-5 border-b border-line py-8 sm:py-9">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full border border-line-strong text-champagne transition-colors group-hover:border-champagne">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full border border-line-strong text-brand transition-colors group-hover:border-brand group-hover:bg-brand group-hover:text-white">
                   <Icon className="h-[1.125rem] w-[1.125rem]" />
                 </span>
                 <div>
-                  <h3 className="font-didone text-[1.5rem] leading-tight text-ink">{item.title}</h3>
+                  <h3 className="font-brand text-[1.5rem] leading-tight text-ink">{item.title}</h3>
                   <p className="mt-2.5 max-w-[34rem] text-[0.9375rem] leading-relaxed text-ink-soft">{item.text}</p>
                 </div>
               </Reveal>
@@ -761,16 +771,16 @@ function HowItWorks() {
         </Reveal>
         <ol className="mt-16 grid gap-px overflow-hidden rounded-[22px] border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
           {COPY.howItWorks.steps.map((step, index) => (
-            <Reveal as="li" key={step.title} delay={index * 90} className="group relative bg-paper p-7 transition-colors hover:bg-surface sm:p-8">
-              {/* Engraved numerals: outlined, filled with foil on hover. */}
+            <Reveal as="li" key={step.title} delay={index * 90} className="group relative bg-paper p-7 transition-colors duration-500 hover:bg-brand sm:p-8">
+              {/* Engraved numerals: outlined, filled on hover. */}
               <span
                 aria-hidden="true"
-                className="block font-didone text-[5rem] leading-none text-transparent [-webkit-text-stroke:1px_rgba(200,169,106,0.6)] transition-colors duration-500 group-hover:text-champagne/90 [font-variant-numeric:lining-nums]"
+                className="block font-brand text-[5rem] leading-none text-transparent [-webkit-text-stroke:1px_var(--color-brand)] transition-colors duration-500 group-hover:text-jade group-hover:[-webkit-text-stroke:1px_transparent] [font-variant-numeric:lining-nums]"
               >
                 {String(index + 1).padStart(2, '0')}
               </span>
-              <h3 className="mt-10 font-didone text-[1.375rem] leading-tight text-ink">{step.title}</h3>
-              <p className="mt-2.5 text-[0.9375rem] leading-relaxed text-ink-soft">{step.text}</p>
+              <h3 className="mt-10 font-brand text-[1.375rem] leading-tight text-ink transition-colors duration-500 group-hover:text-white">{step.title}</h3>
+              <p className="mt-2.5 text-[0.9375rem] leading-relaxed text-ink-soft transition-colors duration-500 group-hover:text-white/80">{step.text}</p>
             </Reveal>
           ))}
         </ol>
@@ -795,11 +805,11 @@ function Occasions() {
         <ul className="mt-16 border-t border-line lg:ml-[16.5rem]">
           {COPY.categories.items.map((category, index) => (
             <li key={category.name} className="group grid grid-cols-[2.5rem_minmax(0,1fr)] items-baseline gap-x-4 border-b border-line py-6 sm:grid-cols-[3rem_minmax(0,1.5fr)_minmax(0,1fr)] sm:gap-x-8 sm:py-7">
-              <span className="font-label text-[0.6875rem] font-semibold tracking-[0.2em] text-ink-faint transition-colors group-hover:text-champagne">
+              <span className="font-label text-[0.6875rem] font-semibold tracking-[0.2em] text-ink-faint transition-colors group-hover:text-seal">
                 {String(index + 1).padStart(2, '0')}
               </span>
-              <h3 className="font-didone text-[1.75rem] leading-tight text-ink transition-transform duration-500 group-hover:translate-x-2 sm:text-[2.25rem]">{category.name}</h3>
-              <p className="col-start-2 mt-1 font-brand text-[1.125rem] italic text-ink-soft sm:col-start-3 sm:mt-0">{category.text}</p>
+              <h3 className="font-brand text-[1.75rem] leading-tight text-ink transition-[color,transform] duration-500 group-hover:translate-x-2 group-hover:text-brand sm:text-[2.25rem]">{category.name}</h3>
+              <p className="col-start-2 mt-1 text-[0.9375rem] text-ink-soft sm:col-start-3 sm:mt-0">{category.text}</p>
             </li>
           ))}
         </ul>
@@ -819,7 +829,7 @@ function Verification({ qrDataUrl }: { qrDataUrl: string }) {
           <ul className="mt-9 space-y-4">
             {COPY.verification.points.map((point) => (
               <li key={point} className="flex items-start gap-3 text-[0.9375rem] leading-relaxed text-ink-soft">
-                <IconCheck className="mt-1 h-4 w-4 shrink-0 text-champagne" />
+                <IconCheck className="mt-1 h-4 w-4 shrink-0 text-brand" />
                 {point}
               </li>
             ))}
@@ -827,9 +837,9 @@ function Verification({ qrDataUrl }: { qrDataUrl: string }) {
         </Reveal>
 
         {/* The door: the printed access card and the verdict the scanner returns. */}
-        <figure className="relative mx-auto flex w-full max-w-[28rem] flex-col items-center [perspective:1200px]">
-          <div aria-hidden="true" className="absolute inset-[-10%] rounded-full bg-[radial-gradient(closest-side,rgba(200,169,106,0.18),transparent)]" />
-          <div className="theme-bone relative rounded-[20px] bg-surface p-6 text-ink shadow-[0_2px_6px_rgba(0,0,0,0.3),0_60px_90px_-40px_rgba(0,0,0,0.95)] [transform:rotateX(10deg)_rotateY(-12deg)_rotateZ(1.5deg)]">
+        <figure className="relative mx-auto flex w-full max-w-[28rem] flex-col items-center py-6 [perspective:1200px]">
+          <div aria-hidden="true" className="absolute left-1/2 top-1/2 aspect-square w-[88%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-soft" />
+          <div className="relative rounded-[20px] bg-surface p-6 text-ink shadow-[0_2px_6px_rgba(15,23,20,0.12),0_60px_90px_-40px_rgba(15,23,20,0.55)] [transform:rotateX(10deg)_rotateY(-12deg)_rotateZ(1.5deg)]">
             <p className="text-center font-label text-[0.625rem] font-semibold uppercase tracking-[0.24em] text-brand">{COPY.hero.accessTitle}</p>
             {qrDataUrl ? (
               <img src={qrDataUrl} alt={COPY.verification.qrAlt} className="mt-4 h-44 w-44" />
@@ -837,13 +847,13 @@ function Verification({ qrDataUrl }: { qrDataUrl: string }) {
               <div className="mt-4 h-44 w-44 bg-surface-muted" aria-hidden="true" />
             )}
           </div>
-          <div className="theme-bone relative -mt-6 ml-24 flex w-full max-w-[17rem] items-center gap-3 rounded-full bg-surface py-2.5 pl-2.5 pr-5 text-ink shadow-[0_30px_50px_-20px_rgba(0,0,0,0.9)] [transform:translateZ(60px)]" aria-hidden="true">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success text-white">
+          <div className="relative -mt-6 ml-24 flex w-full max-w-[17rem] items-center gap-3 rounded-full bg-ink py-2.5 pl-2.5 pr-5 text-white shadow-[0_30px_50px_-20px_rgba(15,23,20,0.6)]" aria-hidden="true">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-jade text-ink">
               <IconCheck className="h-4 w-4" />
             </span>
             <span className="text-left">
-              <span className="block text-[0.8125rem] font-semibold text-success">{COPY.illustration.verdict}</span>
-              <span className="block text-[0.75rem] text-ink-soft">{COPY.illustration.verdictGuest}</span>
+              <span className="block text-[0.8125rem] font-semibold text-jade">{COPY.illustration.verdict}</span>
+              <span className="block text-[0.75rem] text-white/70">{COPY.illustration.verdictGuest}</span>
             </span>
           </div>
           <figcaption className="relative mt-8 text-[0.8125rem] text-ink-faint">{COPY.verification.qrCaption}</figcaption>
@@ -863,7 +873,7 @@ function Faq() {
           <SectionHeader chapter={8} id="questions-titre" eyebrow={COPY.faq.eyebrow} title={COPY.faq.title} />
           <p className="mt-6 text-[0.9375rem] leading-relaxed text-ink-soft">
             {COPY.footer.contact} :{' '}
-            <a className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-champagne" href={`mailto:${COPY.footer.contactEmail}`}>
+            <a className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-brand" href={`mailto:${COPY.footer.contactEmail}`}>
               {COPY.footer.contactEmail}
             </a>
           </p>
@@ -872,9 +882,9 @@ function Faq() {
           {COPY.faq.items.map((item, index) => (
             <details key={item.q} className="faq-item group border-b border-line" open={index === 0}>
               <summary className={`flex cursor-pointer list-none items-start justify-between gap-6 py-7 text-left [&::-webkit-details-marker]:hidden ${FOCUS}`}>
-                <span className="font-didone text-[1.375rem] leading-snug text-ink transition-colors group-hover:text-champagne">{item.q}</span>
-                <span aria-hidden="true" className="relative mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line-strong transition-colors group-open:border-champagne">
-                  <span className="absolute h-px w-3 bg-ink" />
+                <span className="font-brand text-[1.375rem] leading-snug text-ink transition-colors group-hover:text-brand">{item.q}</span>
+                <span aria-hidden="true" className="relative mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line-strong transition-colors group-open:border-brand group-open:bg-brand">
+                  <span className="absolute h-px w-3 bg-ink group-open:bg-white" />
                   <span className="absolute h-3 w-px bg-ink transition-transform duration-300 group-open:scale-y-0" />
                 </span>
               </summary>
@@ -883,7 +893,7 @@ function Faq() {
                 {index === COPY.faq.items.length - 1 ? (
                   <>
                     {' '}
-                    <Link to="/politique-de-confidentialite" className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-champagne">
+                    <Link to="/politique-de-confidentialite" className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-brand">
                       {COPY.faq.privacyLink}
                     </Link>
                     .
@@ -903,23 +913,27 @@ function Faq() {
 function FinalCta() {
   return (
     <section aria-labelledby="final-titre" className="px-2.5 sm:px-3">
-      <div className="grain relative isolate overflow-hidden rounded-[24px] bg-[#0B0907] ring-1 ring-bone/5 sm:rounded-[32px]">
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(120%_90%_at_20%_80%,#3A2A17_0%,#140F0A_50%,#0B0907_100%)]">
-          {/* One still frame of the same silk: the page closes as it opened. */}
-          <SilkCanvas animate={false} />
+      <div className="theme-malachite relative isolate overflow-hidden rounded-[24px] bg-malachite-deep text-ink sm:rounded-[32px]">
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-malachite-deep">
+          {/* The same stone, still: the page closes as it opened. */}
+          <MalachiteCanvas animate={false} still={73} />
         </div>
         <div className={`grid items-center gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] ${WRAP} py-24 sm:py-32`}>
           <Reveal>
-            <h2 id="final-titre" className="max-w-[38rem] text-balance font-didone text-[2.75rem] font-normal leading-[1.02] tracking-[-0.025em] text-bone sm:text-[4rem]">
+            <h2 id="final-titre" className="max-w-[38rem] text-balance font-brand text-[2.75rem] font-normal leading-[1.02] tracking-[-0.025em] sm:text-[4rem]">
               {COPY.finalCta.title}
             </h2>
-            <p className="mt-6 max-w-[30rem] text-[1.0625rem] leading-relaxed text-bone/70">{COPY.finalCta.text}</p>
+            <p className="mt-6 max-w-[30rem] text-[1.0625rem] leading-relaxed text-ink-soft">{COPY.finalCta.text}</p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <PrimaryCta to="/inscription">{COPY.finalCta.button}</PrimaryCta>
+              <PrimaryCta to="/inscription" onDark>
+                {COPY.finalCta.button}
+              </PrimaryCta>
               <GhostCta to="/connexion">{COPY.finalCta.secondary}</GhostCta>
             </div>
           </Reveal>
-          <LogoArtwork className="mx-auto w-[min(70vw,20rem)] opacity-95 lg:mr-0" />
+          <div className="mx-auto rounded-[28px] bg-malachite px-10 py-12 lg:mr-0">
+            <LogoArtwork className="w-[min(64vw,17rem)]" />
+          </div>
         </div>
       </div>
     </section>
@@ -930,14 +944,14 @@ function FinalCta() {
 
 function SiteFooter() {
   const columnTitle = 'font-label text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-ink-faint'
-  const link = 'text-[0.875rem] text-ink-soft transition-colors hover:text-champagne'
+  const link = 'text-[0.875rem] text-ink-soft transition-colors hover:text-brand'
   return (
     <footer className="overflow-hidden">
       <div className={`grid grid-cols-2 gap-x-8 gap-y-12 pb-12 pt-20 sm:grid-cols-3 lg:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))] lg:gap-10 ${WRAP}`}>
         <div className="col-span-2 sm:col-span-3 lg:col-span-1">
-          <BrandLockup dark />
+          <BrandLockup />
           <p className="mt-5 max-w-[22rem] text-[0.875rem] leading-relaxed text-ink-soft">{COPY.footer.description}</p>
-          <p className="mt-4 font-brand text-[1.375rem] italic text-champagne">{COPY.footer.tagline}</p>
+          <p className="mt-4 font-brand text-[1.375rem] text-brand">{COPY.footer.tagline}</p>
         </div>
         <nav aria-label={COPY.footer.product}>
           <p className={columnTitle}>{COPY.footer.product}</p>
@@ -1001,9 +1015,9 @@ function SiteFooter() {
           </div>
         </div>
       </div>
-      {/* The house name, engraved across the foot of the page. */}
-      <p aria-hidden="true" className="-mb-[0.18em] select-none whitespace-nowrap text-center font-didone text-[clamp(5rem,24vw,22rem)] leading-none tracking-[-0.05em] text-transparent [-webkit-text-stroke:1px_rgba(200,169,106,0.22)]">
-        Malaika
+      {/* The house name, set across the foot of the page in a tone of the paper. */}
+      <p aria-hidden="true" className="-mb-[0.16em] select-none whitespace-nowrap text-center font-brand text-[13.6vw] leading-none tracking-[-0.05em] text-surface-sunken">
+        MalaikaEvents
       </p>
     </footer>
   )
@@ -1013,19 +1027,21 @@ function SiteFooter() {
 
 export function LandingPage() {
   const qrDataUrl = useQrDataUrl(`${PUBLIC_SITE_URL}/`)
+  const rich = useRichMotion()
   return (
-    <div className="theme-nuit min-h-svh bg-paper text-ink selection:bg-champagne selection:text-nuit">
+    <div className="min-h-svh bg-paper text-ink">
+      <IntroCurtain enabled={rich} />
       <a
         href="#contenu"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-bone focus:px-4 focus:py-2 focus:text-sm focus:text-nuit"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-white"
       >
         {COPY.nav.skipToContent}
       </a>
       <SiteHeader />
       <main id="contenu">
-        <Hero qrDataUrl={qrDataUrl} />
+        <Hero qrDataUrl={qrDataUrl} rich={rich} />
         <FactsBand />
-        <Showcase />
+        <Showcase rich={rich} />
         <ProblemSolution />
         <GuestJourney qrDataUrl={qrDataUrl} />
         <Features />
