@@ -87,7 +87,24 @@ describe('LandingPage', { timeout: 30_000 }, () => {
     ).toBeInTheDocument()
   })
 
-  it('lists the collection horizontally and filters it by occasion', async () => {
+  it('opens a template in the 3D viewer and closes it again', async () => {
+    const user = userEvent.setup()
+    renderLanding()
+
+    const opener = screen.getByRole('button', { name: 'Ouvrir le modèle Mémoire en 3D' })
+    await user.click(opener)
+    const dialog = screen.getByRole('dialog', { name: 'Mémoire' })
+    expect(within(dialog).getByRole('link', { name: /Personnaliser ce modèle/ })).toHaveAttribute('href', '/inscription')
+    expect(within(dialog).getByRole('button', { name: 'Fermer l’aperçu' })).toHaveFocus()
+
+    await user.click(within(dialog).getByRole('button', { name: 'Modèle suivant' }))
+    expect(screen.getByRole('dialog')).not.toHaveAccessibleName('Mémoire')
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('lists the collection as a 3D gallery and filters it by occasion', async () => {
     const user = userEvent.setup()
     renderLanding()
 
