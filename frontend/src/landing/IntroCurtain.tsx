@@ -10,7 +10,7 @@
  */
 import { useLayoutEffect, useRef, useState } from 'react'
 
-import { LogoMark } from '../design-system/Logo.tsx'
+import { LogoArtwork } from '../design-system/Logo.tsx'
 
 const KEY = 'malaikaevents:intro'
 const COUNT_MS = 900
@@ -68,10 +68,7 @@ export function IntroCurtain({ enabled }: { enabled: boolean }) {
       className="pointer-events-none fixed inset-0 z-[60] flex flex-col items-center justify-center bg-malachite text-paper-on-dark transition-transform duration-[800ms] ease-[cubic-bezier(0.76,0,0.24,1)]"
       style={{ transform: lifting ? 'translateY(-100%)' : 'none' }}
     >
-      <LogoMark plate={false} className="h-16 w-16" />
-      <p className="mt-5 font-brand text-[1.75rem] font-medium leading-none">
-        Malaika<span className="text-jade">Events</span>
-      </p>
+      <LogoArtwork className="w-[min(78vw,22rem)]" />
       <div className="absolute inset-x-5 bottom-8 flex items-end justify-between gap-6 sm:inset-x-10">
         <span className="relative block h-px flex-1 bg-paper-on-dark/15">
           <span ref={lineRef} className="absolute inset-0 origin-left bg-jade" style={{ transform: 'scaleX(0)' }} />

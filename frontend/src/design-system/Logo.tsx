@@ -1,72 +1,66 @@
 /**
- * MalaikaEvents brand marks — flat, drawn in code (no raster, no gradient).
+ * MalaikaEvents brand marks — the PNG logo set in `public/logo/` (vector
+ * masters in `docs/brand/`).
  *
- * The mark is an envelope drawn in one continuous line whose sides and flap
- * also spell an « M »; a vermilion wax dot seals the fold. It sits on a
- * malachite tile (default) or, with `plate={false}`, is drawn alone in the
- * current text colour for dark grounds. The wordmark is always the full
- * name, « MalaikaEvents », set in the house serif: « Malaika » in ink,
- * « Events » in malachite (jade on dark).
+ * The mark: an « M » whose outer strokes are a pair of feathered wings —
+ * *malaika* is « angel » in Swahili — and whose middle is an envelope's flap,
+ * sealed with vermilion wax where it folds: an angel carrying an invitation.
+ * The wordmark is « MalaikaEvents » in Overused Grotesk Medium, « Malaika »
+ * in ink and « Events » in vermilion.
  *
- * The same geometry is used for the favicons (`public/favicon.svg` and the
- * PNG sizes), so the brand is one drawing everywhere.
+ * - `LogoMark`: the app icon (ink tile) by default, or the bare mark
+ *   (`plate={false}`, light or `tone="dark"`).
+ * - `BrandLockup`: mark + wordmark, for headers; `dark` on dark grounds.
+ * - `LogoArtwork`: the lockup with the house line, for large spaces.
  */
 
-/** Envelope-M strokes on a 64 × 64 grid. */
-const M_PATH = 'M17 45V21l15 14 15-14v24H17'
+const SRC = {
+  icon: '/logo/malaikaevents-icon.png',
+  mark: '/logo/malaikaevents-mark.png',
+  markDark: '/logo/malaikaevents-mark-dark.png',
+  lockup: '/logo/malaikaevents-lockup.png',
+  lockupDark: '/logo/malaikaevents-lockup-dark.png',
+}
 
-/** The compact brand mark. */
+/** Lockup width-to-height ratio (429 × 96 artboard). */
+const LOCKUP_RATIO = 429 / 96
+
 export function LogoMark({
   className = 'h-8 w-8',
   plate = true,
+  tone = 'light',
 }: {
   className?: string
-  /** Malachite tile behind the mark; turn off on dark grounds. */
+  /** The ink app-icon tile (default); `false` for the bare mark. */
   plate?: boolean
+  /** Bare mark colour: ink for light grounds, paper for dark ones. */
+  tone?: 'light' | 'dark'
 }) {
-  return (
-    <svg viewBox="0 0 64 64" className={`shrink-0 ${className}`} aria-hidden="true" focusable="false">
-      {plate ? <rect width="64" height="64" rx="15" fill="var(--color-brand)" /> : null}
-      <path
-        d={M_PATH}
-        fill="none"
-        stroke={plate ? '#F5F2EC' : 'currentColor'}
-        strokeWidth="4.2"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-      <circle cx="32" cy="35" r="3.6" fill="var(--color-seal)" />
-    </svg>
-  )
-}
-
-/** The full name, set as a wordmark. */
-export function Wordmark({ dark = false, className = '' }: { dark?: boolean; className?: string }) {
-  return (
-    <span className={`font-brand font-medium leading-none tracking-[-0.01em] ${className}`}>
-      <span className={dark ? 'text-paper-on-dark' : 'text-ink'}>Malaika</span>
-      <span className={dark ? 'text-jade' : 'text-brand'}>Events</span>
-    </span>
-  )
+  const src = plate ? SRC.icon : tone === 'dark' ? SRC.markDark : SRC.mark
+  return <img src={src} alt="" aria-hidden="true" draggable={false} className={`shrink-0 select-none object-contain ${className}`} />
 }
 
 /** Mark + wordmark, for headers and navigation. */
 export function BrandLockup({ dark = false, compact = false }: { dark?: boolean; compact?: boolean }) {
+  if (compact) return <LogoMark className="h-8 w-8" />
   return (
-    <span className="flex items-center gap-2.5">
-      <LogoMark className={`h-8 w-8 ${dark ? 'text-paper-on-dark' : ''}`} plate={!dark} />
-      {compact ? null : <Wordmark dark={dark} className="text-[1.3125rem]" />}
-    </span>
+    <img
+      src={dark ? SRC.lockupDark : SRC.lockup}
+      alt="MalaikaEvents"
+      draggable={false}
+      width={Math.round(32 * LOCKUP_RATIO)}
+      height={32}
+      className="h-8 w-auto shrink-0 select-none"
+    />
   )
 }
 
-/** The stacked signature (mark above the name and the house line), for large spaces. */
-export function LogoArtwork({ className = 'w-64', dark = true }: { className?: string; dark?: boolean }) {
+/** The lockup with the house line, for large spaces. */
+export function LogoArtwork({ className = 'w-64', dark = false }: { className?: string; dark?: boolean }) {
   return (
     <div role="img" aria-label="MalaikaEvents" className={`flex flex-col items-center text-center ${className}`}>
-      <LogoMark className={`h-[28%] w-[28%] min-h-14 min-w-14 ${dark ? 'text-paper-on-dark' : ''}`} plate={!dark} />
-      <Wordmark dark={dark} className="mt-5 text-[clamp(1.75rem,4vw,2.5rem)]" />
-      <span className={`mt-3 font-label text-[0.625rem] font-semibold uppercase tracking-[0.42em] ${dark ? 'text-jade' : 'text-ink-faint'}`}>
+      <img src={dark ? SRC.lockupDark : SRC.lockup} alt="" aria-hidden="true" draggable={false} className="h-auto w-full select-none" />
+      <span className={`mt-4 font-label text-[0.625rem] font-semibold uppercase tracking-[0.42em] ${dark ? 'text-white/70' : 'text-ink-faint'}`}>
         Créez · Invitez · Partagez
       </span>
     </div>
