@@ -33,11 +33,11 @@ import QRCode from 'qrcode'
 
 import { LegalLinks } from '../components/LegalLinks.tsx'
 import { IntroCurtain } from '../landing/IntroCurtain.tsx'
-import { InvitationScene } from '../landing/InvitationScene.tsx'
 import { KinshasaClock } from '../landing/KinshasaClock.tsx'
 import { MalachiteCanvas } from '../landing/MalachiteCanvas.tsx'
 import { useRichMotion } from '../landing/motion.ts'
 import { Reveal } from '../landing/Reveal.tsx'
+import { StillLife, WindowLight } from '../landing/StillLife.tsx'
 import { TemplateGallery } from '../landing/TemplateGallery.tsx'
 import { TemplateViewer } from '../landing/TemplateViewer.tsx'
 import {
@@ -242,7 +242,7 @@ function SiteHeader() {
     <header className="fixed inset-x-0 top-0 z-40 bg-paper/75 backdrop-blur-md">
       <div className="mx-auto flex h-20 max-w-[90rem] items-center justify-between gap-6 px-5 sm:px-8">
         <Link to="/" aria-label={fr.appName} className="btn-ghost shrink-0 -ml-3">
-          <BrandLockup dark />
+          <BrandLockup />
         </Link>
 
         <nav aria-label={COPY.nav.ariaLabel} className="hidden items-center gap-1 whitespace-nowrap xl:flex">
@@ -301,15 +301,6 @@ function SiteHeader() {
 
 /* -------------------------------------------------------------------- hero */
 
-/** Paper product chip floating in the hero's 3D suite. */
-function SuiteChip({ className = '', children }: { className?: string; children: ReactNode }) {
-  return (
-    <div className={`theme-paper rounded-[14px] bg-surface px-4 py-3.5 text-ink max-sm:[zoom:0.8] shadow-[0_2px_4px_rgba(0,0,0,0.18),0_30px_50px_-20px_rgba(4,20,15,0.8)] ${className}`}>
-      {children}
-    </div>
-  )
-}
-
 /** Headline words rising one after another out of their own line. */
 function RisingWords({ text, startMs, className = '', caps = false }: { text: string; startMs: number; className?: string; caps?: boolean }) {
   return (
@@ -328,138 +319,111 @@ function RisingWords({ text, startMs, className = '', caps = false }: { text: st
   )
 }
 
+/** The guest's printed access card, as it lies on the table. */
+function AccessCardPrint({ qrDataUrl }: { qrDataUrl: string }) {
+  return (
+    <div className="flex flex-col items-center px-[10%] pb-[12%] pt-[11%] text-center text-[#0f1012] [font-family:var(--font-sans)]">
+      <p className="text-[clamp(0.375rem,0.7vw,0.5625rem)] font-semibold uppercase tracking-[0.22em] text-[#c8432b]">{COPY.hero.accessTitle}</p>
+      {qrDataUrl ? (
+        <img src={qrDataUrl} alt="" className="mt-[10%] aspect-square w-[80%] mix-blend-multiply" />
+      ) : (
+        <span aria-hidden="true" className="mt-[10%] block aspect-square w-[80%] bg-[#ece8e1]" />
+      )}
+      <p className="mt-[9%] text-[clamp(0.45rem,0.85vw,0.6875rem)] font-medium">{COPY.hero.rsvpGuest}</p>
+      <p className="mt-[3%] text-[clamp(0.375rem,0.65vw,0.5rem)] uppercase tracking-[0.2em] text-[#74777b]">{COPY.hero.accessStatus}</p>
+    </div>
+  )
+}
+
 /** A circled footnote number set in the statement (① ② ③). */
 function NoteMark({ n }: { n: number }) {
   return (
-    <span className="ml-[0.06em] inline-flex h-[0.62em] w-[0.62em] items-center justify-center relative -top-[1.15em] rounded-full border-[0.045em] border-current font-grotesk text-[0.36em] font-semibold leading-none [font-stretch:100%]">
+    <span className="relative -top-[1.15em] ml-[0.06em] inline-flex h-[0.62em] w-[0.62em] items-center justify-center rounded-full border-[0.045em] border-current font-grotesk text-[0.36em] font-semibold leading-none">
       {n}
     </span>
   )
 }
 
 function Hero({ qrDataUrl, rich }: { qrDataUrl: string; rich: boolean }) {
-  const chips = [
-    {
-      key: 'rsvp',
-      depth: 90,
-      style: { left: '-14%', top: '30%', width: '52%' },
-      content: (
-        <SuiteChip>
-          <p className="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-brand sm:text-[0.625rem]">{COPY.hero.rsvpTitle}</p>
-          <p className="mt-1.5 text-[0.8125rem] font-medium">{COPY.hero.rsvpGuest}</p>
-          <p className="mt-2 inline-flex items-center gap-1.5 rounded-[8px] bg-brand-soft px-2 py-1 text-[0.6875rem] font-medium text-brand sm:text-[0.75rem]">
-            <IconCheck className="h-3.5 w-3.5" />
-            {COPY.hero.rsvpStatus}
-          </p>
-        </SuiteChip>
-      ),
-    },
-    {
-      key: 'access',
-      depth: 120,
-      style: { right: '-12%', top: '8%', width: '36%' },
-      content: (
-        <SuiteChip className="flex flex-col items-center px-3 text-center">
-          <p className="whitespace-nowrap text-[0.5625rem] font-semibold uppercase tracking-[0.14em] text-brand sm:text-[0.625rem]">{COPY.hero.accessTitle}</p>
-          {qrDataUrl ? (
-            <img src={qrDataUrl} alt="" className="mt-2 aspect-square w-full max-w-[5.5rem]" />
-          ) : (
-            <span className="mt-2 block aspect-square w-full max-w-[5.5rem] bg-surface-muted" aria-hidden="true" />
-          )}
-          <p className="mt-1.5 inline-flex items-center gap-1.5 text-[0.6875rem] font-medium sm:text-[0.75rem]">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />
-            {COPY.hero.accessStatus}
-          </p>
-        </SuiteChip>
-      ),
-    },
-    {
-      key: 'sent',
-      depth: 60,
-      style: { right: '-6%', bottom: '6%' },
-      content: (
-        <SuiteChip className="flex items-center gap-2 whitespace-nowrap py-2.5">
-          <IconChat className="h-4 w-4 text-brand" />
-          <span className="text-[0.75rem] font-medium">{COPY.hero.sentLabel}</span>
-        </SuiteChip>
-      ),
-    },
-  ]
-
   return (
     <section aria-labelledby="hero-titre" className="relative px-2.5 pt-2.5 sm:px-3 sm:pt-3">
-      <div className="relative isolate overflow-hidden rounded-[24px] border border-line bg-paper text-ink sm:rounded-[32px]">
-        {/* The living stone, dark and quiet, with its flat colour underneath. */}
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-paper">
-          <MalachiteCanvas animate={rich} />
+      {/* A warm stone table in daylight. */}
+      <div className="relative isolate overflow-hidden rounded-[24px] bg-[#e9e5de] sm:rounded-[32px]">
+        {/* Daylight through a window falls across the table, fading toward the copy. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-0 z-20 w-full opacity-[0.38] mix-blend-multiply [mask-image:linear-gradient(to_right,transparent_8%,black_55%)] lg:w-[72%] lg:[mask-image:linear-gradient(to_right,transparent,black_40%)]"
+        >
+          <WindowLight animate={rich} />
+        </div>
+        <div className="mx-auto grid w-full max-w-[88rem] items-center gap-4 px-5 pt-24 sm:px-10 sm:pt-28 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-2 lg:px-14">
+          <div className="relative z-10 max-w-[40rem] lg:py-8">
+            <p className="mark-label landing-rise flex items-center gap-3 text-ink-soft" style={{ ['--rise-delay' as string]: '200ms' }}>
+              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-brand" />
+              {COPY.hero.eyebrow}
+            </p>
+            <h1 id="hero-titre" className="mt-6">
+              <span className="sr-only">{COPY.hero.title}</span>
+              <span aria-hidden="true" className="statement block text-[clamp(2.25rem,4.6vw,4.75rem)] max-sm:leading-[1]">
+                <RisingWords caps text={COPY.hero.statementLead} startMs={260} />
+              </span>
+            </h1>
+            <p aria-hidden="true" className="statement landing-rise mt-[0.06em] text-[clamp(2.25rem,4.6vw,4.75rem)] text-ink-soft max-sm:leading-[1]" style={{ ['--rise-delay' as string]: '650ms' }}>
+              {COPY.hero.statement.map((part, index) =>
+                'name' in part ? (
+                  <Fragment key={index}>
+                    <span className="statement-name">{part.name}</span>
+                    <NoteMark n={part.note} />
+                  </Fragment>
+                ) : (
+                  <Fragment key={index}>{part.text}</Fragment>
+                ),
+              )}
+            </p>
+            <p className="landing-rise mt-8 max-w-[34rem] text-[1.0625rem] leading-relaxed text-ink-soft" style={{ ['--rise-delay' as string]: '800ms' }}>
+              {COPY.hero.text}
+            </p>
+            <div className="landing-rise mt-8 flex flex-col gap-3 sm:flex-row sm:items-center" style={{ ['--rise-delay' as string]: '880ms' }}>
+              <PrimaryCta to="/inscription">{COPY.hero.signupCta}</PrimaryCta>
+              <GhostCta href="#modeles">{COPY.hero.secondaryCta}</GhostCta>
+            </div>
+            <p className="landing-rise mt-6 text-[0.875rem] text-ink-faint" style={{ ['--rise-delay' as string]: '940ms' }}>
+              {COPY.hero.loginPrompt}{' '}
+              <Link to="/connexion" className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink">
+                {COPY.hero.primaryCta}
+              </Link>
+            </p>
+          </div>
+
+          <div className="landing-rise relative mx-auto -mb-6 w-full max-w-[44rem] lg:-mr-10 lg:mb-0" style={{ ['--rise-delay' as string]: '150ms' }}>
+            <StillLife
+              animate={rich}
+              label={COPY.hero.stageLabel}
+              card={<TemplatePreview templateKey="heritage-luxe" />}
+              accessCard={<AccessCardPrint qrDataUrl={qrDataUrl} />}
+            />
+          </div>
         </div>
 
-        <div className="mx-auto w-full max-w-[86rem] px-5 pb-6 pt-24 sm:px-10 sm:pt-28 lg:px-14">
-          {/* The object. */}
-          <div className="landing-rise mx-auto w-[min(62vw,17rem)] lg:w-[19rem]" style={{ ['--rise-delay' as string]: '150ms' }}>
-            <InvitationScene animate={rich} label={COPY.hero.stageLabel} card={<TemplatePreview templateKey="floraison" />} chips={chips} />
-          </div>
-
-          {/* The statement: one block, its second breath stepping in. */}
-          <h1 id="hero-titre" className="mt-10 sm:mt-14">
-            <span className="sr-only">{COPY.hero.title}</span>
-            <span aria-hidden="true" className="statement block text-[clamp(2rem,5.6vw,5.75rem)] max-sm:leading-[1]">
-              <RisingWords caps text={COPY.hero.statementLead} startMs={260} />
-            </span>
-          </h1>
-
-          <div className="grid lg:grid-cols-[28%_minmax(0,1fr)]">
-            <div className="order-2 mt-10 flex flex-col justify-end gap-5 lg:order-none lg:mt-0 lg:pb-2 lg:pr-10">
-              <ol aria-hidden="true" className="mark-label space-y-2 text-ink-soft">
-                {COPY.hero.notes.map((note, index) => (
-                  <li key={note} className="flex gap-2.5">
-                    <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-current text-[0.5625rem] leading-none">{index + 1}</span>
-                    <span className="pt-px">{note}</span>
-                  </li>
-                ))}
-              </ol>
+        {/* Printer's marks along the foot of the table. */}
+        <div className="mx-auto w-full max-w-[88rem] px-5 pb-6 sm:px-10 lg:px-14">
+          <div className="mark-label flex flex-col gap-4 border-t border-line pt-5 text-ink-faint lg:flex-row lg:items-center lg:justify-between">
+            <ol aria-hidden="true" className="flex flex-col gap-2 text-ink-soft sm:flex-row sm:flex-wrap sm:gap-x-6">
+              {COPY.hero.notes.map((note, index) => (
+                <li key={note} className="flex items-center gap-2">
+                  <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-current text-[0.5625rem] leading-none">{index + 1}</span>
+                  {note}
+                </li>
+              ))}
+            </ol>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <KinshasaClock city={COPY.hero.clockCity} />
+              <a href="#modeles" className="inline-flex items-center gap-2 text-ink-soft transition-colors hover:text-ink">
+                <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand motion-reduce:animate-none" />
+                <Roll>{COPY.hero.scroll}</Roll>
+              </a>
+              <span>©{CURRENT_YEAR}</span>
             </div>
-            <div className="order-1 lg:order-none">
-              <p aria-hidden="true" className="statement landing-rise mt-[0.06em] text-[clamp(2rem,5.6vw,5.75rem)] max-sm:leading-[1]" style={{ ['--rise-delay' as string]: '650ms' }}>
-                {COPY.hero.statement.map((part, index) =>
-                  'name' in part ? (
-                    <Fragment key={index}>
-                      <span className="statement-name">{part.name}</span>
-                      <NoteMark n={part.note} />
-                    </Fragment>
-                  ) : (
-                    <Fragment key={index}>{part.text}</Fragment>
-                  ),
-                )}
-              </p>
-              <div className="mt-10 flex flex-col gap-8">
-                <p className="landing-rise max-w-[34rem] text-[1.0625rem] leading-relaxed text-ink-soft" style={{ ['--rise-delay' as string]: '800ms' }}>
-                  {COPY.hero.text}
-                </p>
-                <div className="landing-rise flex flex-col gap-3 sm:flex-row sm:items-center" style={{ ['--rise-delay' as string]: '880ms' }}>
-                  <PrimaryCta to="/inscription" onDark>
-                    {COPY.hero.signupCta}
-                  </PrimaryCta>
-                  <GhostCta href="#modeles">{COPY.hero.secondaryCta}</GhostCta>
-                </div>
-              </div>
-              <p className="landing-rise mt-6 text-[0.875rem] text-ink-faint" style={{ ['--rise-delay' as string]: '940ms' }}>
-                {COPY.hero.loginPrompt}{' '}
-                <Link to="/connexion" className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink">
-                  {COPY.hero.primaryCta}
-                </Link>
-              </p>
-            </div>
-          </div>
-
-          {/* Printer's marks along the foot of the stage. */}
-          <div className="mark-label mt-14 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-line pt-5 text-ink-faint">
-            <KinshasaClock city={COPY.hero.clockCity} />
-            <a href="#modeles" className="inline-flex items-center gap-2 text-ink-soft transition-colors hover:text-ink">
-              <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand motion-reduce:animate-none" />
-              <Roll>{COPY.hero.scroll}</Roll>
-            </a>
-            <span>©{CURRENT_YEAR}</span>
           </div>
         </div>
       </div>
@@ -957,7 +921,7 @@ function SiteFooter() {
     <footer className="overflow-hidden">
       <div className={`grid grid-cols-2 gap-x-8 gap-y-12 pb-12 pt-20 sm:grid-cols-3 lg:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))] lg:gap-10 ${WRAP}`}>
         <div className="col-span-2 sm:col-span-3 lg:col-span-1">
-          <BrandLockup dark />
+          <BrandLockup />
           <p className="mt-5 max-w-[22rem] text-[0.875rem] leading-relaxed text-ink-soft">{COPY.footer.description}</p>
           <p className="mt-4 font-brand text-[1.375rem] text-brand">{COPY.footer.tagline}</p>
         </div>

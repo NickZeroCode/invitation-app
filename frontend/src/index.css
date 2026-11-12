@@ -409,34 +409,61 @@ html[data-intro='on'] .word-rise {
 }
 
 /*
- * The website ground — blue-black, pale blue-grey type, one lime accent.
- * Re-points the system tokens for the public site, and its typography:
- * Geist for reading and interface, Overused Grotesk for titles.
+ * The website ground — daylight. Warm stone paper, near-black ink, a
+ * vermilion accent taken from the wax seal; black pill actions. Re-points
+ * the system tokens for the public site, and its typography: Geist for
+ * reading and interface, Overused Grotesk for titles.
  */
 .theme-site {
-  --color-paper: #08090d;
-  --color-surface: #17191e;
-  --color-surface-muted: #1d2026;
-  --color-surface-sunken: #111318;
-  --color-ink: #cfdee5;
-  --color-ink-soft: #a7b3ba;
-  --color-ink-faint: #6c7479;
-  --color-line: #cfdee526;
-  --color-line-strong: #cfdee550;
-  --color-brand: #ecff3e;
-  --color-brand-strong: #d1e800;
-  --color-brand-soft: rgb(236 255 62 / 0.1);
-  --color-success: #00c13d;
-  --color-success-soft: rgb(0 193 61 / 0.14);
-  --color-malachite: #08090d;
-  --color-malachite-deep: #08090d;
-  --color-jade: #ecff3e;
-  --color-paper-on-dark: #cfdee5;
+  --color-paper: #f2f0eb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #e9e6e0;
+  --color-surface-sunken: #e3dfd8;
+  --color-ink: #0f1012;
+  --color-ink-soft: #55585c;
+  --color-ink-faint: #74777b;
+  --color-line: rgb(15 16 18 / 0.12);
+  --color-line-strong: rgb(15 16 18 / 0.22);
+  --color-brand: #c8432b;
+  --color-brand-strong: #a9351f;
+  --color-brand-soft: rgb(200 67 43 / 0.09);
+  --color-success: #067647;
+  --color-success-soft: #e6f4ec;
+  /* Dark-ground names, re-pointed to daylight values. */
+  --color-malachite: #f2f0eb;
+  --color-malachite-deep: #e9e6e0;
+  --color-jade: #c8432b;
+  --color-paper-on-dark: #0f1012;
   --font-brand: 'Overused Grotesk', 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
   --font-grotesk: 'Overused Grotesk', 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
   --font-label: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
   font-family: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
-  color-scheme: dark;
+  color-scheme: light;
+}
+
+/* Fine paper fibre over paper surfaces (cards, envelopes). */
+.paper-grain {
+  position: relative;
+}
+.paper-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.55;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.45  0 0 0 0 0.40  0 0 0 0 0.33  0 0 0 0.10 0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+}
+
+/* Daylight drifting across the still life. */
+@keyframes window-drift {
+  from {
+    transform: translate3d(-2%, -1%, 0) rotate(-1deg);
+  }
+  to {
+    transform: translate3d(3%, 2%, 0) rotate(1.5deg);
+  }
 }
 
 @layer components {
@@ -450,8 +477,8 @@ html[data-intro='on'] .word-rise {
   white-space: nowrap;
   border-radius: 1rem;
   padding-inline: 1.25rem;
-  background-color: #ecff3e;
-  color: #08090d;
+  background-color: #0f1012;
+  color: #f2f0eb;
   font-family: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
@@ -459,14 +486,14 @@ html[data-intro='on'] .word-rise {
   transition: background-color 150ms ease;
 }
 .btn-primary:hover {
-  background-color: #d1e800;
+  background-color: #2b2d31;
 }
 .btn-primary:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 4px rgb(236 255 62 / 0.35);
+  box-shadow: 0 0 0 4px rgb(15 16 18 / 0.18);
 }
 
-/* Dark glass with a 1px border that catches the light along its diagonal. */
+/* Frosted paper with a 1px border that catches the light along its diagonal. */
 .btn-outline {
   position: relative;
   display: inline-flex;
@@ -477,9 +504,9 @@ html[data-intro='on'] .word-rise {
   white-space: nowrap;
   border-radius: 1rem;
   padding-inline: 1.25rem;
-  background-image: linear-gradient(to top, #08090d40, #08090d80);
+  background-color: rgb(255 255 255 / 0.55);
   backdrop-filter: blur(4px);
-  color: #cfdee5;
+  color: #0f1012;
   font-family: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
@@ -494,7 +521,7 @@ html[data-intro='on'] .word-rise {
   border-radius: inherit;
   /* Twice the button's size: on hover it slides diagonally, so a band of
      light travels round the edge. */
-  background-image: linear-gradient(to top right, #cfdee500 0%, #cfdee580 25%, #cfdee500 50%, #cfdee580 75%, #cfdee500 100%);
+  background-image: linear-gradient(to top right, #0f101226 0%, #0f101299 25%, #0f101226 50%, #0f101299 75%, #0f101226 100%);
   background-size: 200% 200%;
   background-position: 0 100%;
   transition: background-position 600ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -504,7 +531,7 @@ html[data-intro='on'] .word-rise {
   pointer-events: none;
 }
 .btn-outline:hover {
-  color: #a7b3ba;
+  color: #55585c;
 }
 .btn-outline:hover::before {
   background-position: 100% 0;
@@ -516,7 +543,7 @@ html[data-intro='on'] .word-rise {
 }
 .btn-outline:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgb(207 222 229 / 0.3);
+  box-shadow: 0 0 0 3px rgb(15 16 18 / 0.15);
 }
 .btn-icon {
   width: 2.75rem;
@@ -532,26 +559,26 @@ html[data-intro='on'] .word-rise {
   justify-content: center;
   white-space: nowrap;
   border-radius: 9999px;
-  border: 1px solid #cfdee526;
+  border: 1px solid rgb(15 16 18 / 0.15);
   padding-inline: 0.75rem;
-  backdrop-filter: blur(12px);
-  color: #cfdee5;
+  background-color: rgb(255 255 255 / 0.5);
+  color: #0f1012;
   font-family: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
   transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
 }
 .tag:hover {
-  border-color: #cfdee550;
+  border-color: rgb(15 16 18 / 0.35);
 }
 .tag[aria-pressed='true'] {
-  border-color: #cfdee5;
-  background-color: #cfdee5;
-  color: #08090d;
+  border-color: #0f1012;
+  background-color: #0f1012;
+  color: #f2f0eb;
 }
 .tag:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgb(207 222 229 / 0.3);
+  box-shadow: 0 0 0 3px rgb(15 16 18 / 0.15);
 }
 
 /* Quiet text links that light up on hover. */
@@ -561,11 +588,11 @@ html[data-intro='on'] .word-rise {
   justify-content: center;
   border-radius: 1rem;
   padding: 0.75rem;
-  color: #cfdee5;
+  color: #0f1012;
   transition: background-color 150ms ease;
 }
 .btn-ghost:hover {
-  background-color: rgb(207 222 229 / 0.1);
+  background-color: rgb(15 16 18 / 0.06);
 }
 }
 

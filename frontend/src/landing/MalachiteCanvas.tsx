@@ -59,12 +59,12 @@ void main() {
 
   // Four flat greens, chosen per band; a pale vein where two bands meet.
   float pick = hash1(index);
-  vec3 c0 = vec3(0.031, 0.035, 0.051);
-  vec3 c1 = vec3(0.039, 0.043, 0.059);
-  vec3 c2 = vec3(0.047, 0.051, 0.071);
-  vec3 c3 = vec3(0.059, 0.067, 0.086);
+  vec3 c0 = vec3(0.925, 0.914, 0.894);
+  vec3 c1 = vec3(0.906, 0.890, 0.863);
+  vec3 c2 = vec3(0.886, 0.867, 0.835);
+  vec3 c3 = vec3(0.863, 0.839, 0.804);
   vec3 color = pick < 0.3 ? c0 : pick < 0.58 ? c1 : pick < 0.84 ? c2 : c3;
-  vec3 vein = vec3(0.110, 0.122, 0.145);
+  vec3 vein = vec3(0.812, 0.784, 0.737);
   float edge = 1.0 - smoothstep(0.0, 0.035, within);
   color = mix(color, vein, edge * step(0.55, hash1(index + 7.0)));
 

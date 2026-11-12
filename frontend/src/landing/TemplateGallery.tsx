@@ -262,7 +262,7 @@ export function TemplateGallery({
         <p
           ref={wordRef}
           aria-hidden="true"
-          className="pointer-events-none absolute left-[4%] top-1/2 -translate-y-1/2 statement whitespace-nowrap text-[clamp(6rem,21vw,20rem)] text-[#111318]"
+          className="pointer-events-none absolute left-[4%] top-1/2 -translate-y-1/2 statement whitespace-nowrap text-[clamp(6rem,21vw,20rem)] text-[#e6e2db]"
         >
           {backdropWord}
         </p>
